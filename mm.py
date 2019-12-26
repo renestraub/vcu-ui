@@ -40,7 +40,10 @@ class MM():
 class Modem():
     def __init__(self, id):
         self.id = id
-    
+
+    def reset(self):
+        subprocess.run(['mmcli', '-m', str(self.id), '-r'], stdout=subprocess.PIPE)
+
     def setup_signal_query(self):
         subprocess.run(['mmcli', '-m', str(self.id), '--signal-setup', '60'], stdout=subprocess.PIPE)
 

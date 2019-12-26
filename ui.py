@@ -55,9 +55,9 @@ def render_page(message = None):
 
     rx, tx = si.ifinfo('wwan0')
     if rx and tx:
-    rx = int(rx) / 1000000
-    tx = int(tx) / 1000000
-    tes.append(TE('wwan0', f'Rx {rx:.1f} MB<br>Tx {tx:.1f} MB'))
+        rx = int(rx) / 1000000
+        tx = int(tx) / 1000000
+        tes.append(TE('wwan0', f'Rx {rx:.1f} MB<br>Tx {tx:.1f} MB'))
 
 
     tes.append(TE('', ''))
@@ -112,6 +112,13 @@ def action():
         m.setup_signal_query()
 
         msg = 'Signal measurement enabled'
+
+    elif method == 'reset-modem':
+        m = MM.modem()
+        m.reset()
+        # m.setup_signal_query()
+
+        msg = 'Modem resetted'
 
     else:
         msg = None
