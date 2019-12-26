@@ -44,3 +44,10 @@ class SysInfo():
             txbytes = f.readline().strip()
 
         return rxbytes, txbytes
+
+    def temperature(self):
+        with open('/sys/class/hwmon/hwmon0/device/temp1_input') as f:
+            temp_in_milli_c = f.readline().strip()
+            return float(temp_in_milli_c) / 1000.0
+
+        

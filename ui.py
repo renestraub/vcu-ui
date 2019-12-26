@@ -47,7 +47,10 @@ def render_page(message = None):
     a, b, c = si.load()
     tes.append(TE('Load', f'{a}, {b}, {c}'))
 
+    temp = si.temperature()
+    tes.append(TE('Temperature', f'{temp:.0f} °C'))
 
+    tes.append(TE('', ''))
     tes.append(TE('Network', ''))
 
     rx, tx = si.ifinfo('wwan0')
@@ -56,10 +59,11 @@ def render_page(message = None):
     tes.append(TE('wwan0', f'Rx {rx:.1f} MB<br>Tx {tx:.1f} MB'))
 
 
-    tes.append(TE('Mobile Id', ''))
+    tes.append(TE('', ''))
+    tes.append(TE('Mobile', ''))
 
     m = MM.modem()
-    tes.append(TE('Modem', str(m.id)))
+    tes.append(TE('Modem Id', str(m.id)))
 
     state = m.state()
     tes.append(TE('State', state))
@@ -71,6 +75,7 @@ def render_page(message = None):
     tes.append(TE('Signal LTE', f'{a} dBm<br>{b} dBm'))
 
 
+    tes.append(TE('', ''))
     b = m.bearer()
     tes.append(TE('Bearer Id', str(b.id)))
     ut = b.uptime()
