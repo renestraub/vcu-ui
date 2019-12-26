@@ -17,9 +17,10 @@
         %for entry in data:
         <tr>
             <td style="width:25%">{{entry.header}}</td>
-            <td style="width:75%">{{entry.text}}</td>
+            <td style="width:75%">{{!entry.text}}</td>
         </tr>
         %end
+
         </table>
 
         <p></p>

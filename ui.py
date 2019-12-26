@@ -42,7 +42,7 @@ def render_page(message = None):
     tes.append(TE('Version', ver))
 
     total, free = si.meminfo()
-    tes.append(TE('Memory', f'Total {total} kB, Free {free} kB'))
+    tes.append(TE('Memory', f'Total {total} kB<br>Free {free} kB'))
 
     a, b, c = si.load()
     tes.append(TE('Load', f'{a}, {b}, {c}'))
@@ -53,10 +53,10 @@ def render_page(message = None):
     rx, tx = si.ifinfo('wwan0')
     rx = int(rx) / 1000000
     tx = int(tx) / 1000000
-    tes.append(TE('wwan0', f'Rx: {rx:.1f} MB, Tx {tx:.1f} MB'))
+    tes.append(TE('wwan0', f'Rx {rx:.1f} MB<br>Tx {tx:.1f} MB'))
 
 
-    tes.append(TE('Mobile', ''))
+    tes.append(TE('Mobile Id', ''))
 
     m = MM.modem()
     tes.append(TE('Modem', str(m.id)))
@@ -68,11 +68,11 @@ def render_page(message = None):
     tes.append(TE('Signal', f'{sq} %'))
 
     a, b = m.signal_lte()
-    tes.append(TE('Signal LTE', f'{a} dBm {b} dBm'))
+    tes.append(TE('Signal LTE', f'{a} dBm<br>{b} dBm'))
 
 
     b = m.bearer()
-    tes.append(TE('Bearer', str(b.id)))
+    tes.append(TE('Bearer Id', str(b.id)))
     ut = b.uptime()
     uth, utm = secs_to_hhmm(ut)
     tes.append(TE('Uptime', f'{uth}:{utm:02}'))
