@@ -30,10 +30,11 @@
             <button class="button" type="submit" name="method" value="refresh">Refresh</button>
         </form>
 -->
-        <button class="button" onClick="window.location.reload();">Refresh Page</button>
+        <button class="button" onClick="window.location.href = '/info'">Refresh Page</button>
         <p></p>
         <form action="/action" method="POST">
             <button class="button" type="submit" name="method" value="signal-query">Enable Signal Measurement</button>
+            <button class="button" type="submit" name="method" value="reset-modem">Reset Modem</button>
         </form>
     </body>
 
