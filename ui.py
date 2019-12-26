@@ -54,6 +54,7 @@ def render_page(message = None):
     tes.append(TE('Network', ''))
 
     rx, tx = si.ifinfo('wwan0')
+    if rx and tx:
     rx = int(rx) / 1000000
     tx = int(tx) / 1000000
     tes.append(TE('wwan0', f'Rx {rx:.1f} MB<br>Tx {tx:.1f} MB'))
@@ -63,26 +64,31 @@ def render_page(message = None):
     tes.append(TE('Mobile', ''))
 
     m = MM.modem()
-    tes.append(TE('Modem Id', str(m.id)))
+    if m:
+        tes.append(TE('Modem Id', str(m.id)))
 
-    state = m.state()
-    tes.append(TE('State', state))
+        state = m.state()
+        tes.append(TE('State', state))
 
-    sq = m.signal()
-    tes.append(TE('Signal', f'{sq} %'))
+        sq = m.signal()
+        tes.append(TE('Signal', f'{sq} %'))
 
-    a, b = m.signal_lte()
-    tes.append(TE('Signal LTE', f'{a} dBm<br>{b} dBm'))
+        a, b = m.signal_lte()
+        if a and b:
+            tes.append(TE('Signal LTE', f'{a} dBm<br>{b} dBm'))
 
-
-    tes.append(TE('', ''))
-    b = m.bearer()
-    tes.append(TE('Bearer Id', str(b.id)))
-    ut = b.uptime()
-    uth, utm = secs_to_hhmm(ut)
-    tes.append(TE('Uptime', f'{uth}:{utm:02}'))
-    ip = b.ip()
-    tes.append(TE('IP', ip))
+        tes.append(TE('', ''))
+        b = m.bearer()
+        if b:        
+            tes.append(TE('Bearer Id', str(b.id)))
+            ut = b.uptime()
+            if ut:
+                uth, utm = secs_to_hhmm(ut)
+                tes.append(TE('Uptime', f'{uth}:{utm:02} h'))
+                ip = b.ip()
+                tes.append(TE('IP', ip))
+    else:
+        tes.append(TE('Modem Id', 'No Modem'))
 
     output = template('info', data=tes, message=message)
     return output

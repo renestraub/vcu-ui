@@ -6,7 +6,8 @@ class MM():
     @staticmethod
     def modem():
         id = MM._id()
-        return Modem(id)
+        if id != None: 
+            return Modem(id)
 
     @staticmethod
     def _id():
@@ -17,6 +18,8 @@ class MM():
             if 'modem-list.value[1]' in l:
                 id = MM.last_id(l)
                 return int(id)
+
+        return None
 
     @staticmethod
     def parseline(line):
@@ -63,9 +66,11 @@ class Modem():
             k, v = MM.parseline(l)
             # print(k, v)
             if k == 'modem.signal.lte.rsrp':
-                rsrp = float(v)
+                if v != '--':
+                    rsrp = float(v)
             elif k == 'modem.signal.lte.rsrq':
-                rsrq = float(v)
+                if v != '--':
+                    rsrq = float(v)
 
         return rsrp, rsrq
 
@@ -77,6 +82,8 @@ class Modem():
                 id = MM.last_id(v)
                 # print(f'bearer {id}')
                 return Bearer(int(id))
+
+        return None
 
     def _info(self, extra = None):
         cmd = ['mmcli', '-K', '-m', str(self.id)]
@@ -99,7 +106,8 @@ class Bearer():
         for l in lines:
             k, v = MM.parseline(l)
             if k == 'bearer.stats.duration':
-                return int(v)
+                if v != '--':
+                   return int(v)
 
     def ip(self):
         lines = self._info()

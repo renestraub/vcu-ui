@@ -35,13 +35,17 @@ class SysInfo():
         return res
 
     def ifinfo(self, name):
-        path = f'/sys/class/net/{name}/statistics/rx_bytes'
-        with open(path) as f:
-            rxbytes = f.readline().strip()
+        try:
+            path = f'/sys/class/net/{name}/statistics/rx_bytes'
+            with open(path) as f:
+                rxbytes = f.readline().strip()
 
-        path = f'/sys/class/net/{name}/statistics/tx_bytes'
-        with open(path) as f:
-            txbytes = f.readline().strip()
+            path = f'/sys/class/net/{name}/statistics/tx_bytes'
+            with open(path) as f:
+                txbytes = f.readline().strip()
+
+        except FileNotFoundError:
+            rxbytes, txbytes = None, None
 
         return rxbytes, txbytes
 
