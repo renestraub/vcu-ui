@@ -61,6 +61,9 @@ tr:hover { background-color: #ddd; }
     transition-duration: 0.4s;
 }
 
+.button_orange { background-color: #eb7f2c; } /* Red */ 
+
+
 .button:hover {
     background-color: #4CAF50;
     color: white;
