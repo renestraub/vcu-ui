@@ -22,6 +22,13 @@ class TE():
         self.text = text
 
 
+def secs_to_hhmm(secs):
+    t = int(secs / 60)
+    h = int(t / 60)
+    m = int(t % 60)
+    return h, m
+
+
 def render_page(message = None):
     tes = list()
 
@@ -67,7 +74,8 @@ def render_page(message = None):
     b = m.bearer()
     tes.append(TE('Bearer', str(b.id)))
     ut = b.uptime()
-    tes.append(TE('Uptime', ut))
+    uth, utm = secs_to_hhmm(ut)
+    tes.append(TE('Uptime', f'{uth}:{utm:02}'))
     ip = b.ip()
     tes.append(TE('IP', ip))
 
@@ -77,7 +85,7 @@ def render_page(message = None):
 
 # Static CSS Files
 # @route('/static/css/<filename:re:.*\.css>')
-@route('<filename:re:.*\.css>')
+@route(r'<filename:re:.*\.css>')
 def send_css(filename):
     return static_file(filename, root='')
 

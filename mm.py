@@ -99,7 +99,7 @@ class Bearer():
         for l in lines:
             k, v = MM.parseline(l)
             if k == 'bearer.stats.duration':
-                return v
+                return int(v)
 
     def ip(self):
         lines = self._info()
