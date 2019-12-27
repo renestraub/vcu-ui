@@ -1,0 +1,7 @@
+#!/bin/sh
+ 
+echo "starting vcu ui"
+ 
+python3 /home/root/prj/vcu-ui/ui.py
+
+echo done
