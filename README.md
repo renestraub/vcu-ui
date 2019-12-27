@@ -31,7 +31,7 @@ Description=VCU Pro Minimal WebUI
 [Service]
 Type=simple
 ExecStart=/usr/bin/vcu-ui-start
-PIDFile=/var/run/vcu-ui.pid
+PIDFile=/run/vcu-ui.pid
  
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
