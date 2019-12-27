@@ -4,11 +4,11 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="VCU Pro UI",
-    version="0.0.1",
+    name="vcu-ui",
+    version="0.0.5",
     author="Rene Straub",
     author_email="straub@see5.com",
-    description="VCU Pro Basic UI",
+    description="VCU Pro Web UI",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/renestraub/vcu-ui",
@@ -22,5 +22,10 @@ setuptools.setup(
     install_requires=['bottle'],
     package_data={
         '': ['*.css', '*.tpl'],
+    },
+    entry_points={
+        'console_scripts': [
+            'vcu-ui-start = vcuui:run_server'
+        ]
     }
 )

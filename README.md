@@ -1,30 +1,47 @@
 # VCU UI
 
-VCU Pro minimal Web UI displays useful status information and allows maintenance actions.
-
-The UI is built on top of the Bottle Python webserver. 
+A minimal Web user interface for VCU Pro based on bottle. It displays useful status information and allows maintenance actions.
 
 
-## Installation
+## Run from Python
 
-Install Bottle 
+```python
+import vcuui
 
-```bash
-pip3 install bottle
+vcuui.run_server(port=888)
 ```
 
-Copy the run script `vcu-ui` to `/usr/bin` and make it executable
+## Run from Shell
+
+The following start script is automatically created when this package is installed.
 
 ```bash
-cp vcu-ui /usr/bin/vcu-ui
-chmod +x /usr/bin/vcu-ui
+vcu-ui-start
 ```
 
-Copy the service ```vcu-ui.service``` file to ```/usr/lib/systemd/system/vcu-ui.service```.
 
-```bash
-cp vcu-ui.service /usr/lib/systemd/system/vcu-ui.service
+## Installation as systemd service
+
+Create the following service file ```vcu-ui.service``` in ```/usr/lib/systemd/system/vcu-ui.service```.
+
 ```
+[Unit]
+Description=VCU Pro Minimal WebUI
+ 
+[Service]
+Type=simple
+ExecStart=/usr/bin/vcu-ui-start
+PIDFile=/var/run/vcu-ui.pid
+ 
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=10
+ 
+[Install]
+WantedBy=multi-user.target
+```
+
+Manage the service with the following systemd commands.
 
 ```bash
 systemctl daemon-reload     # Tell systemd to search for new services

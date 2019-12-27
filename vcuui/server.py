@@ -1,16 +1,25 @@
-#!/usr/bin/python3
-
 """
-Minimal Web UI for VCU
+Minimal Web UI for VCU automotive gateway
 
 Uses bootle webserver in single thread mode
-
-pip3 install bottle
 """
 
-from bottle import route, run, post, template, static_file, request
-from mm import MM
-from sysinfo import SysInfo
+import os
+import bottle
+from bottle import run, post, request, route
+from bottle import static_file, template
+
+from .mm import MM
+from .sysinfo import SysInfo
+
+
+# Init section
+path = os.path.abspath(__file__)
+module_path = os.path.dirname(path)
+# print(module_path)
+print(f'Running server from {module_path}')
+bottle.TEMPLATE_PATH.insert(0, module_path)
+
 
 
 class TE():
@@ -98,7 +107,8 @@ def render_page(message = None):
 # @route('/static/css/<filename:re:.*\.css>')
 @route(r'<filename:re:.*\.css>')
 def send_css(filename):
-    return static_file(filename, root='')
+    return static_file(filename, root=module_path)
+
 
 # Action handler
 @post('/action')
@@ -125,6 +135,7 @@ def action():
 
     return render_page(msg)
 
+
 # Mainpage
 @route('/')
 @route('/info')
@@ -132,4 +143,11 @@ def info():
     return render_page()
 
 
-run(host='0.0.0.0', port=80, debug=True, reloader=True)
+def run_server(port=80):
+    # run(host='0.0.0.0', port=port, debug=True, reloader=True)
+    run(host='0.0.0.0', port=port, debug=True)
+
+
+# Can be invoked with python3 -m vcuui.ui
+if __name__ == "__main__":
+    run_server()
