@@ -13,3 +13,7 @@ python3 -m twine upload dist/*
 
 # Local run of package
 python3 -m vcuui.ui
+
+
+python3 -m pip install vcu-ui
+python3 -m pip install vcu-ui --upgrade
