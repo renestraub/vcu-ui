@@ -9,31 +9,94 @@ class MM():
             return Modem(id)
 
     @staticmethod
+    def command(cmd):
+        cp = subprocess.run(cmd, stdout=subprocess.PIPE)
+        stdout = cp.stdout.decode()
+        return MmResult(stdout)
+
+    @staticmethod
     def _id():
-        cp = subprocess.run(['mmcli', '-L', '-K'], stdout=subprocess.PIPE)
-        res = cp.stdout.decode()
-        lines = res.split('\n')
-        for l in lines:
-            if 'modem-list.value[1]' in l:
-                id = MM.last_id(l)
+        mmr = MM.command(['mmcli', '-K', '-L'])
+        return mmr.id('modem-list.value[1]')
+
+
+class MmResult():
+    def __init__(self, stdout):
+        lines = stdout.split('\n')
+        self.items = MmResult._to_dict(lines)
+
+    def id(self, name):
+        if not self._exists(name):
+            return None
+        line = self.items[name]
+        if line:
+            id = line[line.rfind('/')+1:]
+            try:
                 return int(id)
+            except ValueError:
+                return None
 
-        return None
+    def text(self, name):
+        if not self._exists(name):
+            return None
+        val = self.items[name]
+        return val
+
+    def dec(self, name):
+        if not self._exists(name):
+            return None
+        # Check for '--'
+        val = self.items[name]
+        try:
+            return int(val)
+        except ValueError:
+            return None
+
+    def hex(self, name):
+        if not self._exists(name):
+            return None
+        val = self.items[name]
+        try:
+            return int(val, base=16)
+        except ValueError:
+            return None
+
+    def number(self, name):
+        if not self._exists(name):
+            return None
+        val = self.items[name]
+        try:
+            return float(val)
+        except ValueError:
+            return None
+
+    def _exists(self, name):
+        return name in self.items
 
     @staticmethod
-    def parseline(line):
+    def _to_dict(lines):
+        res = dict()
+        for line in lines:
+            k, v = MmResult._parseline(line)
+            res[k] = v
+
+        return res
+
+    @staticmethod
+    def _parseline(line):
+        """Split modem manager output lines
+
+        Output format is as here
+        modem-list.value[1] : /org/freedesktop/ModemManager1/Modem/0
+        """
+        k, v = None, None
         t = line.split()
-        if len(t) >= 2:
+        if len(t) >= 1:
             k = t[0]
+        if len(t) >= 3:
             v = t[2]
-            return k, v
 
-        return '', ''
-
-    @staticmethod
-    def last_id(line):
-        id = line[line.rfind('/')+1:]
-        return int(id)
+        return k, v
 
 
 class Modem():
@@ -53,76 +116,52 @@ class Modem():
                        stdout=subprocess.PIPE)
 
     def state(self):
-        lines = self._info()
-        for l in lines:
-            k, v = MM.parseline(l)
-            if k == 'modem.generic.state':
-                return v
+        mmr = self._info()
+        return mmr.text('modem.generic.state')
+
+    def access_tech(self):
+        mmr = self._info()
+        return mmr.text('modem.generic.access-technologies.value[1]')
 
     def signal(self):
-        lines = self._info()
-        for l in lines:
-            k, v = MM.parseline(l)
-            if k == 'modem.generic.signal-quality.value':
-                return v
+        mmr = self._info()
+        return mmr.dec('modem.generic.signal-quality.value')
 
     def signal_lte(self):
-        rsrp, rsrq = None, None
+        res = dict()
+        mmr = self._info('--signal-get')
+        res['rsrp'] = mmr.number('modem.signal.lte.rsrp')
+        res['rsrq'] = mmr.number('modem.signal.lte.rsrq')
+        return res
 
-        lines = self._info('--signal-get')
-        for l in lines:
-            k, v = MM.parseline(l)
-            # print(k, v)
-            if k == 'modem.signal.lte.rsrp':
-                if v != '--':
-                    rsrp = float(v)
-            elif k == 'modem.signal.lte.rsrq':
-                if v != '--':
-                    rsrq = float(v)
-
-        return rsrp, rsrq
+    def signal_umts(self):
+        res = dict()
+        mmr = self._info('--signal-get')
+        res['rscp'] = mmr.number('modem.signal.umts.rscp')
+        res['ecio'] = mmr.number('modem.signal.umts.ecio')
+        return res
 
     def location(self):
-        mcc, mnc, lac, cid = None, None, None, None
-        lines = self._info('--location-get')
-        for l in lines:
-            k, v = MM.parseline(l)
-            if k == 'modem.location.3gpp.mcc':
-                if v != '--':
-                    mcc = int(v)
-            if k == 'modem.location.3gpp.mnc':
-                if v != '--':
-                    mnc = int(v)
-            if k == 'modem.location.3gpp.tac':
-                if v != '--':
-                    lac = int(v, base=16)
-            if k == 'modem.location.3gpp.cid':
-                if v != '--':
-                    cid = int(v, base=16)
-
-        return {'mcc': mcc, 'mnc': mnc, 'lac': lac, 'cid': cid}
+        res = dict()
+        mmr = self._info('--location-get')
+        res['mcc'] = mmr.dec('modem.location.3gpp.mcc')
+        res['mnc'] = mmr.dec('modem.location.3gpp.mnc')
+        res['lac'] = mmr.hex('modem.location.3gpp.tac')
+        res['cid'] = mmr.hex('modem.location.3gpp.cid')
+        return res
 
     def bearer(self):
-        lines = self._info()
-        for l in lines:
-            k, v = MM.parseline(l)
-            if k == 'modem.generic.bearers.value[1]':
-                id = MM.last_id(v)
-                # print(f'bearer {id}')
-                return Bearer(int(id))
-
-        return None
+        mmr = self._info()
+        bid = mmr.id('modem.generic.bearers.value[1]')
+        if bid:
+            return Bearer(int(bid))
 
     def _info(self, extra=None):
         cmd = ['mmcli', '-K', '-m', str(self.id)]
         if extra:
             cmd.append(extra)
 
-        # print(cmd)
-        cp = subprocess.run(cmd, stdout=subprocess.PIPE)
-        res = cp.stdout.decode()
-        lines = res.split('\n')
-        return lines
+        return MM.command(cmd)
 
 
 class Bearer():
@@ -130,27 +169,13 @@ class Bearer():
         self.id = id
 
     def uptime(self):
-        lines = self._info()
-        for l in lines:
-            k, v = MM.parseline(l)
-            if k == 'bearer.stats.duration':
-                if v != '--':
-                    return int(v)
+        mmr = self._info()
+        return mmr.dec('bearer.stats.duration')
 
     def ip(self):
-        lines = self._info()
-        for l in lines:
-            k, v = MM.parseline(l)
-            if k == 'bearer.ipv4-config.address':
-                return v
+        mmr = self._info()
+        return mmr.text('bearer.ipv4-config.address')
 
-    def _info(self, extra=None):
+    def _info(self):
         cmd = ['mmcli', '-K', '-b', str(self.id)]
-        if extra:
-            cmd.append(extra)
-
-        # print(cmd)
-        cp = subprocess.run(cmd, stdout=subprocess.PIPE)
-        res = cp.stdout.decode()
-        lines = res.split('\n')
-        return lines
+        return MM.command(cmd)
