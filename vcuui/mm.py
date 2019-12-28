@@ -1,4 +1,3 @@
-import re
 import subprocess
 
 
@@ -6,7 +5,7 @@ class MM():
     @staticmethod
     def modem():
         id = MM._id()
-        if id != None: 
+        if id is not None:
             return Modem(id)
 
     @staticmethod
@@ -42,10 +41,12 @@ class Modem():
         self.id = id
 
     def reset(self):
-        subprocess.run(['mmcli', '-m', str(self.id), '-r'], stdout=subprocess.PIPE)
+        subprocess.run(['mmcli', '-m', str(self.id), '-r'],
+                       stdout=subprocess.PIPE)
 
     def setup_signal_query(self):
-        subprocess.run(['mmcli', '-m', str(self.id), '--signal-setup', '60'], stdout=subprocess.PIPE)
+        subprocess.run(['mmcli', '-m', str(self.id), '--signal-setup', '60'],
+                       stdout=subprocess.PIPE)
 
     def state(self):
         lines = self._info()
@@ -88,7 +89,7 @@ class Modem():
 
         return None
 
-    def _info(self, extra = None):
+    def _info(self, extra=None):
         cmd = ['mmcli', '-K', '-m', str(self.id)]
         if extra:
             cmd.append(extra)
@@ -110,7 +111,7 @@ class Bearer():
             k, v = MM.parseline(l)
             if k == 'bearer.stats.duration':
                 if v != '--':
-                   return int(v)
+                    return int(v)
 
     def ip(self):
         lines = self._info()
@@ -119,7 +120,7 @@ class Bearer():
             if k == 'bearer.ipv4-config.address':
                 return v
 
-    def _info(self, extra = None):
+    def _info(self, extra=None):
         cmd = ['mmcli', '-K', '-b', str(self.id)]
         if extra:
             cmd.append(extra)

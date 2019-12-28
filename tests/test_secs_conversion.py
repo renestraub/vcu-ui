@@ -1,10 +1,11 @@
-import pytest
+# import pytest
 
-from vcuui.server import secs_to_hhmm as secs_to_hhmm
+from vcuui.tools import secs_to_hhmm
+
 
 class TestSecondsConversion:
     def test_one(self):
-        h, m = secs_to_hhmm(59)
+        h, m = secs_to_hhmm(0)
         assert h == 0
         assert m == 0
 
@@ -24,6 +25,16 @@ class TestSecondsConversion:
         assert m == 0
 
     def test_5(self):
-        h, m = secs_to_hhmm(86400-1)
+        h, m = secs_to_hhmm(86400-31)
         assert h == 23
         assert m == 59
+
+    def test_rounding_1(self):
+        h, m = secs_to_hhmm(29)
+        assert h == 0
+        assert m == 0
+
+    def test_rounding_2(self):
+        h, m = secs_to_hhmm(30)
+        assert h == 0
+        assert m == 1
