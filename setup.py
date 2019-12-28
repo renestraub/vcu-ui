@@ -1,11 +1,14 @@
 import setuptools
+from vcuui._version import __version__ as version
+
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+
 setuptools.setup(
     name="vcu-ui",
-    version="0.0.7",
+    version=version,
     author="Rene Straub",
     author_email="straub@see5.com",
     description="VCU Pro Web UI",
@@ -14,7 +17,7 @@ setuptools.setup(
     url="https://github.com/renestraub/vcu-ui",
     packages=setuptools.find_packages(),
     classifiers=[
-        "Programming Language :: Python :: 3",
+        'Programming Language :: Python :: 3.7',
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],

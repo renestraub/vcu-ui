@@ -9,17 +9,18 @@ import bottle
 from bottle import run, post, request, route
 from bottle import static_file, template
 
+from vcuui._version import __version__ as version
 from .mm import MM
 from .sysinfo import SysInfo
 
 
 # Init section
+print(f'Welcome to VCU-UI v{version}')
+
 path = os.path.abspath(__file__)
 module_path = os.path.dirname(path)
-# print(module_path)
 print(f'Running server from {module_path}')
 bottle.TEMPLATE_PATH.insert(0, module_path)
-
 
 
 class TE():
@@ -126,7 +127,6 @@ def action():
     elif method == 'reset-modem':
         m = MM.modem()
         m.reset()
-        # m.setup_signal_query()
 
         msg = 'Modem resetted'
 
