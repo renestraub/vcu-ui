@@ -3,9 +3,14 @@
 python3 -m pip install -e .
 python3 -m pip uninstall vcu-ui
 
-# Distribution to test.pypi
+# Distribution to test.pypi, pypi
 python3 setup.py sdist
+
 python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+python3 -m twine upload --repository testpypi dist/*
+
+python3 -m twine upload dist/*
+
 
 # Local run of package
 python3 -m vcuui.ui

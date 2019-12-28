@@ -1,4 +1,9 @@
-## VCU UI
+## VCU Pro User Interface
+
+![System](https://img.shields.io/badge/system-VCU%20Pro-blue)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/vcu-ui)
+![PyPI](https://img.shields.io/pypi/v/vcu-ui)
+
 
 ### Introduction
 
