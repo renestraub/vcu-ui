@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="vcu-ui",
-    version="0.0.6",
+    version="0.0.7",
     author="Rene Straub",
     author_email="straub@see5.com",
     description="VCU Pro Web UI",

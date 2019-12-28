@@ -1,9 +1,37 @@
-# VCU UI
+## VCU UI
 
-A minimal Web user interface for VCU Pro based on bottle. It displays useful status information and allows maintenance actions.
+### Introduction
+
+A minimal Web user interface for VCU Pro based on bottle. It displays important status information and allows basic maintenance actions. Written in python, based on bottle webserver.
 
 
-## Run from Python
+### Features
+
+* Display of most important system information
+* Restart of GSM modem
+
+
+
+### Preview
+
+![Info](https://github.com/renestraub/vcu-ui/raw/master/preview/info.png)
+
+
+### Requirements
+
+* VCU Pro Hardware with developer image installed
+* Python 3.7+
+
+
+
+### Quickstart
+
+1. Install the module with `pip install vcu-ui`
+1. Start webserver from shell `vcu-ui-start`
+1. Open the website with your browser `10.42.0.1`
+
+
+#### Run from Python
 
 ```python
 import vcuui
@@ -11,16 +39,8 @@ import vcuui
 vcuui.run_server(port=888)
 ```
 
-## Run from Shell
 
-The following start script is automatically created when this package is installed.
-
-```bash
-vcu-ui-start
-```
-
-
-## Installation as systemd service
+#### Installation as systemd service
 
 Create the following service file ```vcu-ui.service``` in ```/usr/lib/systemd/system/vcu-ui.service```.
 
@@ -49,3 +69,8 @@ systemctl enable vcu-ui     # Enable service for next startup
 
 systemctl start vcu-ui      # Start service right now
 ```
+
+### Tips
+
+* Check ...
+
