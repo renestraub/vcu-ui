@@ -63,7 +63,8 @@ def render_page(message=None, console=None):
         tes.append(TE('Modem Id', str(m.id)))
 
         state = m.state()
-        tes.append(TE('State', state))
+        access_tech = m.access_tech()
+        tes.append(TE('State', f'{state}, {access_tech}'))
 
         loc_info = m.location()
         if loc_info['mcc']:
@@ -72,9 +73,12 @@ def render_page(message=None, console=None):
         sq = m.signal()
         tes.append(TE('Signal', f'{sq} %'))
 
-        a, b = m.signal_lte()
-        if a and b:
-            tes.append(TE('Signal LTE', f'{a} dBm<br>{b} dBm'))
+        if access_tech == 'lte':
+            sig = m.signal_lte()
+            tes.append(TE('Signal LTE', f'{sig}'))
+        elif access_tech == 'umts':
+            sig = m.signal_umts()
+            tes.append(TE('Signal UMTS', f'{sig}'))
 
         tes.append(TE('', ''))
         b = m.bearer()
