@@ -45,4 +45,6 @@
     <p>Status: {{message}}</p>
 %end
 
+    <p>Version: v{{version}}</p>
+
 </html>

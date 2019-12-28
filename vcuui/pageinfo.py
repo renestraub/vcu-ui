@@ -3,7 +3,7 @@ Info Page
 """
 from bottle import template
 
-# from vcuui._version import __version__ as version
+from vcuui._version import __version__ as version
 from vcuui.tools import secs_to_hhmm
 from vcuui.mm import MM
 from vcuui.sysinfo import SysInfo
@@ -78,6 +78,6 @@ def render_page(message=None):
     else:
         tes.append(TE('Modem Id', 'No Modem'))
 
-    output = template('info', data=tes, message=message)
+    output = template('info', data=tes, message=message, version=version)
 
     return output
