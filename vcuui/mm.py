@@ -48,6 +48,10 @@ class Modem():
         subprocess.run(['mmcli', '-m', str(self.id), '--signal-setup', '60'],
                        stdout=subprocess.PIPE)
 
+    def setup_location_query(self):
+        subprocess.run(['mmcli', '-m', str(self.id), '--location-enable-3gpp'],
+                       stdout=subprocess.PIPE)
+
     def state(self):
         lines = self._info()
         for l in lines:
@@ -77,6 +81,26 @@ class Modem():
                     rsrq = float(v)
 
         return rsrp, rsrq
+
+    def location(self):
+        mcc, mnc, lac, cid = None, None, None, None
+        lines = self._info('--location-get')
+        for l in lines:
+            k, v = MM.parseline(l)
+            if k == 'modem.location.3gpp.mcc':
+                if v != '--':
+                    mcc = int(v)
+            if k == 'modem.location.3gpp.mnc':
+                if v != '--':
+                    mnc = int(v)
+            if k == 'modem.location.3gpp.tac':
+                if v != '--':
+                    lac = int(v, base=16)
+            if k == 'modem.location.3gpp.cid':
+                if v != '--':
+                    cid = int(v, base=16)
+
+        return {'mcc': mcc, 'mnc': mnc, 'lac': lac, 'cid': cid}
 
     def bearer(self):
         lines = self._info()

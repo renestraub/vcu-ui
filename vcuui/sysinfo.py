@@ -53,3 +53,13 @@ class SysInfo():
         with open('/sys/class/hwmon/hwmon0/device/temp1_input') as f:
             temp_in_milli_c = f.readline().strip()
             return float(temp_in_milli_c) / 1000.0
+
+    def input_voltage(self):
+        with open('/sys/class/hwmon/hwmon0/device/in1_input') as f:
+            adc_millivolts = f.readline().strip()
+            return float(adc_millivolts) / 1000.0 * 15.0
+
+    def rtc_voltage(self):
+        with open('/sys/class/hwmon/hwmon0/device/in4_input') as f:
+            adc_millivolts = f.readline().strip()
+            return float(adc_millivolts) / 1000.0

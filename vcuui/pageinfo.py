@@ -18,9 +18,10 @@ class TE(object):
         self.text = text
 
 
-def render_page(message=None):
+def render_page(message=None, console=None):
     tes = list()
 
+    # General System Information
     si = SysInfo()
     tes.append(TE('System', ''))
 
@@ -39,6 +40,11 @@ def render_page(message=None):
     temp = si.temperature()
     tes.append(TE('Temperature', f'{temp:.0f} °C'))
 
+    v_in = si.input_voltage()
+    v_rtc = si.rtc_voltage()
+    tes.append(TE('Voltages', f'Input: {v_in:.1f} V, RTC: {v_rtc:.2f} V'))
+
+    # Network Information
     tes.append(TE('', ''))
     tes.append(TE('Network', ''))
 
@@ -51,12 +57,17 @@ def render_page(message=None):
     tes.append(TE('', ''))
     tes.append(TE('Mobile', ''))
 
+    # Modem Information
     m = MM.modem()
     if m:
         tes.append(TE('Modem Id', str(m.id)))
 
         state = m.state()
         tes.append(TE('State', state))
+
+        loc_info = m.location()
+        if loc_info['mcc']:
+            tes.append(TE('Cell', loc_info))
 
         sq = m.signal()
         tes.append(TE('Signal', f'{sq} %'))
@@ -78,6 +89,10 @@ def render_page(message=None):
     else:
         tes.append(TE('Modem Id', 'No Modem'))
 
-    output = template('info', data=tes, message=message, version=version)
+    output = template('info',
+                      data=tes,
+                      message=message,
+                      console=console,
+                      version=version)
 
     return output

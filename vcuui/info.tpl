@@ -36,15 +36,24 @@
         <p></p>
         <form action="/action" method="POST">
             <button class="button" type="submit" name="method" value="signal-query">Enable Signal Measurement</button>
+            <button class="button" type="submit" name="method" value="location-query">Enable 3GPP Location</button>
+            <button class="button" type="submit" name="method" value="ping">Test Ping</button>
+            <p></p>
             <button class="button button_orange" type="submit" name="method" value="reset-modem">Reset Modem</button>
         </form>
     </body>
 
-
 %if message:
     <p>Status: {{message}}</p>
 %end
+%if console:
+    <p></p>
+    <div id="console">
+        <pre>
+{{console}}
+        </pre>
+    </div>
+%end
 
     <p>Version: v{{version}}</p>
-
 </html>
