@@ -3,6 +3,7 @@
 ![System](https://img.shields.io/badge/system-VCU%20Pro-blue)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/vcu-ui)
 ![PyPI](https://img.shields.io/pypi/v/vcu-ui)
+[![Build Status](https://www.travis-ci.org/renestraub/vcu-ui.svg?branch=master)](https://www.travis-ci.org/renestraub/vcu-ui)
 
 
 ### Introduction
