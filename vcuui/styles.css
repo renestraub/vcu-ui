@@ -1,8 +1,8 @@
 body {
-    background-color: rgb(67, 165, 198);
+    background-color: white;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 90%;
-    color: white
+    color: black;
 }
 
 /*
@@ -14,14 +14,13 @@ h1 {
 
 p {
     text-align: left; 
-/*    color: white; */
+/*    color: black; */
 }
-
 
 table {
     width: 100%;
     border-collapse: collapse;
-    color: black
+    color: black;
 }
 
 th {
@@ -39,7 +38,8 @@ td {
     overflow: hidden;
     vertical-align: top;
     border: 1px solid rgb(0, 48, 84);
-    padding: 6px;
+    padding: 3px;
+    padding-left: 6px;
 }
 
 tr:nth-child(even) { background-color: #f2f2f2; }
@@ -61,8 +61,7 @@ tr:hover { background-color: #ddd; }
     transition-duration: 0.4s;
 }
 
-.button_orange { background-color: #eb7f2c; } /* Red */ 
-
+.button_orange { background-color: #eb7f2c; }
 
 .button:hover {
     background-color: #4CAF50;

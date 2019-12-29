@@ -18,6 +18,21 @@ class TE(object):
         self.text = text
 
 
+def nice(items, data, linebreak=False):
+    res = ''
+    for i in items:
+        key, header, unit = i
+        val = data[key]
+        if res != '':
+            if linebreak:
+                res += '</br>'
+            else:
+                res += ', '
+        res += f'{header}: {val} {unit}'
+
+    return res
+
+
 def render_page(message=None, console=None):
     tes = list()
 
@@ -68,17 +83,28 @@ def render_page(message=None, console=None):
 
         loc_info = m.location()
         if loc_info['mcc']:
-            tes.append(TE('Cell', loc_info))
+            text = nice([('mcc', 'MCC', ''),
+                         ('mnc', 'MNC', ''),
+                         ('lac', 'LAC', ''),
+                         ('cid', 'CID', '')],
+                        loc_info)
+            tes.append(TE('Cell', text))
 
         sq = m.signal()
         tes.append(TE('Signal', f'{sq} %'))
 
         if access_tech == 'lte':
             sig = m.signal_lte()
-            tes.append(TE('Signal LTE', f'{sig}'))
+            text = nice([('rsrp', 'RSRP', 'dBm'),
+                         ('rsrq', 'RSRQ', 'dBm')],
+                        sig, True)
+            tes.append(TE('Signal LTE', text))
         elif access_tech == 'umts':
             sig = m.signal_umts()
-            tes.append(TE('Signal UMTS', f'{sig}'))
+            text = nice([('rscp', 'RSRP', 'dBm'),
+                         ('ecio', 'ECIO', 'dBm')],
+                        sig, True)
+            tes.append(TE('Signal UMTS', text))
 
         tes.append(TE('', ''))
         b = m.bearer()
