@@ -7,7 +7,7 @@ class SysInfo():
 
     def version(self):
         with open('/etc/version') as f:
-            res = f.readline()
+            res = f.readline().strip()
 
         return res
 
@@ -31,7 +31,7 @@ class SysInfo():
 
     def date(self):
         cp = subprocess.run(['date'], stdout=subprocess.PIPE)
-        res = cp.stdout.decode()
+        res = cp.stdout.decode().strip()
         return res
 
     def ifinfo(self, name):
