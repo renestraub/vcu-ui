@@ -23,7 +23,7 @@ setuptools.setup(
     ],
     python_requires='>=3.7',
     install_requires=[
-        'bottle'
+        'bottle',
         'requests'  # Test
         ],
     package_data={
