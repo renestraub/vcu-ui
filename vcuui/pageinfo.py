@@ -47,7 +47,7 @@ def render_page(message=None, console=None):
     tes.append(TE('Version', ver))
 
     total, free = si.meminfo()
-    tes.append(TE('Memory', f'Total {total} kB<br>Free {free} kB'))
+    tes.append(TE('Memory', f'Total: {total} kB<br>Free: {free} kB'))
 
     a, b, c = si.load()
     tes.append(TE('Load', f'{a}, {b}, {c}'))
@@ -67,7 +67,7 @@ def render_page(message=None, console=None):
     if rx and tx:
         rx = int(rx) / 1000000
         tx = int(tx) / 1000000
-        tes.append(TE('wwan0', f'Rx {rx:.1f} MB<br>Tx {tx:.1f} MB'))
+        tes.append(TE('wwan0', f'Rx: {rx:.1f} MB<br>Tx: {tx:.1f} MB'))
 
     tes.append(TE('', ''))
     tes.append(TE('Mobile', ''))

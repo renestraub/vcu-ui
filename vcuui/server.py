@@ -20,52 +20,50 @@ print(f'Welcome to VCU-UI v{version}')
 
 path = os.path.abspath(__file__)
 module_path = os.path.dirname(path)
-print(f'Running server from {module_path}')
 bottle.TEMPLATE_PATH.insert(0, module_path)
+print(f'Running server from {module_path}')
 
 app = Bottle()
 bottle.debug(True)
 
 
 # Static CSS Files
-# @route('/static/css/<filename:re:.*\.css>')
+# Static text Files
+@app.route(r'<filename:re:.*\.txt>')
 @app.route(r'<filename:re:.*\.css>')
 def send_css(filename):
     return static_file(filename, root=module_path)
 
 
-# Action handler
-@app.post('/action')
-def action():
-    method = request.forms.get('method')
-    print(f'method {method} selected')
+@app.route('/do_ping')
+def do_ping():
+    console = ping('1.1.1.1')
+    return console
 
-    msg = None
-    console = None
 
-    if method == 'signal-query':
-        m = MM.modem()
-        m.setup_signal_query()
-        msg = 'Signal measurement enabled'
-    elif method == 'location-query':
-        m = MM.modem()
-        m.setup_location_query()
-        msg = '3GPP Location query enabled'
-    elif method == 'reset-modem':
-        m = MM.modem()
-        m.reset()
-        msg = 'Modem resetted'
-    elif method == 'ping':
-        console = ping('1.1.1.1')
-    else:
-        msg = None
+@app.route('/do_location')
+def do_location():
+    m = MM.modem()
+    m.setup_location_query()
+    return '3GPP Location query enabled'
 
-    return render_page(msg, console)
+
+@app.route('/do_signal')
+def do_signal():
+    m = MM.modem()
+    m.setup_signal_query()
+    return 'Signal quality measurements enabled'
+
+
+@app.route('/do_modem_reset')
+def do_modem_reset():
+    m = MM.modem()
+    m.reset()
+    return 'Modem reset successfully'
 
 
 # Mainpage
 @app.route('/')
-@app.route('/info')
 def info():
     return render_page()
 
