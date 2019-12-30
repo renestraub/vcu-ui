@@ -7,12 +7,13 @@ Uses bootle webserver in single thread mode
 import os
 
 import bottle
+import requests
 from bottle import Bottle, post, request, route, run, static_file
 
 from vcuui._version import __version__ as version
-from vcuui.pageinfo import render_page
 from vcuui.mm import MM
-from vcuui.tools import ping, nmcli_c
+from vcuui.pageinfo import render_page
+from vcuui.tools import nmcli_c, ping
 
 
 # Init section
@@ -58,8 +59,29 @@ def do_signal():
 @app.route('/do_modem_reset')
 def do_modem_reset():
     m = MM.modem()
-    m.reset()
+    # m.reset()
     return 'Modem reset successfully'
+
+
+@app.route('/do_cell_locate', method='GET')
+def do_cell_locate(mcc='0'):
+    print('cell locate')
+    mcc = request.query['mcc']
+    mnc = request.query['mnc']
+    lac = request.query['lac']
+    cid = request.query['cid']
+    cid = 17538051      # 17538057 not known
+    print(f'cellinfo: mcc {mcc}, mnc {mnc}, lac {lac}, cid {cid}')
+
+    # https://opencellid.org/ajax/searchCell.php?mcc=228&mnc=1&lac=3434&cell_id=17538051
+    args = {'mcc': mcc, 'mnc': mnc, 'lac': lac, 'cell_id': cid}
+    r = requests.get("https://opencellid.org/ajax/searchCell.php", params=args)
+    print(r.url)
+    print(f'result: {r.text}')
+    print(type(r.text))
+
+    # return r.text
+    return r'<a target="_blank" href="http://www.openstreetmap.org/?mlat=47.321667&mlon=7.981032&zoom=16">Link To OpenStreetMap</a>'
 
 
 # Mainpage

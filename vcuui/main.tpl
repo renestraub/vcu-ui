@@ -14,6 +14,7 @@
             <button id="button_location" class="button button_green" type="button" onclick="do_location()">Enable Location</button>
             <button id="button_signal" class="button button_green" type="button" onclick="do_signal()">Enable Signal Meas.</button>
             <button id="button_ping" class="button button_green" type="button" onclick="do_ping()">Ping</button>
+            <button id="button_xxx" class="button button_green" type="button" onclick="do_cell_find()">Find Cell</button>
             <p></p>
             <button id="button_location" class="button button_orange" type="button" onclick="do_modem_reset()">Reset Modem</button>
             <button id="button_location" class="button button_orange" type="button" onclick="xxx()">Reboot System</button>
@@ -25,7 +26,7 @@
     <div class="main">
         <h1>VCU System Information</h1>
         <table>
-            %for entry in data:
+            %for entry in table:
             <tr>
                 <td style="width:25%">{{entry.header}}</td>
                 <td style="width:75%">{{!entry.text}}</td>
@@ -55,50 +56,46 @@
             </div>
         </div>
     </div>
-    </div>
 
     <script>
+        // data provided to web page
+        %for key, value in data.items():
+        localStorage.{{key}} = {{value}};
+        %end
+
+        // Get the modal
+        var modal = document.getElementById("myModal");
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close")[0];
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        function model_open(message) {
+            document.getElementById("message").innerHTML = message;
+            document.getElementById("console").innerHTML = "";
+            document.getElementById("console").style.display = "none";
+            modal.style.display = "block";
+        }
+
         function do_ping() {
-            console.log("executing do_ping()")
-
-            // Get the modal
-            var modal = document.getElementById("myModal");
-
-            // Get the <span> element that closes the modal
-            var span = document.getElementsByClassName("close")[0];
-
-            // When the user clicks on <span> (x), close the modal
-            span.onclick = function() {
-                modal.style.display = "none";
-            }
-
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("console").style.display = "block";
                     document.getElementById("console").innerHTML = this.responseText;
                 }
             };
 
-            document.getElementById("message").innerHTML = "Executing ping, please wait ...";
-            document.getElementById("console").innerHTML = "";
-            document.getElementById("console").style.display = "block";
-            modal.style.display = "block";
+            model_open('Executing ping, please wait ...');
 
             xhttp.open("GET", "do_ping", true);
             xhttp.send();
         }
 
         function do_location() {
-            // Get the modal
-            var modal = document.getElementById("myModal");
-
-            // Get the <span> element that closes the modal
-            var span = document.getElementsByClassName("close")[0];
-
-            // When the user clicks on <span> (x), close the modal
-            span.onclick = function() {
-                modal.style.display = "none";
-            }
+            alert(localStorage.lastname);
 
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
@@ -107,26 +104,13 @@
                 }
             };
 
-            document.getElementById("console").style.display = "none";
-            document.getElementById("message").innerHTML = "Enabling 3GPP location detection";
-            modal.style.display = "block";
+            model_open('Enabling 3GPP location detection');
 
             xhttp.open("GET", "do_location", true);
             xhttp.send();
         }
 
         function do_signal() {
-            // Get the modal
-            var modal = document.getElementById("myModal");
-
-            // Get the <span> element that closes the modal
-            var span = document.getElementsByClassName("close")[0];
-
-            // When the user clicks on <span> (x), close the modal
-            span.onclick = function() {
-                modal.style.display = "none";
-            }
-
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
@@ -134,9 +118,7 @@
                 }
             };
 
-            document.getElementById("console").style.display = "none";
-            document.getElementById("message").innerHTML = "Enabling signal quality measurements";
-            modal.style.display = "block";
+            model_open('Enabling signal quality measurements');
 
             xhttp.open("GET", "do_signal", true);
             xhttp.send();
@@ -148,17 +130,6 @@
                 return
             }
 
-            // Get the modal
-            var modal = document.getElementById("myModal");
-
-            // Get the <span> element that closes the modal
-            var span = document.getElementsByClassName("close")[0];
-
-            // When the user clicks on <span> (x), close the modal
-            span.onclick = function() {
-                modal.style.display = "none";
-            }
-
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
@@ -166,13 +137,30 @@
                 }
             };
 
-            document.getElementById("console").style.display = "none";
-            document.getElementById("message").innerHTML = "Resetting modem";
-            modal.style.display = "block";
+            model_open('Resetting modem');
 
             xhttp.open("GET", "do_modem_reset", true);
             xhttp.send();
         }
+
+        function do_cell_find() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("message").innerHTML += "<br>" + this.responseText
+                }
+            };
+
+            model_open('Trying to locate cell');
+
+            mcc = localStorage.mcc
+            mnc = localStorage.mnc
+            lac = localStorage.lac
+            cid = localStorage.cid
+            query = `mcc=${mcc}&mnc=${mnc}&lac=${lac}&cid=${cid}`;
+            xhttp.open("GET", "/do_cell_locate?"+query, true);
+            xhttp.send();
+        }        
     </script>
 </body>
 

@@ -22,7 +22,10 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.7',
-    install_requires=['bottle'],
+    install_requires=[
+        'bottle'
+        'requests'  # Test
+        ],
     package_data={
         '': ['*.css', '*.tpl'],
     },

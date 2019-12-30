@@ -35,6 +35,7 @@ def nice(items, data, linebreak=False):
 
 def render_page(message=None, console=None):
     tes = list()
+    data = dict()
 
     # General System Information
     si = SysInfo()
@@ -89,6 +90,7 @@ def render_page(message=None, console=None):
                          ('cid', 'CID', '')],
                         loc_info)
             tes.append(TE('Cell', text))
+            data.update(loc_info)
 
         sq = m.signal()
         tes.append(TE('Signal', f'{sq} %'))
@@ -119,8 +121,9 @@ def render_page(message=None, console=None):
     else:
         tes.append(TE('Modem Id', 'No Modem'))
 
-    output = template('info',
-                      data=tes,
+    output = template('main',
+                      table=tes,
+                      data=data,
                       message=message,
                       console=console,
                       version=version)
