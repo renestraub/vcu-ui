@@ -57,10 +57,17 @@
         </div>
     </div>
 
+    <div class="footer">
+        <p>
+            Disclaimer: This tool is a private project, not affiliated with NetModule AG.
+            The project is provided under the MIT license.
+        </p>
+    </div>
+
     <script>
         // data provided to web page
         %for key, value in data.items():
-        localStorage.{{key}} = {{value}};
+            localStorage.{{key}} = {{value}};
         %end
 
         // Get the modal
