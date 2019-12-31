@@ -7,6 +7,7 @@ Uses bootle webserver in single thread mode
 import os
 
 import bottle
+import json
 import requests
 from bottle import Bottle, post, request, route, run, static_file
 
@@ -70,18 +71,27 @@ def do_cell_locate(mcc='0'):
     mnc = request.query['mnc']
     lac = request.query['lac']
     cid = request.query['cid']
-    cid = 17538051      # 17538057 not known
+    # cid = 17538057      # 17538057 not known
     print(f'cellinfo: mcc {mcc}, mnc {mnc}, lac {lac}, cid {cid}')
 
     # https://opencellid.org/ajax/searchCell.php?mcc=228&mnc=1&lac=3434&cell_id=17538051
     args = {'mcc': mcc, 'mnc': mnc, 'lac': lac, 'cell_id': cid}
     r = requests.get("https://opencellid.org/ajax/searchCell.php", params=args)
-    print(r.url)
-    print(f'result: {r.text}')
-    print(type(r.text))
+    # print(r.url)
+    # print(f'result: {r.text}')
+    if r.text != "false":
+        d = json.loads(r.text)
+        # print(f'json: {d} {d["lon"]}')
 
-    # return r.text
-    return r'<a target="_blank" href="http://www.openstreetmap.org/?mlat=47.321667&mlon=7.981032&zoom=16">Link To OpenStreetMap</a>'
+        result = f'Cell Location: {d["lon"]}/{d["lat"]}'
+        result += '</br>'
+        result += f'<a target="_blank" href="http://www.openstreetmap.org/?mlat={d["lat"]}&mlon={d["lon"]}&zoom=16">Link To OpenStreetMap</a>'
+    else:
+        result = 'Cell not found in opencellid database'
+
+    return result
+
+    # return r'<a target="_blank" href="http://www.openstreetmap.org/?mlat=47.321667&mlon=7.981032&zoom=16">Link To OpenStreetMap</a>'
 
 
 # Mainpage
