@@ -16,10 +16,12 @@
             <button id="button_ping" class="button button_green" type="button" onclick="do_ping()">Ping</button>
             <button id="button_xxx" class="button button_green" type="button" onclick="do_cell_find()">Find Cell</button>
             <p></p>
+            <p></p>
+            <button id="button_location" class="button button_orange" type="button" onclick="do_sertonet()">uCenter ser2net</button>
             <button id="button_location" class="button button_orange" type="button" onclick="do_modem_reset()">Reset Modem</button>
-            <button id="button_location" class="button button_orange" type="button" onclick="xxx()">Reboot System</button>
+            <button id="button_location" class="button button_red" type="button" onclick="alert('not yet implemented')">Reboot System</button>
 
-            <p>Version: v{{version}}</p>
+            <p>Version: {{version}}</p>
         </div>
     </div>
 
@@ -28,8 +30,10 @@
         <table>
             %for entry in table:
             <tr>
-                <td style="width:25%">{{entry.header}}</td>
-                <td style="width:75%">{{!entry.text}}</td>
+<!--                <td style="width:25%">{{entry.header}}</td>
+                <td style="width:75%">{{!entry.text}}</td> -->
+                <td>{{entry.header}}</td>
+                <td>{{!entry.text}}</td>
             </tr>
             %end
 
@@ -90,6 +94,7 @@
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
+                    // show console and display ping result
                     document.getElementById("console").style.display = "block";
                     document.getElementById("console").innerHTML = this.responseText;
                 }
@@ -163,9 +168,24 @@
             lac = localStorage.lac
             cid = localStorage.cid
             query = `mcc=${mcc}&mnc=${mnc}&lac=${lac}&cid=${cid}`;
-            xhttp.open("GET", "/do_cell_locate?"+query, true);
+            uri = "/do_cell_locate?" + encodeURI(query)
+            xhttp.open("GET", uri, true);
             xhttp.send();
         }        
+
+        function do_sertonet() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("message").innerHTML += "<br>" + this.responseText
+                }
+            };
+
+            model_open('Setting up system for uCenter connection');
+
+            xhttp.open("GET", "do_ser2net", true);
+            xhttp.send();
+        }
     </script>
 </body>
 

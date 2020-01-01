@@ -14,7 +14,7 @@ from bottle import Bottle, post, request, route, run, static_file
 from vcuui._version import __version__ as version
 from vcuui.mm import MM
 from vcuui.pageinfo import render_page
-from vcuui.tools import ping
+from vcuui.tools import ping, start_ser2net
 
 
 # Init section
@@ -101,6 +101,12 @@ def do_cell_locate(mcc='0'):
         result = 'Cell not found in opencellid database'
 
     return result
+
+
+@app.route('/do_ser2net')
+def do_ser2net():
+    res = start_ser2net()
+    return res
 
 
 # Mainpage

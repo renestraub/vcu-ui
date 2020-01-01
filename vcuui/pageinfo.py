@@ -28,7 +28,10 @@ def nice(items, data, linebreak=False):
                 res += '</br>'
             else:
                 res += ', '
-        res += f'{header}: {val} {unit}'
+
+        res += f'{header}: {val}'
+        if unit != '':
+            res += f' {unit}'
 
     return res
 

@@ -35,33 +35,22 @@ body {
     font-size: 70%;
 }
 
-p {
-/*    text-align: left;*/
-}
-
 table {
     width: 100%;
     border-collapse: collapse;
     color: black;
 }
 
-th {
-    padding: 5px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    text-align: left;
-    background-color: #008CBA;
-    color: white;
-    overflow: hidden;
-    border: 1px solid rgb(0, 48, 84);
-}
-
 td {
     overflow: hidden;
+/*    padding-top: 10px;
+    padding-bottom: 10px;*/
+/*    text-align: left;*/
     vertical-align: top;
     border: 1px solid rgb(0, 48, 84);
     padding: 3px;
     padding-left: 6px;
+/*    font-size: 12px;*/
 }
 
 tr:nth-child(even) {
@@ -95,7 +84,7 @@ button {
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 16px;
+    font-size: 100%;
     width: 100%;
     margin-bottom: 5px;
     /* border-radius: 12px;*/
@@ -106,6 +95,10 @@ button {
 
 .button_orange {
     background-color: #eb7f2c;
+}
+
+.button_red {
+    background-color: #eb3f2c;
 }
 
 .button:hover {
