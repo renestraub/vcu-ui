@@ -7,6 +7,7 @@ python3 -m pip uninstall vcu-ui
 python3 setup.py sdist
 
 python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
 python3 -m twine upload --repository testpypi dist/*
 python3 -m twine upload dist/*
 
@@ -15,13 +16,12 @@ python3 -m twine upload dist/*
 python3 -m vcuui.ui
 
 
+# install (mac os, --user for local install)
+python3 -m pip install vcu-ui --user
+
+# install vcu
 python3 -m pip install vcu-ui
 python3 -m pip install vcu-ui --upgrade
 
 
-https://opencellid.org/ajax/searchCell.php?mcc=228&mnc=1&lac=3434&cell_id=17538051
-curl "https://opencellid.org/ajax/searchCell.php?mcc=228&mnc=1&lac=3434&cell_id=17538051"
 
-http://www.openstreetmap.org/?mlat=47.321667&mlon=7.981032&zoom=16
-
-http://www.cellmapper.net/api/v2/json.php?action=getBaseStation&data[MCC]=228&data[MNC]=1&data[LAC]=3434&data[base]=33
