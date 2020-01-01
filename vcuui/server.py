@@ -114,6 +114,6 @@ def run_server(port=80):
     app.run(host='0.0.0.0', port=port)
 
 
-# Can be invoked with python3 -m vcuui.ui
+# Can be invoked with python3 -m vcuui.server
 if __name__ == "__main__":
     run_server()

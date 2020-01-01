@@ -24,14 +24,14 @@ setuptools.setup(
     python_requires='>=3.7',
     install_requires=[
         'bottle',
-        'requests'  # Test
+        'requests'
         ],
     package_data={
         '': ['*.css', '*.tpl'],
     },
     entry_points={
         'console_scripts': [
-            'vcu-ui-start = vcuui:run_server'
+            'vcu-ui-start = vcuui.server:run_server'
         ]
     }
 )

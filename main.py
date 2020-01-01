@@ -1,5 +1,5 @@
 #!/usr/bin/python3
- 
-import vcuui
 
-vcuui.run_server(port=80)
+from vcuui.server import run_server
+
+run_server(port=80)

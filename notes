@@ -1,27 +1,30 @@
+# Local run of package
+python3 -m vcuui.server
 
 # Local install
 python3 -m pip install -e .
 python3 -m pip uninstall vcu-ui
+python3 -m pip uninstall bottle
+python3 -m pip uninstall requests
+
 
 # Distribution to test.pypi, pypi
+# Run on development machine not VCU !
 python3 setup.py sdist
-
-python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-
 python3 -m twine upload --repository testpypi dist/*
 python3 -m twine upload dist/*
 
-
-# Local run of package
-python3 -m vcuui.ui
+### python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
 
 # install (mac os, --user for local install)
 python3 -m pip install vcu-ui --user
 
-# install vcu
+# install vcu, note: note from prj directory!
+cd ~
+python3 -m pip install -i https://test.pypi.org/simple/ vcu-ui
+python3 -m pip install -i https://test.pypi.org/simple/ vcu-ui --upgrade
+
+cd ~
 python3 -m pip install vcu-ui
 python3 -m pip install vcu-ui --upgrade
-
-
-
