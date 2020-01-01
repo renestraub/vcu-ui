@@ -60,7 +60,7 @@ def do_signal():
 @app.route('/do_modem_reset')
 def do_modem_reset():
     m = MM.modem()
-    # m.reset()
+    m.reset()
     return 'Modem reset successfully'
 
 

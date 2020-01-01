@@ -8,7 +8,7 @@
 
 ### Introduction
 
-A minimal Web user interface for VCU Pro based on bottle. It displays important status information and allows basic maintenance actions. Written in python, based on bottle webserver.
+A minimal Web user interface for VCU Pro. It displays important status information and allows basic maintenance actions. Written in python, based on bottle webserver.
 
 
 ### Features
