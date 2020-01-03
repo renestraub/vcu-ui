@@ -8,14 +8,19 @@
 
 ### Introduction
 
-A minimal Web user interface for VCU Pro. It displays important status information and allows basic maintenance actions. Written in python, based on bottle webserver.
+A minimal Web user interface for the VCU Pro automotive gateway. It displays important status information and allows basic maintenance actions. Written in python, based on bottle webserver.
 
 
 ### Features
 
 * Display of most important system information
-* Restart of GSM modem
-
+  * System date/time, load, temperature
+  * Mobile link information (registration state, signal strength, bearer information)
+* Determine GSM cell location, including geographic position (uses OpenCellId and OpenStreetMap)
+* Execute test ping over mobile network
+* Create TCP service for u-Center GNSS tool
+* Restart GSM modem
+* Restart system (not yet implemented)
 
 
 ### Preview
@@ -40,15 +45,16 @@ A minimal Web user interface for VCU Pro. It displays important status informati
 #### Run from Python
 
 ```python
-import vcuui
+from vcuui.server import run_server
 
-vcuui.run_server(port=888)
+run_server(port=80)
 ```
 
 
 #### Installation as systemd service
 
-Create the following service file ```vcu-ui.service``` in ```/usr/lib/systemd/system/vcu-ui.service```.
+Create the following service file ```vcu-ui.service``` in ```/usr/lib/systemd/system/vcu-ui.service```. The service file is also available on [Github](https://github.com/renestraub/vcu-ui/blob/master/vcu-ui.service)
+
 
 ```
 [Unit]
@@ -67,6 +73,7 @@ RestartSec=10
 WantedBy=multi-user.target
 ```
 
+
 Manage the service with the following systemd commands.
 
 ```bash
@@ -76,7 +83,6 @@ systemctl enable vcu-ui     # Enable service for next startup
 systemctl start vcu-ui      # Start service right now
 ```
 
-### Tips
 
-* Check ...
+
 
