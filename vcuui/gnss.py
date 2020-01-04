@@ -38,8 +38,9 @@ def save_state():
     # Restart receiver operation
 
     print("Restarting GNSS")
-    res += '<br>Stopping GNSS: '
+    res += '<br>Restarting GNSS: '
     ubx_start = bytearray.fromhex("b5 62 06 04 04 00 00 00 09 00 17 76")
+    ser.reset_input_buffer()
     ser.write(ubx_start)
 
     if _expect_text(ser, 'Starting'):
@@ -51,7 +52,7 @@ def save_state():
 
 
 def _expect_text(ser, text):
-    t_end = time.time() + 1.0
+    t_end = time.time() + 2.0
     while time.time() < t_end:
         line = ser.readline()
         # print(binascii.hexlify(line))
