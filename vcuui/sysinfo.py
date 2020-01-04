@@ -34,6 +34,13 @@ class SysInfo():
         res = cp.stdout.decode().strip()
         return res
 
+    def uptime(self):
+        cp = subprocess.run(['uptime'], stdout=subprocess.PIPE)
+        res = cp.stdout.decode().strip()
+        start = res.find("up")
+        end = res.find(",  load")
+        return res[start:end]
+
     def ifinfo(self, name):
         try:
             path = f'/sys/class/net/{name}/statistics/rx_bytes'

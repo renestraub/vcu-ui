@@ -44,11 +44,14 @@ def render_page(message=None, console=None):
     si = SysInfo()
     tes.append(TE('System', ''))
 
+    ver = si.version()
+    tes.append(TE('Version', ver))
+
     dt = si.date()
     tes.append(TE('Date', dt))
 
-    ver = si.version()
-    tes.append(TE('Version', ver))
+    ut = si.uptime()
+    tes.append(TE('Uptime', ut))
 
     total, free = si.meminfo()
     tes.append(TE('Memory', f'Total: {total} kB<br>Free: {free} kB'))
