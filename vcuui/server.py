@@ -12,11 +12,10 @@ import requests
 from bottle import Bottle, post, request, route, run, static_file
 
 from vcuui._version import __version__ as version
-from vcuui.gnss import save_state
+from vcuui.gnss import save_state, start_ser2net
 from vcuui.mm import MM
 from vcuui.pageinfo import render_page
-from vcuui.tools import ping, start_ser2net
-
+from vcuui.tools import ping
 
 # Init section
 print(f'Welcome to VCU-UI v{version}')

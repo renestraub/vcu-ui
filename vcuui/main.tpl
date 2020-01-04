@@ -18,7 +18,7 @@
             <p></p>
             <button id="button_xxx" class="button button_orange" type="button" onclick="do_store_gnss()">Save GNSS State</button>
             <button id="button_location" class="button button_orange" type="button" onclick="do_sertonet()">uCenter ser2net</button>
-            <button id="button_location" class="button button_orange" type="button" onclick="do_modem_reset()">Reset Modem</button>
+            <button id="button_location" class="button button_orange" type="button" onclick="do_modem_reset()">Reset GSM Modem</button>
             <button id="button_location" class="button button_red" type="button" onclick="alert('not yet implemented')">Reboot System</button>
 
             <p>Version: {{version}}</p>
