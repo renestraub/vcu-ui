@@ -15,7 +15,7 @@
             <button id="button_signal" class="button button_green" type="button" onclick="do_signal()">Enable Signal Meas.</button>
             <button id="button_ping" class="button button_green" type="button" onclick="do_ping()">Ping</button>
             <button id="button_xxx" class="button button_green" type="button" onclick="do_cell_find()">Find Cell</button>
-            <p></p>
+            <button id="button_xxx" class="button button_green" type="button" onclick="do_store_gnss()">Save GNSS State</button>
             <p></p>
             <button id="button_location" class="button button_orange" type="button" onclick="do_sertonet()">uCenter ser2net</button>
             <button id="button_location" class="button button_orange" type="button" onclick="do_modem_reset()">Reset Modem</button>
@@ -184,6 +184,20 @@
             model_open('Setting up system for uCenter connection');
 
             xhttp.open("GET", "do_ser2net", true);
+            xhttp.send();
+        }
+
+        function do_store_gnss() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("message").innerHTML += "<br>" + this.responseText
+                }
+            };
+
+            model_open('Saving GNSS State');
+
+            xhttp.open("GET", "do_store_gnss", true);
             xhttp.send();
         }
     </script>

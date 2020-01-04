@@ -4,14 +4,15 @@ Minimal Web UI for VCU automotive gateway
 Uses bootle webserver in single thread mode
 """
 
+import json
 import os
 
 import bottle
-import json
 import requests
 from bottle import Bottle, post, request, route, run, static_file
 
 from vcuui._version import __version__ as version
+from vcuui.gnss import save_state
 from vcuui.mm import MM
 from vcuui.pageinfo import render_page
 from vcuui.tools import ping, start_ser2net
@@ -106,6 +107,12 @@ def do_cell_locate(mcc='0'):
 @app.route('/do_ser2net')
 def do_ser2net():
     res = start_ser2net()
+    return res
+
+
+@app.route('/do_store_gnss')
+def do_store_gnss():
+    res = save_state()
     return res
 
 
