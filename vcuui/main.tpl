@@ -74,13 +74,26 @@
             localStorage.{{key}} = {{value}};
         %end
 
+        var timer_close = null;
+
         // Get the modal
         var modal = document.getElementById("myModal");
         // Get the <span> element that closes the modal
         var span = document.getElementsByClassName("close")[0];
+
         // When the user clicks on <span> (x), close the modal
         span.onclick = function() {
-            modal.style.display = "none";
+            if (timer_close != null) {
+                console.log("stopping timer")
+                clearTimeout(timer_close);
+                timer_close = null
+            }
+            modal_close()
+        }
+
+        function timer_modal_close() {
+            console.log("timer elapsed")
+            modal_close()
         }
 
         function model_open(message) {
@@ -90,6 +103,10 @@
             modal.style.display = "block";
         }
 
+        function modal_close() {
+            modal.style.display = "none";
+        }
+
         function do_ping() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
@@ -97,6 +114,7 @@
                     // show console and display ping result
                     document.getElementById("console").style.display = "block";
                     document.getElementById("console").innerHTML = this.responseText;
+                    timer_close = setTimeout(timer_modal_close, 10000)
                 }
             };
 
@@ -111,6 +129,7 @@
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     document.getElementById("message").innerHTML += "<br>" + this.responseText
+                    timer_close = setTimeout(timer_modal_close, 3000)
                 }
             };
 
@@ -125,6 +144,7 @@
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     document.getElementById("message").innerHTML += "<br>" + this.responseText
+                    timer_close = setTimeout(timer_modal_close, 3000)
                 }
             };
 
@@ -144,6 +164,7 @@
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     document.getElementById("message").innerHTML += "<br>" + this.responseText
+                    timer_close = setTimeout(timer_modal_close, 5000)
                 }
             };
 
@@ -178,6 +199,7 @@
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     document.getElementById("message").innerHTML += "<br>" + this.responseText
+                    timer_close = setTimeout(timer_modal_close, 5000)
                 }
             };
 
@@ -192,6 +214,7 @@
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     document.getElementById("message").innerHTML += "<br>" + this.responseText
+                    timer_close = setTimeout(timer_modal_close, 5000)
                 }
             };
 
