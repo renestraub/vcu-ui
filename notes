@@ -28,3 +28,7 @@ python3 -m pip install -i https://test.pypi.org/simple/ vcu-ui --upgrade
 cd ~
 python3 -m pip install vcu-ui
 python3 -m pip install vcu-ui --upgrade
+
+
+python3 /usr/bin/ubxtool -p CFG-GNSS -f /dev/gps0 -s 115200 -w 1
+

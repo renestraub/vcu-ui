@@ -11,6 +11,12 @@ class SysInfo():
 
         return res
 
+    def bootloader_version(self):
+        with open('/proc/device-tree/nm,bootloader,version') as f:
+            res = f.readline().strip()
+
+        return res
+
     def meminfo(self):
         with open('/proc/meminfo') as f:
             res = f.readlines()

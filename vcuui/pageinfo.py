@@ -44,8 +44,13 @@ def render_page(message=None, console=None):
     si = SysInfo()
     tes.append(TE('System', ''))
 
-    ver = si.version()
-    tes.append(TE('Version', ver))
+    ver = dict()
+    ver['sys'] = si.version()
+    ver['bl'] = si.bootloader_version()
+    text = nice([('sys', 'System', ''),
+                 ('bl', 'Bootloader', '')],
+                ver, True)
+    tes.append(TE('Version', text))
 
     dt = si.date()
     tes.append(TE('Date', dt))
