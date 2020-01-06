@@ -113,11 +113,12 @@
 
         function start_close_timer(secs) {
             timer_bar.setAttribute("class", "modal-timer-bar-active");
-            timer_bar.style.transition = `width ${secs}s linear`;   
+            timer_bar.style.transition = `width ${secs}s linear`;
             timer_close = setTimeout(timer_modal_close, secs*1000);
         }
 
         function stop_close_timer() {
+            timer_bar.style.transition = "width 1s linear";
             timer_bar.setAttribute("class", "modal-timer-bar");
             if (timer_close != null) {
                 console.log("stopping timer");
