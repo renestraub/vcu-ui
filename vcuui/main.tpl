@@ -30,8 +30,6 @@
         <table>
             %for entry in table:
             <tr>
-<!--                <td style="width:25%">{{entry.header}}</td>
-                <td style="width:75%">{{!entry.text}}</td> -->
                 <td>{{entry.header}}</td>
                 <td>{{!entry.text}}</td>
             </tr>
@@ -43,16 +41,17 @@
         <p>Status: {{message}}</p>
         %end
 
-        <!-- The Modal -->
+        <!-- The Modal Dialog -->
         <div id="myModal" class="modal">
             <!-- Modal content -->
-            <div class="modal-content">
+            <div id="myDialog" class="modal-content">
+                <div id="myTimerBar" class="modal-timer-bar"></div>
                 <div class="modal-header">
-                    <span class="close">&times;</span>
+                    <span id="myCloseButton" class="close">&times;</span>
                     <h2>Information</h2>
                 </div>
                 <div class="modal-body">
-                    <p id=message>Some text in the Modal Body</p>
+                    <p id=message></p>
                     <pre class="terminal" id="console">
                     <!-- room for console output -->
                     </pre>
@@ -78,47 +77,75 @@
 
         // Get the modal
         var modal = document.getElementById("myModal");
-        // Get the <span> element that closes the modal
-        var span = document.getElementsByClassName("close")[0];
-
+        var dialog = document.getElementById("myDialog");
+        var dialog_message = document.getElementById("message");
+        var dialog_console = document.getElementById("console");
+        var close_button = document.getElementById("myCloseButton");
+        var timer_bar = document.getElementById("myTimerBar");
+        
         // When the user clicks on <span> (x), close the modal
-        span.onclick = function() {
-            if (timer_close != null) {
-                console.log("stopping timer")
-                clearTimeout(timer_close);
-                timer_close = null
-            }
-            modal_close()
+        close_button.onclick = function() {
+            modal_close();
         }
 
-        function timer_modal_close() {
-            console.log("timer elapsed")
-            modal_close()
+        // When the user clicks in the dialog stop the auto timer
+        dialog.onclick = function() {
+            stop_close_timer();
         }
 
         function model_open(message) {
-            document.getElementById("message").innerHTML = message;
-            document.getElementById("console").innerHTML = "";
-            document.getElementById("console").style.display = "none";
             modal.style.display = "block";
+            dialog_message.innerHTML = message;
+            dialog_console.innerHTML = "";
+            dialog_console.style.display = "none";
+            timer_bar.style.display = "none";
         }
 
         function modal_close() {
+            stop_close_timer();
             modal.style.display = "none";
         }
+
+        function modal_enable_close_timer() {
+            timer_bar.style.display = "block";
+            timer_bar.setAttribute("class", "modal-timer-bar");
+        }
+
+        function start_close_timer(secs) {
+            timer_bar.setAttribute("class", "modal-timer-bar-active");
+            timer_bar.style.transition = `width ${secs}s linear`;   
+            timer_close = setTimeout(timer_modal_close, secs*1000);
+        }
+
+        function stop_close_timer() {
+            timer_bar.setAttribute("class", "modal-timer-bar");
+            if (timer_close != null) {
+                console.log("stopping timer");
+                clearTimeout(timer_close);
+                timer_close = null;
+            }
+        }
+
+        function timer_modal_close() {
+            console.log("timer elapsed");
+            modal_close();
+        }
+
+        /* Actions */
 
         function do_ping() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     // show console and display ping result
-                    document.getElementById("console").style.display = "block";
-                    document.getElementById("console").innerHTML = this.responseText;
-                    timer_close = setTimeout(timer_modal_close, 10000)
+                    dialog_console.style.display = "block";
+                    dialog_console.innerHTML = this.responseText;
+                    start_close_timer(10);
                 }
             };
 
             model_open('Executing ping, please wait ...');
+            modal_enable_close_timer();
 
             xhttp.open("GET", "do_ping", true);
             xhttp.send();
@@ -128,12 +155,13 @@
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("message").innerHTML += "<br>" + this.responseText
-                    timer_close = setTimeout(timer_modal_close, 3000)
+                    dialog_message.innerHTML += "<br>" + this.responseText;
+                    start_close_timer(3);
                 }
             };
 
             model_open('Enabling 3GPP location detection');
+            modal_enable_close_timer();
 
             xhttp.open("GET", "do_location", true);
             xhttp.send();
@@ -143,12 +171,13 @@
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("message").innerHTML += "<br>" + this.responseText
-                    timer_close = setTimeout(timer_modal_close, 3000)
+                    dialog_message.innerHTML += "<br>" + this.responseText;
+                    start_close_timer(3);
                 }
             };
 
             model_open('Enabling signal quality measurements');
+            modal_enable_close_timer();
 
             xhttp.open("GET", "do_signal", true);
             xhttp.send();
@@ -163,12 +192,13 @@
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("message").innerHTML += "<br>" + this.responseText
-                    timer_close = setTimeout(timer_modal_close, 5000)
+                    dialog_message.innerHTML += "<br>" + this.responseText;
+                    start_close_timer(5);
                 }
             };
 
             model_open('Resetting modem');
+            modal_enable_close_timer();
 
             xhttp.open("GET", "do_modem_reset", true);
             xhttp.send();
@@ -178,16 +208,16 @@
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("message").innerHTML += "<br>" + this.responseText
+                    dialog_message.innerHTML += "<br>" + this.responseText;
                 }
             };
 
             model_open('Trying to locate cell');
 
-            mcc = localStorage.mcc
-            mnc = localStorage.mnc
-            lac = localStorage.lac
-            cid = localStorage.cid
+            mcc = localStorage.mcc;
+            mnc = localStorage.mnc;
+            lac = localStorage.lac;
+            cid = localStorage.cid;
             query = `mcc=${mcc}&mnc=${mnc}&lac=${lac}&cid=${cid}`;
             uri = "/do_cell_locate?" + encodeURI(query)
             xhttp.open("GET", uri, true);
@@ -198,12 +228,13 @@
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("message").innerHTML += "<br>" + this.responseText
-                    timer_close = setTimeout(timer_modal_close, 5000)
+                    dialog_message.innerHTML += "<br>" + this.responseText;
+                    start_close_timer(3);
                 }
             };
 
             model_open('Setting up system for uCenter connection');
+            modal_enable_close_timer();
 
             xhttp.open("GET", "do_ser2net", true);
             xhttp.send();
@@ -213,12 +244,13 @@
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("message").innerHTML += "<br>" + this.responseText
-                    timer_close = setTimeout(timer_modal_close, 5000)
+                    dialog_message.innerHTML += "<br>" + this.responseText;
+                    start_close_timer(5);
                 }
             };
 
             model_open('Saving GNSS State');
+            modal_enable_close_timer();
 
             xhttp.open("GET", "do_store_gnss", true);
             xhttp.send();
