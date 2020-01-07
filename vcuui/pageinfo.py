@@ -42,6 +42,8 @@ def render_page(message=None, console=None):
 
     # General System Information
     si = SysInfo()
+    serial = si.serial()
+
     tes.append(TE('System', ''))
 
     ver = dict()
@@ -133,6 +135,7 @@ def render_page(message=None, console=None):
         tes.append(TE('Modem Id', 'No Modem'))
 
     output = template('main',
+                      title=f'VCU Pro ({serial})',
                       table=tes,
                       data=data,
                       message=message,

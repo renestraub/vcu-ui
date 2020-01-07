@@ -5,9 +5,16 @@ class SysInfo():
     def __init__(self):
         pass
 
+    def serial(self):
+        with open('/sys/class/net/eth0/address') as f:
+            res = f.readline().strip().upper()
+
+        return res
+
     def version(self):
         with open('/etc/version') as f:
             res = f.readline().strip()
+            res = res.replace(';', ', ')
 
         return res
 

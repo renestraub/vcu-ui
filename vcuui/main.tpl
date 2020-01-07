@@ -1,65 +1,69 @@
 <!DOCTYPE html>
 <html>
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <head>
     <title>VCU Pro</title>
     <link type="text/css" href="styles.css" rel="stylesheet">
 </head>
 
 <body>
-    <div class="sidenav">
-        <div class="btn-group">
-            <button class="button" onClick="window.location.href = '/'">Refresh Page</button>
-            <p></p>
-            <button id="button_location" class="button button_green" type="button" onclick="do_location()">Enable Location</button>
-            <button id="button_signal" class="button button_green" type="button" onclick="do_signal()">Enable Signal Meas.</button>
-            <button id="button_ping" class="button button_green" type="button" onclick="do_ping()">Ping</button>
-            <button id="button_xxx" class="button button_green" type="button" onclick="do_cell_find()">Find Cell</button>
-            <p></p>
-            <button id="button_xxx" class="button button_orange" type="button" onclick="do_store_gnss()">Save GNSS State</button>
-            <button id="button_location" class="button button_orange" type="button" onclick="do_sertonet()">uCenter ser2net</button>
-            <button id="button_location" class="button button_orange" type="button" onclick="do_modem_reset()">Reset GSM Modem</button>
-            <button id="button_location" class="button button_red" type="button" onclick="alert('not yet implemented')">Reboot System</button>
+    <h1>{{title}}</h1>
 
+    <div style="overflow:auto">
+        <div class="menu">
+            <div class="btn-group">
+                <button class="button" onClick="window.location.href = '/'">Refresh Page</button>
+                <p></p>
+                <button id="button_location" class="button button_green" type="button" onclick="do_location()">Enable Location</button>
+                <button id="button_signal" class="button button_green" type="button" onclick="do_signal()">Enable Signal Meas.</button>
+                <button id="button_ping" class="button button_green" type="button" onclick="do_ping()">Ping</button>
+                <button id="button_xxx" class="button button_green" type="button" onclick="do_cell_find()">Find Cell</button>
+                <p></p>
+                <button id="button_xxx" class="button button_orange" type="button" onclick="do_store_gnss()">Save GNSS State</button>
+                <button id="button_location" class="button button_orange" type="button" onclick="do_sertonet()">uCenter ser2net</button>
+                <button id="button_location" class="button button_orange" type="button" onclick="do_modem_reset()">Reset GSM Modem</button>
+                <button id="button_location" class="button button_red" type="button" onclick="alert('not yet implemented')">Reboot System</button>
+            </div>
             <p>Version: {{version}}</p>
         </div>
-    </div>
 
-    <div class="main">
-        <h1>VCU System Information</h1>
-        <table>
-            %for entry in table:
-            <tr>
-                <td>{{entry.header}}</td>
-                <td>{{!entry.text}}</td>
-            </tr>
+        <div class="main">
+            <table>
+                %for entry in table:
+                <tr>
+                    <td>{{entry.header}}</td>
+                    <td>{{!entry.text}}</td>
+                </tr>
+                %end
+
+            </table>
+
+            %if message:
+            <p>Status: {{message}}</p>
             %end
 
-        </table>
-
-        %if message:
-        <p>Status: {{message}}</p>
-        %end
-
-        <!-- The Modal Dialog -->
-        <div id="myModal" class="modal">
-            <!-- Modal content -->
-            <div id="myDialog" class="modal-content">
-                <div id="myTimerBar" class="modal-timer-bar"></div>
-                <div class="modal-header">
-                    <span id="myCloseButton" class="close">&times;</span>
-                    <h2>Information</h2>
-                </div>
-                <div class="modal-body">
-                    <p id=message></p>
-                    <pre class="terminal" id="console">
-                    <!-- room for console output -->
-                    </pre>
+            <!-- The Modal Dialog -->
+            <div id="myModal" class="modal">
+                <!-- Modal content -->
+                <div id="myDialog" class="modal-content">
+                    <div id="myTimerBar" class="modal-timer-bar"></div>
+                    <div class="modal-header">
+                        <span id="myCloseButton" class="close">&times;</span>
+                        <h2>Information</h2>
+                    </div>
+                    <div class="modal-body">
+                        <p id=message></p>
+                        <pre class="terminal" id="console">
+                        <!-- room for console output -->
+                        </pre>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
+    <br><br><br>
     <div class="footer">
         <p>
             Disclaimer: This tool is a private project, not affiliated with NetModule AG.
