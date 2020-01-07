@@ -1,8 +1,14 @@
-import serial
+# import serial
 import subprocess
 import time
 
 import binascii
+
+try:
+    # Allow this to fail, so we can execute unit tests with pyserial
+    import serial
+except ImportError:
+    pass
 
 
 def start_ser2net():
@@ -47,10 +53,7 @@ def _start_receiver(ser):
     res = ''
     res += '<br>Restarting GNSS module: '
 
-    ubx_start = bytearray.fromhex("b5 62 06 04 04 00 00 00 09 00 17 76")
-    ser.reset_input_buffer()
-    ser.write(ubx_start)
-
+    _send_msg(ser, bytearray.fromhex('06 04 04 00 00 00 09 00'))
     if _expect_text(ser, 'Starting'):
         res += 'Ok'
     else:
@@ -64,10 +67,7 @@ def _stop_receiver(ser):
     res = ''
     res += '<br>Stopping GNSS module: '
 
-    ubx_stop = bytearray.fromhex("b5 62 06 04 04 00 00 00 08 00 16 74")
-    ser.reset_input_buffer()
-    ser.write(ubx_stop)
-
+    _send_msg(ser, bytearray.fromhex('06 04 04 00 00 00 08 00'))
     if _expect_text(ser, 'Stopping'):
         res += 'Ok'
     else:
@@ -80,19 +80,20 @@ def _save_state(ser):
     res = ''
     res += '<br>Saving state to flash memory: '
 
-    ubx_flash_backup = bytearray.fromhex("b5 62 09 14 04 00 00 00 00 00 21 ec")
-    ser.reset_input_buffer()
-    ser.write(ubx_flash_backup)
-
-    # Ideally we would check for response and ACK here, but since this is only
-    # a simple developer application we ommit it here
-    # b5 62 09 14 08 00 02 00 00 00 01 00 00 00 28 ac
-    if _expect_hex(ser, bytearray.fromhex('62 09 14 08 00 02 00 00 00 01 00 00')):
+    _send_msg(ser, bytearray.fromhex('09 14 04 00 00 00 00 00'))
+    if _expect_hex(ser, bytearray.fromhex('62 09 14 08 00 02 00 00 00 01 00 '
+                                          '00')):
         res += 'Ok'
     else:
         res += 'Failed'
 
     return res
+
+
+def _send_msg(ser, msg):
+    ubx_msg = _create_ubx_message(msg)
+    ser.reset_input_buffer()
+    ser.write(ubx_msg)
 
 
 def _expect_text(ser, text):
@@ -124,6 +125,27 @@ def _expect_hex(ser, hex):
         # print(pos)
         if pos != -1:
             return True
+
+
+def _create_ubx_message(data):
+    cka, ckb = _calc_checksum(data)
+    msg = bytearray(b'\xb5\x62') + data
+    msg.append(cka)
+    msg.append(ckb)
+    return msg
+
+
+def _calc_checksum(data):
+    cka = 0
+    ckb = 0
+
+    for byte in data:
+        cka += byte
+        cka &= 0xFF
+        ckb += cka
+        ckb &= 0xFF
+
+    return cka, ckb
 
 
 def _stop_services():
