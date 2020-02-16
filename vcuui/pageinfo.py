@@ -6,6 +6,7 @@ from bottle import template
 from vcuui._version import __version__ as version
 from vcuui.tools import secs_to_hhmm
 from vcuui.mm import MM
+from vcuui.gnss import GnssWorker
 from vcuui.sysinfo import SysInfo
 
 
@@ -83,10 +84,10 @@ def render_page(message=None, console=None):
         tx = int(tx) / 1000000
         tes.append(TE('wwan0', f'Rx: {rx:.1f} MB<br>Tx: {tx:.1f} MB'))
 
+    # Modem Information
     tes.append(TE('', ''))
     tes.append(TE('Mobile', ''))
 
-    # Modem Information
     m = MM.modem()
     if m:
         tes.append(TE('Modem Id', str(m.id)))
@@ -133,6 +134,21 @@ def render_page(message=None, console=None):
                 tes.append(TE('IP', ip))
     else:
         tes.append(TE('Modem Id', 'No Modem'))
+
+    # GNSS
+    tes.append(TE('GNSS', ''))
+    tes.append(TE('', ''))
+
+    g = GnssWorker.instance
+    pos = g.get()
+
+    tes.append(TE('Fix', pos['fix']))
+    text = nice([('lon', 'Longitude', '°'),
+                 ('lat', 'Latitude', '°')],
+                pos)
+    tes.append(TE('Position', text))
+    text = nice([('speed', '', 'km/h')], pos)
+    tes.append(TE('Speed', f'{pos["speed"]:.0f} m/s, {pos["speed"]*3.60:.0f} km/h'))
 
     output = template('main',
                       title=f'VCU Pro ({serial})',

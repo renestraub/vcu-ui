@@ -14,8 +14,10 @@ from bottle import Bottle, post, request, route, run, static_file
 from vcuui._version import __version__ as version
 from vcuui.gnss import save_state, start_ser2net
 from vcuui.mm import MM
+from vcuui.gnss import GnssWorker
 from vcuui.pageinfo import render_page
 from vcuui.tools import ping
+
 
 # Init section
 print(f'Welcome to VCU-UI v{version}')
@@ -123,6 +125,8 @@ def info():
 
 def run_server(port=80):
     # run(host='0.0.0.0', port=port, debug=True, reloader=True)
+    gnss = GnssWorker()
+    gnss.init()
     app.run(host='0.0.0.0', port=port)
 
 
