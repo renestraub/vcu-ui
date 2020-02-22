@@ -1,74 +1,12 @@
-# import serial
 import binascii
 import subprocess
 import time
-import threading
-
-from gps import *
-
 
 try:
     # Allow this to fail, so we can execute unit tests with pyserial
     import serial
 except ImportError:
     pass
-
-
-class GnssWorker(threading.Thread):
-    # Singleton accessor
-    instance = None
-
-#    @classmethod
-#    def instance(cls):
-#        return cls.instance
-
-    def init(self):
-        assert GnssWorker.instance is None
-        GnssWorker.instance = self
-
-        self.lock = threading.Lock()
-        self.gps_session = None
-        self.lon = 0
-        self.lat = 0
-        self.fix = 0
-        self.speed = 0
-        
-        self.daemon = True
-        self.start()
-
-    def get(self):
-        with self.lock:
-            pos = dict()
-            pos['fix'] = self.fix
-            pos['lon'] = self.lon
-            pos['lat'] = self.lat
-            pos['speed'] = self.speed
-
-        return pos
-
-    def run(self):
-        print("running gps thread")
-        self.gps_session = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
-
-        while True:
-            report = self.gps_session.next()
-            if report['class'] == 'TPV':
-                # print(report['lon'])
-                # print(report['lat'])
-
-                with self.lock:
-                    fix = report['mode']
-                    if fix == 0 or fix == 1:
-                        self.fix = 'No Fix'
-                    elif fix == 2:
-                        self.fix = '2D'
-                    elif fix == 3:
-                        self.fix = '3D'
-
-                    self.lon = report['lon']
-                    self.lat = report['lat']
-                    if 'speed' in report:
-                        self.speed = report['speed']
 
 
 def start_ser2net():

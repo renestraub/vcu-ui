@@ -19,12 +19,15 @@
                 <button id="button_location" class="button button_green" type="button" onclick="do_location()">Enable Location</button>
                 <button id="button_signal" class="button button_green" type="button" onclick="do_signal()">Enable Signal Meas.</button>
                 <button id="button_ping" class="button button_green" type="button" onclick="do_ping()">Ping</button>
-                <button id="button_xxx" class="button button_green" type="button" onclick="do_cell_find()">Find Cell</button>
+                <button id="button_find_cell" class="button button_green" type="button" onclick="do_cell_find()">Find Cell</button>
                 <p></p>
-                <button id="button_xxx" class="button button_orange" type="button" onclick="do_store_gnss()">Save GNSS State</button>
-                <button id="button_location" class="button button_orange" type="button" onclick="do_sertonet()">uCenter ser2net</button>
-                <button id="button_location" class="button button_orange" type="button" onclick="do_modem_reset()">Reset GSM Modem</button>
-                <button id="button_location" class="button button_red" type="button" onclick="alert('not yet implemented')">Reboot System</button>
+                <button id="button_cloud" class="button button_orange" type="button" onclick="do_cloud(true)">Start Cloud Logging</button>
+                <button id="button_cloud" class="button button_orange" type="button" onclick="do_cloud(false)">Stop Cloud Logging</button>
+                <p></p>
+                <button id="button_gnss_save" class="button button_orange" type="button" onclick="do_store_gnss()">Save GNSS State</button>
+                <button id="button_ser2net" class="button button_orange" type="button" onclick="do_sertonet()">uCenter ser2net</button>
+                <button id="button_modem_reset" class="button button_orange" type="button" onclick="do_modem_reset()">Reset GSM Modem</button>
+                <button id="button_reboot" class="button button_red" type="button" onclick="alert('not yet implemented')">Reboot System</button>
             </div>
             <p>Version: {{version}}</p>
         </div>
@@ -224,10 +227,32 @@
             lac = localStorage.lac;
             cid = localStorage.cid;
             query = `mcc=${mcc}&mnc=${mnc}&lac=${lac}&cid=${cid}`;
-            uri = "/do_cell_locate?" + encodeURI(query)
+            uri = "/do_cell_locate?" + encodeURI(query);
             xhttp.open("GET", uri, true);
             xhttp.send();
         }        
+
+        function do_cloud(enable) {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    dialog_message.innerHTML += "<br>" + this.responseText;
+                    start_close_timer(3);
+                }
+            };
+
+            model_open('Starting cloud logging');
+            modal_enable_close_timer();
+
+            if (enable) {
+                query = `enable=True`;
+            } else { 
+                query = `enable=False`;
+            }
+            uri = "/do_cloud?" + encodeURI(query);
+            xhttp.open("GET", uri, true);
+            xhttp.send();
+        }
 
         function do_sertonet() {
             var xhttp = new XMLHttpRequest();

@@ -1,7 +1,7 @@
 """
 Minimal Web UI for VCU automotive gateway
 
-Uses bootle webserver in single thread mode
+Uses bottle webserver in single threading mode
 """
 
 import json
@@ -14,9 +14,10 @@ from bottle import Bottle, post, request, route, run, static_file
 from vcuui._version import __version__ as version
 from vcuui.gnss import save_state, start_ser2net
 from vcuui.mm import MM
-from vcuui.gnss import GnssWorker
+from vcuui.data_model import Model
 from vcuui.pageinfo import render_page
 from vcuui.tools import ping
+from vcuui.things import Things
 
 
 # Init section
@@ -67,7 +68,7 @@ def do_modem_reset():
 
 
 @app.route('/do_cell_locate', method='GET')
-def do_cell_locate(mcc='0'):
+def do_cell_locate():
     mcc = request.query['mcc']
     mnc = request.query['mnc']
     lac = request.query['lac']
@@ -117,6 +118,16 @@ def do_store_gnss():
     return res
 
 
+@app.route('/do_cloud', method='GET')
+def do_cloud():
+    enable = request.query['enable']
+    print(f'cloud logger new state {enable}')
+
+    things = Things.instance
+    res = things.start2(enable == 'True')
+    return res
+
+
 # Mainpage
 @app.route('/')
 def info():
@@ -124,10 +135,15 @@ def info():
 
 
 def run_server(port=80):
-    # run(host='0.0.0.0', port=port, debug=True, reloader=True)
-    gnss = GnssWorker()
-    gnss.init()
+    model = Model()
+    model.setup()
+
+    # TODO: ThingsBoard updater
+    things = Things(model)
+    things.setup()
+
     app.run(host='0.0.0.0', port=port)
+    # run(host='0.0.0.0', port=port, debug=True, reloader=True)
 
 
 # Can be invoked with python3 -m vcuui.server
