@@ -48,6 +48,7 @@ class ModelWorker(threading.Thread):
     def setup(self):
         self.lock = threading.Lock()
         self.daemon = True
+        self.name = 'model-worker'
         self.start()
 
     def run(self):
@@ -149,6 +150,8 @@ class GnssWorker(threading.Thread):
 
         self.model = model
         self.lock = threading.Lock()
+
+        self.state = 'init'
         self.gps_session = None
         self.lon = 0
         self.lat = 0
@@ -157,46 +160,55 @@ class GnssWorker(threading.Thread):
 
     def setup(self):
         self.daemon = True
+        self.name = 'gps-reader'
         self.start()
-
-    def get(self):
-        with self.lock:
-            pos = dict()
-            pos['fix'] = self.fix
-            pos['lon'] = self.lon
-            pos['lat'] = self.lat
-            pos['speed'] = self.speed
-
-        return pos
 
     def run(self):
         print("running gps thread")
-        self.gps_session = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
+        self.state = 'init'
 
         while True:
-            report = self.gps_session.next()
-            if report['class'] == 'TPV':
-                # print(report['lon'])
-                # print(report['lat'])
+            if self.state != 'connected':
+                # try to connect to gpsd
+                try:
+                    print('trying to connect to gpsd')
+                    self.gps_session = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
+                    self.state = 'connected'
+                except ConnectionRefusedError:
+                    print('cannot connect to gpsd, is it running?')
+                    time.sleep(2.0)
 
-                with self.lock:
-                    fix = report['mode']
-                    if fix == 0 or fix == 1:
-                        self.fix = 'No Fix'
-                    elif fix == 2:
-                        self.fix = '2D'
-                    elif fix == 3:
-                        self.fix = '3D'
+            elif self.state == 'connected':
+                try:
+                    report = self.gps_session.next()
+                    print('gps report')
+                    if report['class'] == 'TPV':
+                        with self.lock:
+                            fix = report['mode']
+                            if fix == 0 or fix == 1:
+                                self.fix = 'No Fix'
+                            elif fix == 2:
+                                self.fix = '2D'
+                            elif fix == 3:
+                                self.fix = '3D'
 
-                    self.lon = report['lon']
-                    self.lat = report['lat']
-                    if 'speed' in report:
-                        self.speed = report['speed']
+                            self.lon = report['lon']
+                            self.lat = report['lat']
+                            if 'speed' in report:
+                                self.speed = report['speed']
 
-                pos = dict()
-                pos['fix'] = self.fix
-                pos['lon'] = self.lon
-                pos['lat'] = self.lat
-                pos['speed'] = self.speed
+                        pos = dict()
+                        pos['fix'] = self.fix
+                        pos['lon'] = self.lon
+                        pos['lat'] = self.lat
+                        pos['speed'] = self.speed
 
-                self.model.publish('gnss-pos', pos)
+                        self.model.publish('gnss-pos', pos)
+
+                except StopIteration:
+                    print('lost connection to gpsd')
+                    time.sleep(2.0)
+                    self.state = 'disconnected'
+
+            else:
+                time.sleep(1.0)
