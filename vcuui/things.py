@@ -33,7 +33,6 @@ class Things(threading.Thread):
         self.config = configparser.ConfigParser()
         self.config.read('/etc/thingsboard.conf')
         self.api_token = self.config.get('API', 'Token')
-        # self._data_queue = dict()
         self._data_queue2 = list()
 
     def setup(self):
@@ -78,14 +77,18 @@ class Things(threading.Thread):
                             self._attributes(md)
 
                 elif self.state == 'connected':
-                    if cnt % 2 == 0:
-                        self._info(md)
-                        self._gnss(md)
+                    # Get gps update every one second
+                    self._gnss(md)
 
+                    # Less important information every 2..5 seconds
+                    if cnt % 5 == 0:
+                        self._info(md)
+
+                    # Upload every 30 seconds
                     if cnt % 30 == 1:
                         self._upload_data()
 
-                    # check for error and switch to disconnected in case of problem
+                    # check for error and switch to disconnected state in case of problem
 
                 # timer handling
                 if cnt % 60 == 0:
@@ -113,8 +116,6 @@ class Things(threading.Thread):
     def _info(self, md):
         if 'sys-misc' in md:
             info = md['sys-misc']
-            # self._queue('temperature', info['temp'])
-            # self._queue('cpu-load', info['load'][0])
             data = {
                 'temperature': info['temp'],
                 'cpu-load': info['load'][0]
@@ -128,11 +129,6 @@ class Things(threading.Thread):
     def _gnss(self, md):
         if 'gnss-pos' in md:
             pos = md['gnss-pos']
-            # self._queue('fix', pos['fix'])
-            # self._queue('lon', pos['lon'])
-            # self._queue('lat', pos['lat'])
-            # self._queue('speed', pos['speed'])
-
             # TODO: extract only values we want
             self._queue_timed(pos)
 
@@ -146,18 +142,9 @@ class Things(threading.Thread):
         self._data_queue2.append(data_set)
         # print(self._data_queue2)
 
-    # def _queue(self, key, value):
-    #     # {"ts":1451649600512, "values":{"key1":"value1", "key2":"value2"}}
-    #     self._data_queue[key] = value
-
     def _upload_data(self):
         # Send queued data
-        # TODO: more clever algorithm, sending useful sized batches every some 
-        # seconds
-        #if self._data_queue:
-        #    print(self._data_queue2)
-        #    # self._send_data(self._data_queue)
-        #    self._data_queue = dict()
+        # TODO: more clever algorithm, sending useful sized batches every some seconds
 
         # Get data to send from queue
         # TODO: Limit based on size
@@ -177,10 +164,6 @@ class Things(threading.Thread):
             args = ['curl', '-v', '-d', f'@{tmp.name}',
                     f'https://demo.thingsboard.io/api/v1/{self.api_token}/telemetry',
                     '--header', 'Content-Type:application/json']
-            #args = ['curl', '-v', '-d', as_json_string,
-            #        f'https://demo.thingsboard.io/api/v1/{self.api_token}/telemetry',
-            #        '--header', 'Content-Type:application/json']
-            # print(args)
             cp = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             print(f'{len(as_json_string)} bytes uploaded, curl returned {cp.returncode}')
 

@@ -149,7 +149,6 @@ class GnssWorker(threading.Thread):
         GnssWorker.instance = self
 
         self.model = model
-        self.lock = threading.Lock()
 
         self.state = 'init'
         self.gps_session = None
@@ -173,6 +172,7 @@ class GnssWorker(threading.Thread):
                 try:
                     print('trying to connect to gpsd')
                     self.gps_session = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
+                    print('gps connected')
                     self.state = 'connected'
                 except ConnectionRefusedError:
                     print('cannot connect to gpsd, is it running?')
@@ -181,21 +181,19 @@ class GnssWorker(threading.Thread):
             elif self.state == 'connected':
                 try:
                     report = self.gps_session.next()
-                    print('gps report')
                     if report['class'] == 'TPV':
-                        with self.lock:
-                            fix = report['mode']
-                            if fix == 0 or fix == 1:
-                                self.fix = 'No Fix'
-                            elif fix == 2:
-                                self.fix = '2D'
-                            elif fix == 3:
-                                self.fix = '3D'
+                        fix = report['mode']
+                        if fix == 0 or fix == 1:
+                            self.fix = 'No Fix'
+                        elif fix == 2:
+                            self.fix = '2D'
+                        elif fix == 3:
+                            self.fix = '3D'
 
-                            self.lon = report['lon']
-                            self.lat = report['lat']
-                            if 'speed' in report:
-                                self.speed = report['speed']
+                        self.lon = report['lon']
+                        self.lat = report['lat']
+                        if 'speed' in report:
+                            self.speed = report['speed']
 
                         pos = dict()
                         pos['fix'] = self.fix
