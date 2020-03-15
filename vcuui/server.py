@@ -142,6 +142,9 @@ def run_server(port=80):
     things = Things(model)
     things.setup()
 
+    # Start cloud logging by default
+    things.start2(True)
+
     app.run(host='0.0.0.0', port=port)
     # run(host='0.0.0.0', port=port, debug=True, reloader=True)
 
