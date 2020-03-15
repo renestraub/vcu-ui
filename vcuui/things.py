@@ -2,7 +2,7 @@
 Store your device token in /etc/thingsboard.conf
 
 [API]
-Token = fdjkfhdskjhfds
+Token = <your token>
 
 """
 import configparser
@@ -61,16 +61,23 @@ class Things(threading.Thread):
         cnt = 0
 
         while True:
+            # print("things loop")
             if self.active:
+                # print("active")
                 next_state = self.state
+                # print("getting data")
                 md = self.model.get_all()
+                # print(f"have data {self.state}")
 
                 if self.state != 'connected':
                     # Check if we are connected
                     if 'modem' in md:
+                        print("modem present")
                         m = md['modem']
                         if 'modem-id' in m:
+                            print("have modem-id")
                             if 'bearer-id' in m:
+                                print("have bearer-id")
                                 cnt = 0
                                 next_state = 'connected'
 
@@ -122,11 +129,11 @@ class Things(threading.Thread):
             self._queue_timed(data)
 
 #        info['mem'] = si.meminfo()
-#        info['v_in'] = si.input_voltage()
 #        info['v_rtc'] = si.rtc_voltage()
 
     def _gnss(self, md):
         if 'gnss-pos' in md:
+            # print("have gnss data")
             pos = md['gnss-pos']
             # TODO: extract only values we want
             self._queue_timed(pos)
@@ -145,6 +152,8 @@ class Things(threading.Thread):
         # Send queued data
         # TODO: more clever algorithm, sending useful sized batches every some seconds
 
+        # print('uploading data')
+
         # Get data to send from queue
         # TODO: Limit based on size
         http_data = list()
@@ -160,9 +169,11 @@ class Things(threading.Thread):
             # print(as_json_string)
             tmp.write(as_json_string.encode())
             tmp.close()
+
             args = ['curl', '-v', '-d', f'@{tmp.name}',
                     f'https://demo.thingsboard.io/api/v1/{self.api_token}/telemetry',
                     '--header', 'Content-Type:application/json']
+            # print(f'starting curl utility with args {args}')
             cp = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             print(f'{len(as_json_string)} bytes uploaded, curl returned {cp.returncode}')
 
