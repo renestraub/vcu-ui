@@ -118,8 +118,10 @@ class Things(threading.Thread):
             info = md['sys-misc']
             data = {
                 'temperature': info['temp'],
-                'cpu-load': info['load'][0]
+                'cpu-load': info['load'][0],
+                'voltage-in': info['v_in']
             }
+            # print(data)
             self._queue_timed(data)
 
 #        info['mem'] = si.meminfo()
