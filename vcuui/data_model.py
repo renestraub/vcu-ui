@@ -190,6 +190,11 @@ class GnssWorker(threading.Thread):
                         elif fix == 3:
                             self.fix = '3D'
 
+                        if 'status' in report:
+                            status = report['status']
+                            if status == 2 and self.fix == '3D':
+                                self.fix = '3D DGPS'
+
                         self.lon = report['lon']
                         self.lat = report['lat']
                         if 'speed' in report:
