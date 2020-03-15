@@ -174,6 +174,7 @@ class GnssWorker(threading.Thread):
                     self.gps_session = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
                     print('gps connected')
                     self.state = 'connected'
+
                 except ConnectionRefusedError:
                     print('cannot connect to gpsd, is it running?')
                     time.sleep(2.0)
@@ -206,7 +207,16 @@ class GnssWorker(threading.Thread):
                         pos['lat'] = self.lat
                         pos['speed'] = self.speed
 
+                        # print(f'gps data {pos}')
                         self.model.publish('gnss-pos', pos)
+
+                except KeyError as e:
+                    # For whatever reasons getting GPS data from gps
+                    # daemon is very unstable.
+                    # Have to handke KeyErrors in order to keep system
+                    # running
+                    print('gps module KeyError')
+                    print(e)
 
                 except StopIteration:
                     print('lost connection to gpsd')
