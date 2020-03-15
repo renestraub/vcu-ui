@@ -73,27 +73,23 @@ class Things(threading.Thread):
                             if 'bearer-id' in m:
                                 next_state = 'connected'
 
-                            # Update attributes
-                            self._attributes(md)
-
                 elif self.state == 'connected':
                     # Get gps update every one second
                     self._gnss(md)
 
-                    # Less important information every 2..5 seconds
-                    if cnt % 5 == 0:
+                    # Less important information
+                    if cnt % 15 == 0:
                         self._info(md)
 
                     # Upload every 30 seconds
-                    if cnt % 30 == 1:
+                    if cnt % 30 == 5:
                         self._upload_data()
 
-                    # check for error and switch to disconnected state in case of problem
+                        # TODO: check for error and switch to disconnected state in case of problem
 
-                # timer handling
-                if cnt % 60 == 0:
                     # update attributes every now and then
-                    self._attributes(md)
+                    if cnt % 120 == 5:
+                        self._attributes(md)
 
                 # state change
                 if self.state != next_state:
