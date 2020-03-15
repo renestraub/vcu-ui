@@ -71,6 +71,7 @@ class Things(threading.Thread):
                         m = md['modem']
                         if 'modem-id' in m:
                             if 'bearer-id' in m:
+                                cnt = 0
                                 next_state = 'connected'
 
                 elif self.state == 'connected':
