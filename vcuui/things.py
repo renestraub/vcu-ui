@@ -83,12 +83,12 @@ class Things(threading.Thread):
                 if self.state != 'connected':
                     # Check if we are connected
                     if 'modem' in md:
-                        print("modem present")
+                        # print("modem present")
                         m = md['modem']
                         if 'modem-id' in m:
-                            print("have modem-id")
+                            # print("have modem-id")
                             if 'bearer-id' in m:
-                                print("have bearer-id")
+                                # print("have bearer-id")
                                 cnt = 0
                                 next_state = 'connected'
 

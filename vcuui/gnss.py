@@ -25,6 +25,7 @@ def start_ser2net():
     return res
 
 
+# TODO: Replace by ubxlib
 def save_state():
     """
     Saves receiver state for next power up
