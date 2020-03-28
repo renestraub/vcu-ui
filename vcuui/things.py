@@ -22,6 +22,8 @@ class Things(threading.Thread):
     # Singleton accessor
     instance = None
 
+    MAX_QUEUE_SIZE = 300
+
     def __init__(self, model):
         super().__init__()
 
@@ -35,7 +37,7 @@ class Things(threading.Thread):
         self.config = configparser.ConfigParser()
         self.config.read('/etc/thingsboard.conf')
         self.api_token = self.config.get('API', 'Token')
-        self._data_queue2 = list()
+        self._data_queue = list()
 
     def setup(self):
         self.daemon = True
@@ -58,7 +60,7 @@ class Things(threading.Thread):
                 res = 'Cloud logger not running'
 
         self.model.publish('cloud', self.active)
-        
+
         return res
 
     def run(self):
@@ -137,6 +139,9 @@ class Things(threading.Thread):
 
     def _gnss(self, md):
         if 'gnss-pos' in md:
+            # TODO: Don't update if position change is minimal
+
+
             # print("have gnss data")
             pos = md['gnss-pos']
             # TODO: extract only values we want
@@ -149,8 +154,14 @@ class Things(threading.Thread):
         now_ms = int(1000.0 * now)
         # print(now_ms)
         data_set = {"time": now_ms, "data": data}
-        self._data_queue2.append(data_set)
-        # print(self._data_queue2)
+
+        num_entries = len(self._data_queue)
+        if num_entries > self.MAX_QUEUE_SIZE:
+            # print('queue overflow, dropping old elements')
+            self._data_queue = self._data_queue[-self.MAX_QUEUE_SIZE:]
+
+        self._data_queue.append(data_set)
+        # print(len(self._data_queue2))
 
     def _upload_data(self):
         # Send queued data
@@ -161,7 +172,7 @@ class Things(threading.Thread):
         # Get data to send from queue
         # TODO: Limit based on size
         http_data = list()
-        for entry in self._data_queue2:
+        for entry in self._data_queue:
             # print(entry)
             data = {'ts': entry['time'], 'values': entry['data']}
             http_data.append(data)
@@ -185,7 +196,7 @@ class Things(threading.Thread):
             os.unlink(tmp.name)
 
         # TODO: only remove from list what has been sent
-        self._data_queue2 = list()
+        self._data_queue = list()
 
     def _send_data(self, payload):
         # print(payload)
