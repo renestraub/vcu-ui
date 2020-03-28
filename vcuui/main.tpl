@@ -34,11 +34,13 @@
 
         <div class="main">
             <table>
-                %for entry in table:
-                <tr>
-                    <td>{{entry.header}}</td>
-                    <td>{{!entry.text}}</td>
-                </tr>
+                %if table:
+                    %for entry in table:
+                    <tr>
+                        <td>{{entry.header}}</td>
+                        <td>{{!entry.text}}</td>
+                    </tr>
+                    %end
                 %end
 
             </table>
@@ -76,8 +78,10 @@
 
     <script>
         // data provided to web page
-        %for key, value in data.items():
-            localStorage.{{key}} = {{value}};
+        %if data:
+            %for key, value in data.items():
+                localStorage.{{key}} = {{value}};
+            %end
         %end
 
         var timer_close = null;
