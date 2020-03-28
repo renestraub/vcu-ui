@@ -93,8 +93,9 @@ class Things(threading.Thread):
                                 next_state = 'connected'
 
                 elif self.state == 'connected':
-                    # Get gps update every one second
-                    self._gnss(md)
+                    # Get gps update every 2nd second
+                    if cnt % 2 == 1:
+                        self._gnss(md)
 
                     # Less important information
                     if cnt % 15 == 0:
@@ -104,7 +105,7 @@ class Things(threading.Thread):
                     if cnt % 30 == 5:
                         self._upload_data()
 
-                        # TODO: check for error and switch to disconnected state in case of problem
+                    # TODO: check for error and switch to disconnected state in case of problem
 
                     # update attributes every now and then
                     if cnt % 120 == 5:
@@ -134,19 +135,25 @@ class Things(threading.Thread):
             data = {
                 'temperature': info['temp'],
                 'cpu-load': info['load'][0],
-                'voltage-in': info['v_in']
+                'voltage-in': info['v_in'],
+                'mem-used': info['mem'][1]
             }
             # print(data)
             self._queue_timed(data)
 
-#        info['mem'] = si.meminfo()
-#        info['v_rtc'] = si.rtc_voltage()
+        if 'link' in md:
+            info = md['link']
+            data = {
+                # TODO: rename -> wwan-delay ?
+                # TODO: format result .0f ?
+                'delay': info['delay'] * 1000.0,
+            }
+            self._queue_timed(data)
 
     def _gnss(self, md):
         if 'gnss-pos' in md:
             # print("have gnss data")
             pos = md['gnss-pos']
-            print(pos)
             if 'lon' in pos and 'lat' in pos:
                 lon_rad = math.radians(pos['lon'])
                 lat_rad = math.radians(pos['lat'])

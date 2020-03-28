@@ -1,6 +1,7 @@
 import time
 import threading
 from gps import *
+from ping3 import ping, verbose_ping
 
 from vcuui.sysinfo import SysInfo
 from vcuui.mm import MM
@@ -18,16 +19,25 @@ class Model(object):
 
         self.worker = ModelWorker(self)
         self.gnss = GnssWorker(self)
+        self.gsm_connection = GsmWorker(self)
         self.lock = threading.Lock()
         self.data = dict()
+
+        self.bearer_ip = None
 
     def setup(self):
         self.worker.setup()
         self.gnss.setup()
+        self.gsm_connection.setup()
 
     def get_all(self):
         with self.lock:
             return self.data
+
+    def get(self, origin):
+        with self.lock:
+            if origin in self.data:
+                return self.data[origin]
 
     def publish(self, origin, value):
         # print(f'get data from {origin}')
@@ -225,3 +235,66 @@ class GnssWorker(threading.Thread):
 
             else:
                 time.sleep(1.0)
+
+
+class GsmWorker(threading.Thread):
+    # Singleton accessor
+    # TODO: required?
+    instance = None
+
+    def __init__(self, model):
+        super().__init__()
+
+        assert GsmWorker.instance is None
+        GsmWorker.instance = self
+
+        self.model = model
+        self.state = 'init'
+        self.counter = 0
+
+    def setup(self):
+        self.daemon = True
+        self.name = 'gsm-worker'
+        self.start()
+
+    def run(self):
+        print("running gsm thread")
+        self.state = 'init'
+        self.counter = 0
+
+        while True:
+            info = self.model.get('modem')
+            # print(info)
+
+            if self.state == 'init':
+                # check if we have a valid bearer
+                try:
+                    if info and 'bearer-ip' in info:
+                        print('bearer found')
+                        self.state = 'connected'
+
+                except KeyError:
+                    pass
+
+            elif self.state == 'connected':
+                try:
+                    if info and 'bearer-ip' not in info:
+                        print('lost IP connection')
+                        self.state = 'init'
+
+                    else:
+                        if self.counter % 60 == 10:
+                            info = dict()
+                            delay = ping('1.1.1.1', timeout=1.0)
+                            if delay:
+                                info['delay'] = delay
+                            else:
+                                delay = 0.0
+
+                            self.model.publish('link', info)
+
+                except KeyError:
+                    pass
+
+            self.counter += 1
+            time.sleep(1.0)

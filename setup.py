@@ -24,7 +24,8 @@ setuptools.setup(
     python_requires='>=3.7',
     install_requires=[
         'bottle',
-        'requests'
+        'requests',
+        'ping3'
         ],
     package_data={
         '': ['*.css', '*.tpl'],

@@ -134,6 +134,11 @@ def render_page(message=None, console=None):
                         tes.append(TE('Uptime', f'{uth}:{utm:02} h'))
                         ip = m2['bearer-ip']
                         tes.append(TE('IP', ip))
+
+                if 'link' in md:
+                    delay_in_ms = md['link']['delay'] * 1000.0
+                    tes.append(TE('Ping', f'{delay_in_ms:.0f} ms'))
+
         else:
             tes.append(TE('', ''))
             tes.append(TE('Modem Id', 'No Modem'))
