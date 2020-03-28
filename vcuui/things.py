@@ -11,6 +11,7 @@ import subprocess
 import threading
 import time
 import os, tempfile
+import math
 
 import vcuui.data_model
 
@@ -23,6 +24,7 @@ class Things(threading.Thread):
     instance = None
 
     MAX_QUEUE_SIZE = 300
+    GNSS_UPDATE_DISTANCE = 1.5
 
     def __init__(self, model):
         super().__init__()
@@ -38,6 +40,9 @@ class Things(threading.Thread):
         self.config.read('/etc/thingsboard.conf')
         self.api_token = self.config.get('API', 'Token')
         self._data_queue = list()
+
+        self.lat_last_rad = 0
+        self.lon_last_rad = 0
 
     def setup(self):
         self.daemon = True
@@ -139,13 +144,38 @@ class Things(threading.Thread):
 
     def _gnss(self, md):
         if 'gnss-pos' in md:
-            # TODO: Don't update if position change is minimal
-
-
             # print("have gnss data")
             pos = md['gnss-pos']
-            # TODO: extract only values we want
-            self._queue_timed(pos)
+            print(pos)
+            if 'lon' in pos and 'lat' in pos:
+                lon_rad = math.radians(pos['lon'])
+                lat_rad = math.radians(pos['lat'])
+
+                d = self._distance(lon_rad, lat_rad)
+                # print(f'distance {d}')
+                if d > self.GNSS_UPDATE_DISTANCE:
+                    # TODO: extract only values we want
+                    print('position update')
+                    self._queue_timed(pos)
+
+                    self.lat_last_rad = lat_rad
+                    self.lon_last_rad = lon_rad
+
+    def _distance(self, lon_rad, lat_rad):
+        R = 6371.0e3
+        d_lat_rad = self.lat_last_rad - lat_rad
+        d_lon_rad = self.lon_last_rad - lon_rad
+        # print(d_lat_rad, d_lon_rad)
+        # print(math.sin(d_lat_rad / 2) * math.sin(d_lat_rad / 2))
+        # print(math.sin(d_lon_rad / 2) * math.sin(d_lon_rad / 2))
+
+        a = math.sin(d_lat_rad / 2) * math.sin(d_lat_rad / 2) + \
+            math.cos(lat_rad) * math.cos(self.lat_last_rad) * \
+            math.sin(d_lon_rad / 2) * math.sin(d_lon_rad / 2)
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
+        d = R * c
+
+        return d
 
     def _queue_timed(self, data):
         # Add entry to transmit queue
