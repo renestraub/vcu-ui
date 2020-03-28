@@ -43,6 +43,9 @@ def render_page(message=None, console=None):
         # General System Information
         m = Model.instance
         md = m.get_all()
+
+        cloud_log_state = md['cloud']
+
         serial = md['sys-version']['serial']
 
         tes.append(TE('System', ''))
@@ -123,7 +126,7 @@ def render_page(message=None, console=None):
             if 'bearer-id' in m2:
                 tes.append(TE('', ''))
                 tes.append(TE('Bearer Id', m2['bearer-id']))
-                
+
                 if 'bearer-uptime' in m2:
                     ut = m2['bearer-uptime']
                     if ut:
@@ -155,7 +158,8 @@ def render_page(message=None, console=None):
                         data=data,
                         message=message,
                         console=console,
-                        version=version)
+                        version=version,
+                        cloud_log=cloud_log_state)
 
     except KeyError as e:
         print(e)
@@ -165,6 +169,7 @@ def render_page(message=None, console=None):
                         table=None,
                         data=None,
                         console=None,
-                        version='n/a')
+                        version='n/a',
+                        cloud_log=False)
 
     return output

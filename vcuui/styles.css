@@ -104,8 +104,12 @@ button {
     background-color: #eb3f2c;
 }
 
-.button:hover {
+.button_green {
     background-color: #4CAF50;
+}
+
+.button:hover {
+    background-color: rgb(175, 175, 76);
     color: white;
 }
 

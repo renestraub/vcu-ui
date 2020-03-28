@@ -21,8 +21,11 @@
                 <button id="button_ping" class="button button_green" type="button" onclick="do_ping()">Ping</button>
                 <button id="button_find_cell" class="button button_green" type="button" onclick="do_cell_find()">Find Cell</button>
                 <p></p>
-                <button id="button_cloud" class="button button_orange" type="button" onclick="do_cloud(true)">Start Cloud Logging</button>
-                <button id="button_cloud" class="button button_orange" type="button" onclick="do_cloud(false)">Stop Cloud Logging</button>
+                %if not cloud_log:
+                    <button id="button_cloud" class="button button_orange" type="button" onclick="do_cloud(true)">Start Cloud Logging</button>
+                %else:
+                    <button id="button_cloud" class="button button_green" type="button" onclick="do_cloud(false)">Stop Cloud Logging</button>
+                %end
                 <p></p>
                 <button id="button_gnss_save" class="button button_orange" type="button" onclick="do_store_gnss()">Save GNSS State</button>
                 <button id="button_ser2net" class="button button_orange" type="button" onclick="do_sertonet()">uCenter ser2net</button>
@@ -115,6 +118,9 @@
         function modal_close() {
             stop_close_timer();
             modal.style.display = "none";
+
+            // check if this is safe
+            location.reload();
         }
 
         function modal_enable_close_timer() {
@@ -205,7 +211,7 @@
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     dialog_message.innerHTML += "<br>" + this.responseText;
-                    start_close_timer(5);
+                    start_close_timer(3);
                 }
             };
 
@@ -241,7 +247,7 @@
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     dialog_message.innerHTML += "<br>" + this.responseText;
-                    start_close_timer(3);
+                    start_close_timer(2);
                 }
             };
 

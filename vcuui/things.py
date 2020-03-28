@@ -12,6 +12,8 @@ import threading
 import time
 import os, tempfile
 
+import vcuui.data_model
+
 
 # import pycurl -> broken
 # from io import BytesIO
@@ -55,6 +57,8 @@ class Things(threading.Thread):
             else:
                 res = 'Cloud logger not running'
 
+        self.model.publish('cloud', self.active)
+        
         return res
 
     def run(self):
