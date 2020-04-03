@@ -4,6 +4,13 @@ body {
     color: black;
 }
 
+@media (prefers-color-scheme: dark) {
+    body {
+      background-color: #222;
+      color: #e4e4e4;
+    }
+}
+
 * {
     box-sizing: border-box;
 }
@@ -63,6 +70,20 @@ tr:nth-child(even) {
 
 tr:nth-child(odd) {
     background-color: #d1f5f7;
+}
+
+@media (prefers-color-scheme: dark) {
+    td {
+        border: 1px solid #000000;
+    }
+
+    tr:nth-child(even) {
+        background-color: #4d4d4d;
+    }
+    
+    tr:nth-child(odd) {
+        background-color: #3a3a3a;
+    }
 }
 
 tr:hover {
