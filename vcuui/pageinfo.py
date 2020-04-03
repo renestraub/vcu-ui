@@ -150,9 +150,7 @@ def render_page(message=None, console=None):
 
             pos = md['gnss-pos']
             tes.append(TE('Fix', pos['fix']))
-            text = nice([('lon', 'Longitude', '°'),
-                        ('lat', 'Latitude', '°')],
-                        pos)
+            text = f'Longitude: {pos["lon"]:.9f}, Latitude: {pos["lat"]:.9f}'
             tes.append(TE('Position', text))
             text = nice([('speed', '', 'km/h')], pos)
             tes.append(TE('Speed', f'{pos["speed"]:.0f} m/s, {pos["speed"]*3.60:.0f} km/h'))
