@@ -72,6 +72,12 @@ tr:nth-child(odd) {
     background-color: #d1f5f7;
 }
 
+/*
+tr:hover {
+    background-color: #ddd;
+}
+*/
+
 @media (prefers-color-scheme: dark) {
     td {
         border: 1px solid #000000;
@@ -84,10 +90,11 @@ tr:nth-child(odd) {
     tr:nth-child(odd) {
         background-color: #3a3a3a;
     }
-}
-
-tr:hover {
-    background-color: #ddd;
+/*
+    tr:hover {
+        background-color: #222;
+    }
+*/
 }
 
 .btn-group {
@@ -173,6 +180,12 @@ button {
     -webkit-animation-duration: 1.0s;
     animation-name: animatetop;
     animation-duration: 1.0s
+}
+
+@media (prefers-color-scheme: dark) {
+    .modal-content {
+        background-color: #222;
+    }
 }
 
 @-webkit-keyframes animatetop {
