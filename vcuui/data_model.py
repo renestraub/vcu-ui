@@ -69,10 +69,12 @@ class ModelWorker(threading.Thread):
         cnt = 0
         while True:
             # print('worker')
-            if cnt % 5 == 0:
-                self._sysinfo()
+            # if cnt % 5 == 0:
+            self._sysinfo()
+
             if cnt % 10 == 2:
                 self._network()
+
             if cnt % 10 == 5:
                 self._modem()
 

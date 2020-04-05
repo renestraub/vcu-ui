@@ -12,9 +12,16 @@
     <h1>{{title}}</h1>
 
     <div style="overflow:auto">
+ 
         <div class="menu">
             <div class="btn-group">
-                <button class="button" onClick="window.location.href = '/'">Refresh Page</button>
+                <button class="button button_slider" onClick="window.location.href = '/'">Refresh Page</button>
+                <label class="switch">
+                    <input id="checkbox_auto_refresh" type="checkbox" onclick="do_auto_refresh(this)">
+                    <span class="slider round"></span>
+                </label>
+
+                <button class="button" onClick="window.location.href = '/gnss'">GNSS Page</button>
                 <p></p>
                 <button id="button_location" class="button button_green" type="button" onclick="do_location()">Enable Location</button>
                 <button id="button_signal" class="button button_green" type="button" onclick="do_signal()">Enable Signal Meas.</button>
@@ -27,8 +34,6 @@
                     <button id="button_cloud" class="button button_green" type="button" onclick="do_cloud(false)">Stop Cloud Logging</button>
                 %end
                 <p></p>
-                <button id="button_gnss_save" class="button button_orange" type="button" onclick="do_store_gnss()">Save GNSS State</button>
-                <button id="button_ser2net" class="button button_orange" type="button" onclick="do_sertonet()">uCenter ser2net</button>
                 <button id="button_modem_reset" class="button button_orange" type="button" onclick="do_modem_reset()">Reset GSM Modem</button>
                 <button id="button_reboot" class="button button_red" type="button" onclick="alert('not yet implemented')">Reboot System</button>
             </div>
@@ -88,6 +93,8 @@
         %end
 
         var timer_close = null;
+        var timer_refresh = null;
+        var checkbox_auto_refresh = document.getElementById("checkbox_auto_refresh");
 
         // Get the modal
         var modal = document.getElementById("myModal");
@@ -150,6 +157,33 @@
         }
 
         /* Actions */
+
+        console.log("page loading")
+        console.log(`refresh: ${localStorage.refresh}`)
+
+        if (localStorage.refresh == "on") {
+            console.log("restart refresh timer");
+            checkbox_auto_refresh.checked = true;
+            do_auto_refresh(checkbox_auto_refresh)
+        }
+
+        function do_auto_refresh(elem) {
+            // console.log("refresh toggle")
+            // console.log(`${elem.checked}`)
+
+            if (elem.checked) {
+                localStorage.refresh = "on";
+                timer_refresh = setTimeout(function() {
+                    console.log("reloading page");
+                    location.reload();
+                }, 2000);
+            }
+            else {
+                localStorage.refresh = "off";
+                clearInterval(timer_refresh)
+                timer_refresh == null
+            }
+        }
 
         function do_ping() {
             var xhttp = new XMLHttpRequest();
@@ -261,38 +295,6 @@
             }
             uri = "/do_cloud?" + encodeURI(query);
             xhttp.open("GET", uri, true);
-            xhttp.send();
-        }
-
-        function do_sertonet() {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                    dialog_message.innerHTML += "<br>" + this.responseText;
-                    start_close_timer(3);
-                }
-            };
-
-            model_open('Setting up system for uCenter connection');
-            modal_enable_close_timer();
-
-            xhttp.open("GET", "do_ser2net", true);
-            xhttp.send();
-        }
-
-        function do_store_gnss() {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                    dialog_message.innerHTML += "<br>" + this.responseText;
-                    start_close_timer(5);
-                }
-            };
-
-            model_open('Saving GNSS State');
-            modal_enable_close_timer();
-
-            xhttp.open("GET", "do_store_gnss", true);
             xhttp.send();
         }
     </script>
