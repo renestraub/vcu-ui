@@ -15,7 +15,10 @@ from vcuui._version import __version__ as version
 from vcuui.gnss import save_state, start_ser2net
 from vcuui.mm import MM
 from vcuui.data_model import Model
+from vcuui.gnss_model import Gnss
+
 from vcuui.pageinfo import render_page
+from vcuui.pagegnss import build_gnss
 from vcuui.tools import ping
 from vcuui.things import Things
 
@@ -118,6 +121,25 @@ def do_store_gnss():
     return res
 
 
+@app.route('/do_gnss_config')
+def do_gnss_config():
+    dyn_model = request.query['dyn_model']
+    print(f'dynamic model {dyn_model}')
+
+    # TODO: Argument check (1st level)
+    gnss = Gnss.instance
+    gnss.set_dynamic_model(int(dyn_model))
+
+    return 'Done'
+
+
+@app.route('/do_gnss_coldstart')
+def do_gnss_coldstart():
+    gnss = Gnss.instance
+    res = gnss.cold_start()
+    return res
+
+
 @app.route('/do_cloud', method='GET')
 def do_cloud():
     enable = request.query['enable']
@@ -134,9 +156,18 @@ def info():
     return render_page()
 
 
+# GNSS page
+@app.route('/gnss')
+def gnss():
+    return build_gnss()
+
+
 def run_server(port=80):
     model = Model()
     model.setup()
+
+    gnss = Gnss()
+    gnss.setup()    # TODO: model required for Gnss?
 
     # TODO: ThingsBoard updater
     things = Things(model)
