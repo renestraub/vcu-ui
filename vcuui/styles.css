@@ -71,6 +71,11 @@ td {
     padding-left: 6px;
 }
 
+.td_notyet {
+    font-style: italic;
+    color: #222;
+}
+
 tr:nth-child(even) {
     background-color: #f2f2f2;
 }
@@ -337,11 +342,11 @@ button {
   
   /* Rounded sliders */
   .slider.round {
-    border-radius: 34px;
+    border-radius: 4px;
   }
   
   .slider.round:before {
-    border-radius: 50%;
+    border-radius: 2px;
   } 
 
   
