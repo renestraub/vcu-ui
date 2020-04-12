@@ -25,8 +25,9 @@ setuptools.setup(
     install_requires=[
         'bottle',
         'requests',
-        'ping3'
-        ],
+        'ping3',
+        'ubxlib>=0.1.2'
+    ],
     package_data={
         '': ['*.css', '*.tpl'],
     },
