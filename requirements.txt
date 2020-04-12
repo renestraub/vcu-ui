@@ -1,3 +1,4 @@
 bottle
 requests
 ping3
+ubxlib>=0.1.2

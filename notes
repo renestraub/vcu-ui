@@ -1,35 +1,31 @@
 # Local run of package
 python3 -m vcuui.server
 
-# Local install
+# Local install for development
 python3 -m pip install -e .
 python3 -m pip uninstall vcu-ui
 python3 -m pip uninstall bottle
 python3 -m pip uninstall requests
 
 
-# Distribution to test.pypi, pypi
+# Distribution to PyDist
+# Add PyDist info to .pypirc
 # Run on development machine not VCU !
+# Don't forget to update _version.py and commit/push to git
+
 python3 setup.py sdist
-python3 -m twine upload --repository testpypi dist/*
-python3 -m twine upload dist/*
-
-### python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+python3 -m twine upload --repository pydist dist/*
 
 
-# install (mac os, --user for local install)
-python3 -m pip install vcu-ui --user
-
-# install vcu, note: note from prj directory!
+# Install on VCU
+# Note: not from prj directory!
 cd ~
-python3 -m pip install -i https://test.pypi.org/simple/ vcu-ui
-python3 -m pip install -i https://test.pypi.org/simple/ vcu-ui --upgrade
+pip install --index-url https://[tag]:<<access-token>>@index.pydist.com/simple/ vcu-ui
 
-cd ~
-python3 -m pip install vcu-ui
-python3 -m pip install vcu-ui --upgrade
+pip install --index-url https://[tag]:<<access-token>>@index.pydist.com/simple/ vcu-ui --upgrade
 
+# the pydist repository can be specified in ~/.config/pip/pip.conf then a normal
+# pip install will work.
 
-python3 /usr/bin/ubxtool -p CFG-GNSS -f /dev/gps0 -s 115200 -w 1
-
-
+[global]
+index-url = https://[tag]:<<Key>>@index.pydist.com/simple/

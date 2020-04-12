@@ -12,30 +12,19 @@
     <h1>{{title}}</h1>
 
     <div style="overflow:auto">
- 
         <div class="menu">
             <div class="btn-group">
-                <button class="button button_slider" onClick="window.location.href = '/'">Refresh Page</button>
-                <label class="switch">
-                    <input id="checkbox_auto_refresh" type="checkbox" onclick="do_auto_refresh(this)">
-                    <span class="slider round"></span>
-                </label>
+                <button class="button" onClick="window.location.href = '/gnss'">Refresh Page</button>
+                <button class="button" onClick="window.location.href = '/'">Home</button>
+                <p></p>
+                <button id="button_ser2net" class="button button_orange" type="button" onclick="do_sertonet()">uCenter ser2net</button>
+                <p></p>
+                <button id="button_configure" class="button button_orange" type="button" onclick="do_gnss_config()">Configure</button>
+                <p></p>
+                <button id="button_state_save" class="button button_green" type="button" onclick="do_state_save()">Save GNSS State</button>
+                <button id="button_state_clear" class="button button_green" type="button" onclick="do_state_clear()">[Clear GNSS State]</button>
 
-                <button class="button" onClick="window.location.href = '/gnss'">GNSS Page</button>
-                <p></p>
-                <button id="button_location" class="button button_green" type="button" onclick="do_location()">Enable Location</button>
-                <button id="button_signal" class="button button_green" type="button" onclick="do_signal()">Enable Signal Meas.</button>
-                <button id="button_ping" class="button button_green" type="button" onclick="do_ping()">Ping</button>
-                <button id="button_find_cell" class="button button_green" type="button" onclick="do_cell_find()">Find Cell</button>
-                <p></p>
-                %if not cloud_log:
-                    <button id="button_cloud" class="button button_orange" type="button" onclick="do_cloud(true)">Start Cloud Logging</button>
-                %else:
-                    <button id="button_cloud" class="button button_green" type="button" onclick="do_cloud(false)">Stop Cloud Logging</button>
-                %end
-                <p></p>
-                <button id="button_modem_reset" class="button button_orange" type="button" onclick="do_modem_reset()">Reset GSM Modem</button>
-                <button id="button_reboot" class="button button_red" type="button" onclick="alert('not yet implemented')">Reboot System</button>
+                <button id="button_configure" class="button button_orange" type="button" onclick="do_gnss_coldstart()">Cold Start</button>
             </div>
             <p>Version: {{version}}</p>
         </div>
@@ -50,7 +39,85 @@
                     </tr>
                     %end
                 %end
+            </table>
 
+            <p></p>
+
+            <table>
+                <tr>
+                    <td class="td_notyet">UART Bitrate</td>
+                    <td>9600|115200</td>
+                </tr>
+                <tr>
+                    <td>NMEA Protocol</td>
+                    <td>{{data['nmea_protocol']}}</td>
+                </tr>
+                <tr>
+                    <td class="td_notyet">ESF Status</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="td_notyet">Auto Alignment</td>
+                    <td>On/Off</td>
+                </tr>
+                <tr>
+                    <td class="td_notyet">Alignment Status</td>
+                    <td>xxx/Coarse/Fine fkdjsljf dklsfjlksdjflkdsöjfdslkö</td>
+                </tr>
+                <tr>
+                    <td class="td_notyet">Mounting Roll</td>
+                    <td>1.23 deg</td>
+                </tr>
+                <tr>
+                    <td class="td_notyet">Mounting Pitch</td>
+                    <td>1.23 deg</td>
+                </tr>
+                <tr>
+                    <td class="td_notyet">Mounting Yaw</td>
+                    <td>1.23 deg</td>
+                </tr>
+            </table>
+
+            <p></p>
+
+            <table>
+                <tr>
+                    <td>Dynamic Model</td>
+                    <td>
+                        <select id="dyn_model">
+                            <option value="0">0: Portable</option>
+                            <option value="2">2: Stationary</option>
+                            <option value="3">3: Pedestrian</option>
+                            <option value="4">4: Automotive</option>
+                            <option value="5">5: Sea</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="td_notyet">Automatic Alignment</td>
+                    <td>
+                        <select id="auto_imu_align">
+                            <option value="on">On</option>
+                            <option value="off">Off</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="td_notyet">VRP-Antenna</td>
+                    <td>
+                        X: <input type="number" id="vrp-ant-x" min="-5.0" max="5.0" step="0.01">
+                        Y: <input type="number" id="vrp-ant-y" min="-5.0" max="5.0" step="0.01">
+                        Z: <input type="number" id="vrp-ant-z" min="-5.0" max="5.0" step="0.01">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="td_notyet">VRP-IMU</td>
+                    <td>
+                        X: <input type="number" id="vrp-imu-x" min="-5.0" max="5.0" step="0.01">
+                        Y: <input type="number" id="vrp-imu-y" min="-5.0" max="5.0" step="0.01">
+                        Z: <input type="number" id="vrp-imu-z" min="-5.0" max="5.0" step="0.01">
+                    </td>
+                </tr>
             </table>
 
             %if message:
@@ -92,11 +159,15 @@
             %end
         %end
 
-        var timer_close = null;
-        var timer_refresh = null;
-        var checkbox_auto_refresh = document.getElementById("checkbox_auto_refresh");
+        // Set UI configuration items with values provided by system
+        console.log(`system dyn_model is {{data['dyn_model']}}`)
+        console.log(`system nmea is {{data['nmea_protocol']}}`)
 
-        // Get the modal
+        document.getElementById("dyn_model").value = "{{data['dyn_model']}}";
+
+        var timer_close = null;
+
+        // Get the modal elements
         var modal = document.getElementById("myModal");
         var dialog = document.getElementById("myDialog");
         var dialog_message = document.getElementById("message");
@@ -158,52 +229,7 @@
 
         /* Actions */
 
-        console.log("page loading")
-        console.log(`refresh: ${localStorage.refresh}`)
-
-        if (localStorage.refresh == "on") {
-            console.log("restart refresh timer");
-            checkbox_auto_refresh.checked = true;
-            do_auto_refresh(checkbox_auto_refresh)
-        }
-
-        function do_auto_refresh(elem) {
-            // console.log("refresh toggle")
-            // console.log(`${elem.checked}`)
-
-            if (elem.checked) {
-                localStorage.refresh = "on";
-                timer_refresh = setTimeout(function() {
-                    console.log("reloading page");
-                    location.reload();
-                }, 2000);
-            }
-            else {
-                localStorage.refresh = "off";
-                clearInterval(timer_refresh)
-                timer_refresh == null
-            }
-        }
-
-        function do_ping() {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                    // show console and display ping result
-                    dialog_console.style.display = "block";
-                    dialog_console.innerHTML = this.responseText;
-                    start_close_timer(10);
-                }
-            };
-
-            model_open('Executing ping, please wait ...');
-            modal_enable_close_timer();
-
-            xhttp.open("GET", "do_ping", true);
-            xhttp.send();
-        }
-
-        function do_location() {
+        function do_sertonet() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
@@ -212,71 +238,30 @@
                 }
             };
 
-            model_open('Enabling 3GPP location detection');
+            model_open('Setting up system for uCenter connection');
             modal_enable_close_timer();
 
-            xhttp.open("GET", "do_location", true);
+            xhttp.open("GET", "do_ser2net", true);
             xhttp.send();
         }
 
-        function do_signal() {
+        function do_state_save() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     dialog_message.innerHTML += "<br>" + this.responseText;
-                    start_close_timer(3);
+                    start_close_timer(5);
                 }
             };
 
-            model_open('Enabling signal quality measurements');
+            model_open('Saving GNSS State');
             modal_enable_close_timer();
 
-            xhttp.open("GET", "do_signal", true);
+            xhttp.open("GET", "do_store_gnss", true);
             xhttp.send();
         }
 
-        function do_modem_reset() {
-            res = confirm("Do you really want to reset the GSM modem?");
-            if (res == false) {
-                return
-            }
-
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                    dialog_message.innerHTML += "<br>" + this.responseText;
-                    start_close_timer(3);
-                }
-            };
-
-            model_open('Resetting modem');
-            modal_enable_close_timer();
-
-            xhttp.open("GET", "do_modem_reset", true);
-            xhttp.send();
-        }
-
-        function do_cell_find() {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                    dialog_message.innerHTML += "<br>" + this.responseText;
-                }
-            };
-
-            model_open('Trying to locate cell');
-
-            mcc = localStorage.mcc;
-            mnc = localStorage.mnc;
-            lac = localStorage.lac;
-            cid = localStorage.cid;
-            query = `mcc=${mcc}&mnc=${mnc}&lac=${lac}&cid=${cid}`;
-            uri = "/do_cell_locate?" + encodeURI(query);
-            xhttp.open("GET", uri, true);
-            xhttp.send();
-        }        
-
-        function do_cloud(enable) {
+        function do_gnss_config() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
@@ -285,16 +270,32 @@
                 }
             };
 
-            model_open('Starting cloud logging');
+            model_open('Configuring GNSS');
             modal_enable_close_timer();
 
-            if (enable) {
-                query = `enable=True`;
-            } else { 
-                query = `enable=False`;
-            }
-            uri = "/do_cloud?" + encodeURI(query);
+            var dyn_model = document.getElementById("dyn_model").value; 
+            console.log(`new dyn_model is ${dyn_model}`)
+
+            query = `dyn_model=${dyn_model}`;
+            uri = "/do_gnss_config?" + encodeURI(query);
+
             xhttp.open("GET", uri, true);
+            xhttp.send();
+        }
+
+        function do_gnss_coldstart() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    dialog_message.innerHTML += "<br>" + this.responseText;
+                    start_close_timer(2);
+                }
+            };
+
+            model_open('Performing GNSS coldstart');
+            modal_enable_close_timer();
+
+            xhttp.open("GET", "do_gnss_coldstart", true);
             xhttp.send();
         }
     </script>
