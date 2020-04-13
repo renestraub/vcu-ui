@@ -1,10 +1,5 @@
 import time
 import threading
-#from gps import *
-#from ping3 import ping, verbose_ping
-
-# from vcuui.sysinfo import SysInfo
-#from vcuui.mm import MM
 
 from ubxlib.server import GnssUBlox
 from ubxlib.ubx_ack import UbxAckAck
@@ -70,11 +65,16 @@ class Gnss(object):
         extension_5: GPS;GLO;GAL;BDS
         extension_6: SBAS;IMES;QZSS
         """
+        # TODO: Error handling
         ver = self.__msg_version
+        fw = ver.f.extension_1.split('=')[1]
+        proto = ver.f.extension_2.split('=')[1]
+
         data = {
             'swVersion': ver.f.swVersion,
             'hwVersion': ver.f.hwVersion,
-            'protocol': ver.f.extension_2
+            'fwVersion': fw,
+            'protocol': proto
         }
         return data
 

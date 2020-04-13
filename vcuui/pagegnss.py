@@ -55,6 +55,7 @@ def build_gnss():
         tes.append(TE('Version', ''))
         tes.append(TE('HW', ver['hwVersion']))
         tes.append(TE('SW', ver['swVersion']))
+        tes.append(TE('FW', ver['fwVersion']))
         tes.append(TE('Protocol', ver['protocol']))
         tes.append(TE('', ''))
 
