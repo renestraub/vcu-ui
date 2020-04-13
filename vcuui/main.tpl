@@ -37,7 +37,6 @@
                     <span class="slider round"></span>
                 </label>
             </div>
-            <p>Version: {{version}}</p>
         </div>
 
         <div class="main">
@@ -50,12 +49,13 @@
                     </tr>
                     %end
                 %end
-
             </table>
 
             %if message:
             <p>Status: {{message}}</p>
             %end
+
+            <br><br>
 
             <!-- The Modal Dialog -->
             <div id="myModal" class="modal">
@@ -76,13 +76,8 @@
             </div>
         </div>
     </div>
-    <br><br><br>
-    <div class="footer">
-        <p>
-            Disclaimer: This tool is a private project, not affiliated with NetModule AG.
-            The project is provided under the MIT license.
-        </p>
-    </div>
+
+    % include('footer.tpl')
 
     <script>
         // data provided to web page

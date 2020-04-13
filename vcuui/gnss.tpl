@@ -24,7 +24,6 @@
                 <p></p>
                 <button class="button" onClick="window.location.href = '/gnss'">Refresh Page</button>
             </div>
-            <p>Version: {{version}}</p>
         </div>
 
         <div class="main">
@@ -127,6 +126,8 @@
             <p>Status: {{message}}</p>
             %end
 
+            <br><br>
+
             <!-- The Modal Dialog -->
             <div id="myModal" class="modal">
                 <!-- Modal content -->
@@ -146,13 +147,8 @@
             </div>
         </div>
     </div>
-    <br><br><br>
-    <div class="footer">
-        <p>
-            Disclaimer: This tool is a private project, not affiliated with NetModule AG.
-            The project is provided under the MIT license.
-        </p>
-    </div>
+
+    % include('footer.tpl')
 
     <script>
         // data provided to web page
