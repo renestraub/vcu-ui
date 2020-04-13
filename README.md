@@ -53,7 +53,7 @@ run_server(port=80)
 
 #### Installation as systemd service
 
-Create the following service file ```vcu-ui.service``` in ```/usr/lib/systemd/system/vcu-ui.service```. The service file is also available on [Github](https://github.com/renestraub/vcu-ui/blob/master/vcu-ui.service)
+Create the following service file ```vcu-ui.service``` in ```/usr/lib/systemd/system/```. The service file is also available on [Github](https://github.com/renestraub/vcu-ui/blob/master/vcu-ui.service)
 
 
 ```
