@@ -34,7 +34,6 @@ body {
     z-index: 2;
     width: 100%;
     background-color: lightgray;
-/*    color: rgb(91, 91, 91);*/
     text-align: center;
     font-size: 60%;
 }
@@ -137,7 +136,6 @@ button {
 
 .button_slider {
     width: calc(100% - 70px);
-/*    height: 40px*/
 }
 
 .button_orange {
@@ -155,6 +153,25 @@ button {
 .button:hover {
     background-color: rgb(175, 175, 76);
     color: white;
+}
+
+
+input {
+    font-size: 90%;
+    padding: 4px 6px;
+    border: 2px solid rgb(228, 228, 228);
+    border-radius: 4px;
+}
+
+.input_vrp {
+    width: 80px;
+}
+
+select {
+    font-size: 90%;
+    padding: 4px 6px;
+    border: 2px solid rgb(228, 228, 228);
+    border-radius: 4px;
 }
 
 

@@ -15,12 +15,6 @@
  
         <div class="menu">
             <div class="btn-group">
-                <button class="button button_slider" onClick="window.location.href = '/'">Refresh Page</button>
-                <label class="switch">
-                    <input id="checkbox_auto_refresh" type="checkbox" onclick="do_auto_refresh(this)">
-                    <span class="slider round"></span>
-                </label>
-
                 <button class="button" onClick="window.location.href = '/gnss'">GNSS Page</button>
                 <p></p>
                 <button id="button_location" class="button button_green" type="button" onclick="do_location()">Enable Location</button>
@@ -36,6 +30,12 @@
                 <p></p>
                 <button id="button_modem_reset" class="button button_orange" type="button" onclick="do_modem_reset()">Reset GSM Modem</button>
                 <button id="button_reboot" class="button button_red" type="button" onclick="alert('not yet implemented')">Reboot System</button>
+                <p></p>
+                <button class="button button_slider" onClick="window.location.href = '/'">Refresh Page</button>
+                <label class="switch">
+                    <input id="checkbox_auto_refresh" type="checkbox" onclick="do_auto_refresh(this)">
+                    <span class="slider round"></span>
+                </label>
             </div>
             <p>Version: {{version}}</p>
         </div>

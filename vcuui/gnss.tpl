@@ -14,17 +14,15 @@
     <div style="overflow:auto">
         <div class="menu">
             <div class="btn-group">
-                <button class="button" onClick="window.location.href = '/gnss'">Refresh Page</button>
                 <button class="button" onClick="window.location.href = '/'">Home</button>
                 <p></p>
                 <button id="button_ser2net" class="button button_orange" type="button" onclick="do_sertonet()">uCenter ser2net</button>
                 <p></p>
-                <button id="button_configure" class="button button_orange" type="button" onclick="do_gnss_config()">Configure</button>
-                <p></p>
                 <button id="button_state_save" class="button button_green" type="button" onclick="do_state_save()">Save GNSS State</button>
                 <button id="button_state_clear" class="button button_green" type="button" onclick="do_state_clear()">[Clear GNSS State]</button>
-
-                <button id="button_configure" class="button button_orange" type="button" onclick="do_gnss_coldstart()">Cold Start</button>
+                <button id="button_col_start" class="button button_orange" type="button" onclick="do_gnss_coldstart()">Cold Start</button>
+                <p></p>
+                <button class="button" onClick="window.location.href = '/gnss'">Refresh Page</button>
             </div>
             <p>Version: {{version}}</p>
         </div>
@@ -105,17 +103,22 @@
                 <tr>
                     <td class="td_notyet">VRP-Antenna</td>
                     <td>
-                        X: <input type="number" id="vrp-ant-x" min="-5.0" max="5.0" step="0.01">
-                        Y: <input type="number" id="vrp-ant-y" min="-5.0" max="5.0" step="0.01">
-                        Z: <input type="number" id="vrp-ant-z" min="-5.0" max="5.0" step="0.01">
+                        X: <input type="number" id="vrp-ant-x" class="input_vrp" min="-5.0" max="5.0" step="0.01">
+                        Y: <input type="number" id="vrp-ant-y" class="input_vrp" min="-5.0" max="5.0" step="0.01">
+                        Z: <input type="number" id="vrp-ant-z" class="input_vrp" min="-5.0" max="5.0" step="0.01">
                     </td>
                 </tr>
                 <tr>
                     <td class="td_notyet">VRP-IMU</td>
                     <td>
-                        X: <input type="number" id="vrp-imu-x" min="-5.0" max="5.0" step="0.01">
-                        Y: <input type="number" id="vrp-imu-y" min="-5.0" max="5.0" step="0.01">
-                        Z: <input type="number" id="vrp-imu-z" min="-5.0" max="5.0" step="0.01">
+                        X: <input type="number" id="vrp-imu-x" class="input_vrp" min="-5.0" max="5.0" step="0.01">
+                        Y: <input type="number" id="vrp-imu-y" class="input_vrp" min="-5.0" max="5.0" step="0.01">
+                        Z: <input type="number" id="vrp-imu-z" class="input_vrp" min="-5.0" max="5.0" step="0.01">
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <button id="button_configure" class="button button_orange" type="button" onclick="do_gnss_config()">Configure</button>
                     </td>
                 </tr>
             </table>
