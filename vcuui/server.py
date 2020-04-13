@@ -12,7 +12,7 @@ import requests
 from bottle import Bottle, post, request, route, run, static_file
 
 from vcuui._version import __version__ as version
-from vcuui.gnss import save_state, start_ser2net
+from vcuui.gnss import save_state, clear_state, start_ser2net
 from vcuui.mm import MM
 from vcuui.data_model import Model
 from vcuui.gnss_model import Gnss
@@ -121,6 +121,12 @@ def do_store_gnss():
     return res
 
 
+@app.route('/do_clear_gnss')
+def do_clear_gnss():
+    res = clear_state()
+    return res
+
+
 @app.route('/do_gnss_config')
 def do_gnss_config():
     dyn_model = request.query['dyn_model']
@@ -166,7 +172,7 @@ def run_server(port=80):
     model = Model()
     model.setup()
 
-    gnss = Gnss()
+    gnss = Gnss(model)
     gnss.setup()    # TODO: model required for Gnss?
 
     # TODO: ThingsBoard updater

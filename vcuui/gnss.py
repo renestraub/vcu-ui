@@ -49,6 +49,11 @@ def save_state():
     return res
 
 
+# TODO: Replace by ubxlib
+def clear_state():
+    return "not yet implemented"
+
+
 def _start_receiver(ser):
     print('start receiver')
     res = ''

@@ -171,7 +171,7 @@
                 timer_refresh = setTimeout(function() {
                     console.log("reloading page");
                     location.reload();
-                }, 2000);
+                }, 5000);
             }
             else {
                 localStorage.refresh = "off";

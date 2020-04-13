@@ -10,7 +10,8 @@ import json
 import subprocess
 import threading
 import time
-import os, tempfile
+import os
+import tempfile
 import math
 
 import vcuui.data_model
@@ -143,12 +144,13 @@ class Things(threading.Thread):
 
         if 'link' in md:
             info = md['link']
-            data = {
-                # TODO: rename -> wwan-delay ?
-                # TODO: format result .0f ?
-                'delay': info['delay'] * 1000.0,
-            }
-            self._queue_timed(data)
+            if 'delay' in info:
+                data = {
+                    # TODO: rename -> wwan-delay ?
+                    # TODO: format result .0f ?
+                    'delay': info['delay'] * 1000.0,
+                }
+                self._queue_timed(data)
 
     def _gnss(self, md):
         if 'gnss-pos' in md:

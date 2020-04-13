@@ -19,7 +19,7 @@
                 <button id="button_ser2net" class="button button_orange" type="button" onclick="do_sertonet()">uCenter ser2net</button>
                 <p></p>
                 <button id="button_state_save" class="button button_green" type="button" onclick="do_state_save()">Save GNSS State</button>
-                <button id="button_state_clear" class="button button_green" type="button" onclick="do_state_clear()">[Clear GNSS State]</button>
+                <button id="button_state_clear" class="button button_green" type="button" onclick="do_state_clear()">Clear GNSS State</button>
                 <button id="button_col_start" class="button button_orange" type="button" onclick="do_gnss_coldstart()">Cold Start</button>
                 <p></p>
                 <button class="button" onClick="window.location.href = '/gnss'">Refresh Page</button>
@@ -257,6 +257,22 @@
             modal_enable_close_timer();
 
             xhttp.open("GET", "do_store_gnss", true);
+            xhttp.send();
+        }
+
+        function do_state_clear() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    dialog_message.innerHTML += "<br>" + this.responseText;
+                    start_close_timer(5);
+                }
+            };
+
+            model_open('Clearing GNSS State');
+            modal_enable_close_timer();
+
+            xhttp.open("GET", "do_clear_gnss", true);
             xhttp.send();
         }
 
