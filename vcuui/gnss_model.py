@@ -48,15 +48,18 @@ class Gnss(object):
 
         m = UbxMonVerPoll()
         self.__msg_version = self.ubx.poll(m)
-        print(self.__msg_version)
+        if self.__msg_version:
+            print(self.__msg_version)
 
         self.__msg_nmea = self.__cfg_nmea()
-        print(self.__msg_nmea)
-        self.__msg_nmea.f.nmeaVersion = 0x41
-        self.ubx.set(self.__msg_nmea)
+        if self.__msg_nmea:
+            print(self.__msg_nmea)
+            self.__msg_nmea.f.nmeaVersion = 0x41
+            self.ubx.set(self.__msg_nmea)
 
         self.__msg_cfg_nav5 = self.__cfg_nav5()
-        print(self.__msg_cfg_nav5)
+        if self.__msg_cfg_nav5:
+            print(self.__msg_cfg_nav5)
 
     def version(self):
         """
@@ -68,26 +71,38 @@ class Gnss(object):
         extension_5: GPS;GLO;GAL;BDS
         extension_6: SBAS;IMES;QZSS
         """
-        # TODO: Error handling
         ver = self.__msg_version
-        fw = ver.f.extension_1.split('=')[1]
-        proto = ver.f.extension_2.split('=')[1]
+        if ver:
+            fw = ver.f.extension_1.split('=')[1]
+            proto = ver.f.extension_2.split('=')[1]
 
-        data = {
-            'swVersion': ver.f.swVersion,
-            'hwVersion': ver.f.hwVersion,
-            'fwVersion': fw,
-            'protocol': proto
-        }
+            data = {
+                'swVersion': ver.f.swVersion,
+                'hwVersion': ver.f.hwVersion,
+                'fwVersion': fw,
+                'protocol': proto
+            }
+        else:
+            data = {
+                'swVersion': 'n/a',
+                'hwVersion': 'n/a',
+                'fwVersion': 'n/a',
+                'protocol': 'n/a'
+            }
+
         return data
 
     def nmea_protocol(self):
         self.__msg_nmea = self.__cfg_nmea()
-        ver_in_hex = self.__msg_nmea.f.nmeaVersion
-        print(ver_in_hex)
+        if self.__msg_nmea:
+            ver_in_hex = self.__msg_nmea.f.nmeaVersion
+            print(ver_in_hex)
 
-        ver = int(ver_in_hex / 16)
-        rev = int(ver_in_hex % 16)
+            ver = int(ver_in_hex / 16)
+            rev = int(ver_in_hex % 16)
+        else:
+            ver = 0
+            rev = 0
 
         return f'{ver}.{rev}'
 
@@ -104,21 +119,29 @@ class Gnss(object):
 
     def dynamic_model(self):
         self.__msg_cfg_nav5 = self.__cfg_nav5()
-        return self.__msg_cfg_nav5.f.dynModel
+        if self.__msg_cfg_nav5:
+            return self.__msg_cfg_nav5.f.dynModel
+        else:
+            return -1
 
     def set_dynamic_model(self, dyn_model):
         print(f'Changing dynamic model to {dyn_model}')
         assert(0 <= dyn_model <= 7)
 
         self.__msg_cfg_nav5 = self.__cfg_nav5()
-        print(f'current dyn model: {self.__msg_cfg_nav5.f.dynModel}')
-        if dyn_model != self.__msg_cfg_nav5.f.dynModel:
-            print('changing')
-            self.__msg_cfg_nav5.f.dynModel = dyn_model
-            self.ubx.set(self.__msg_cfg_nav5)
-            res = 'Success'
+        if self.__msg_cfg_nav5:
+            print(f'current dyn model: {self.__msg_cfg_nav5.f.dynModel}')
+            if dyn_model != self.__msg_cfg_nav5.f.dynModel:
+                print('changing')
+                self.__msg_cfg_nav5.f.dynModel = dyn_model
+                self.ubx.set(self.__msg_cfg_nav5)
+                res = 'Success'
+            else:
+                res = 'Ignored'
         else:
-            res = 'Ignored'
+            res = 'Failed: GNSS not accesible.'
+
+        return res
 
     def __cfg_nav5(self):
         msg = UbxCfgNav5Poll()

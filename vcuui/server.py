@@ -134,9 +134,9 @@ def do_gnss_config():
 
     # TODO: Argument check (1st level)
     gnss = Gnss.instance
-    gnss.set_dynamic_model(int(dyn_model))
+    res = gnss.set_dynamic_model(int(dyn_model))
 
-    return 'Done'
+    return res
 
 
 @app.route('/do_gnss_coldstart')
