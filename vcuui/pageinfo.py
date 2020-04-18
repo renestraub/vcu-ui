@@ -97,15 +97,16 @@ def render_page(message=None, console=None):
             access_tech = m2['access-tech']
             tes.append(TE('State', f'{state}, {access_tech}'))
 
-            loc_info = m2['location']
-            if loc_info['mcc']:
-                text = nice([('mcc', 'MCC', ''),
-                            ('mnc', 'MNC', ''),
-                            ('lac', 'LAC', ''),
-                            ('cid', 'CID', '')],
-                            loc_info)
-                tes.append(TE('Cell', text))
-                data.update(loc_info)
+            if 'location' in m2:
+                loc_info = m2['location']
+                if loc_info['mcc']:
+                    text = nice([('mcc', 'MCC', ''),
+                                ('mnc', 'MNC', ''),
+                                ('lac', 'LAC', ''),
+                                ('cid', 'CID', '')],
+                                loc_info)
+                    tes.append(TE('Cell', text))
+                    data.update(loc_info)
 
             sq = m2['signal-quality']
             tes.append(TE('Signal', f'{sq} %'))
