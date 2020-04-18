@@ -1,24 +1,24 @@
 """
+Accessor to upload data to Thingsboard
+
 Store your device token in /etc/thingsboard.conf
 
 [API]
-Token = <your token>
-
+Server=name:port
+Token=xyz
 """
 import configparser
 import json
+import math
 import subprocess
 import threading
 import time
-import os
-import tempfile
-import math
+from io import BytesIO
+
+import pycurl
 
 import vcuui.data_model
 
-
-# import pycurl -> broken
-# from io import BytesIO
 
 class Things(threading.Thread):
     # Singleton accessor
@@ -38,8 +38,16 @@ class Things(threading.Thread):
         self.active = False
 
         self.config = configparser.ConfigParser()
-        self.config.read('/etc/thingsboard.conf')
-        self.api_token = self.config.get('API', 'Token')
+        try:
+            self.config.read('/etc/thingsboard.conf')
+            self.api_server = self.config.get('API', 'Server')
+            self.api_token = self.config.get('API', 'Token')
+            self.has_server = True
+        except configparser.Error as e:
+            print('ERROR: Cannot get Thingsboard config')
+            print(e)
+            self.has_server = False
+
         self._data_queue = list()
 
         self.lat_last_rad = 0
@@ -47,15 +55,20 @@ class Things(threading.Thread):
 
     def setup(self):
         self.daemon = True
-        self.start()
+        if self.has_server:
+            self.start()
 
+    # TODO: rename to enable or activate
     def start2(self, enable):
-        if enable is True:
-            if not self.active:
-                self.active = True
-                res = 'Started cloud logger'
+        if enable:
+            if self.has_server:
+                if not self.active:
+                    self.active = True
+                    res = 'Started cloud logger'
+                else:
+                    res = 'Cloud logger already running'
             else:
-                res = 'Cloud logger already running'
+                res = 'Cannot start. No configuration present'
         else:
             print("stopping")
             if self.active:
@@ -94,6 +107,8 @@ class Things(threading.Thread):
                                 next_state = 'connected'
 
                 elif self.state == 'connected':
+                    ### Gather data
+
                     # Get gps update every 2nd second
                     if cnt % 2 == 1:
                         self._gnss(md)
@@ -102,13 +117,15 @@ class Things(threading.Thread):
                     if cnt % 15 == 0:
                         self._info(md)
 
-                    # Upload every 30 seconds
+                    ### Upload data
+
+                    # Telemetry every 30 seconds
                     if cnt % 30 == 5:
                         self._upload_data()
 
                     # TODO: check for error and switch to disconnected state in case of problem
 
-                    # update attributes every now and then
+                    # Attributes every now and then
                     if cnt % 120 == 5:
                         self._attributes(md)
 
@@ -206,6 +223,23 @@ class Things(threading.Thread):
         # Send queued data
         # TODO: more clever algorithm, sending useful sized batches every some seconds
 
+        # Get data to send from queue
+        # TODO: Limit based on size
+        http_data = list()
+        for entry in self._data_queue:
+            data = {'ts': entry['time'], 'values': entry['data']}
+            http_data.append(data)
+
+        self._post_data('telemetry', http_data)
+
+        # TODO: only remove from list what has been sent
+        self._data_queue = list()
+
+    """
+    def _upload_data2(self):
+        # Send queued data
+        # TODO: more clever algorithm, sending useful sized batches every some seconds
+
         # print('uploading data')
 
         # Get data to send from queue
@@ -225,9 +259,9 @@ class Things(threading.Thread):
             tmp.close()
 
             args = ['curl', '-v', '-d', f'@{tmp.name}',
-                    f'https://demo.thingsboard.io/api/v1/{self.api_token}/telemetry',
+                    f'{self.api_server}/api/v1/{self.api_token}/telemetry',
                     '--header', 'Content-Type:application/json']
-            # print(f'starting curl utility with args {args}')
+            print(f'starting curl utility with args {args}')
             cp = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             print(f'{len(as_json_string)} bytes uploaded, curl returned {cp.returncode}')
 
@@ -236,46 +270,37 @@ class Things(threading.Thread):
 
         # TODO: only remove from list what has been sent
         self._data_queue = list()
-
-    def _send_data(self, payload):
-        # print(payload)
-        as_json_string = json.dumps(payload)  # dict to json
-        args = ['curl', '-v', '-d', as_json_string,
-                f'https://demo.thingsboard.io/api/v1/{self.api_token}/telemetry',
-                '--header', 'Content-Type:application/json']
-        subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        # print(res)
-        # print(res.returncode)
+    """
 
     def _send_attribute(self, payload):
-        # print(payload)
-        as_json_string = json.dumps(payload)  # dict to json
-        args = ['curl', '-v', '-d', as_json_string,
-                f'https://demo.thingsboard.io/api/v1/{self.api_token}/attributes',
-                '--header', 'Content-Type:application/json']
-        subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        # print(res)
-        # print(res.returncode)
+        self._post_data('attributes', payload)
 
-    """
-    def _send_attribute_pycurl(self, payload):
+    def _post_data(self, msgtype, payload):
+        assert msgtype == 'attributes' or msgtype == 'telemetry'
+
         c = pycurl.Curl()
-        c.setopt(pycurl.URL, 'https://demo.thingsboard.io/api/v1/KCeeXoOQA170t9Og11Gy/attributes')
+        c.setopt(pycurl.URL, f'{self.api_server}/api/v1/{self.api_token}/{msgtype}')
         c.setopt(pycurl.HTTPHEADER, ['Content-Type:application/json'])
-        # c.setopt(pycurl.HTTPHEADER, ['Content-Type:application/json'])
         c.setopt(pycurl.POST, 1)
         c.setopt(pycurl.TIMEOUT_MS, 3000)
+        # c.setopt(c.VERBOSE, True)
 
-        body_as_dict = {"version": "xxxx"}
-        body_as_json_string = json.dumps(body_as_dict)  # dict to json
-        body_as_file_object = BytesIO(body_as_json_string)
-        print(body_as_file_object)
-        return
+        body_as_json_string = json.dumps(payload)  # dict to json
+        # print(body_as_json_string)
+        body_as_json_bytes = body_as_json_string.encode()
+        # print(body_as_json_bytes)
+        body_as_file_object = BytesIO(body_as_json_bytes)
+        # print(body_as_file_object)
 
         # prepare and send. See also: pycurl.READFUNCTION to pass function instead
-        c.setopt(pycurl.READDATA, body_as_file_object) 
+        c.setopt(pycurl.READDATA, body_as_file_object)
         c.setopt(pycurl.POSTFIELDSIZE, len(body_as_json_string))
 
-        c.perform()
-        c.close()
-    """
+        try:
+            c.perform()
+            print(f'Sent {len(body_as_json_bytes)} to {self.api_server}')
+        except pycurl.error as e:
+            print("ERROR uploading data to Thingsboard")
+            print(e)
+        finally:
+            c.close()
