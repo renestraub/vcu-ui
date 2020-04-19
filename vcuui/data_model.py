@@ -196,7 +196,7 @@ class GsmWorker(threading.Thread):
                             info = dict()
                             delay = ping('1.1.1.1', timeout=1.0)
                             if delay:
-                                info['delay'] = delay
+                                info['delay'] = round(float(delay), 3)
                             else:
                                 delay = 0.0
 
