@@ -72,14 +72,11 @@ def build_gnss():
             # tes.append(TE('', ''))
 
         # Config
-        """
-        return {
-            'dyn_model': gnss.dynamic_model(),
-        }
-        data.update(vs)
-        """
-        data['dyn_model'] = gnss.dynamic_model()
+        data['dyn_model'] = str(gnss.dynamic_model())
         data['nmea_protocol'] = gnss.nmea_protocol()
+
+        uart_cfg = gnss.uart_settings()
+        data['uart_settings'] = f'{uart_cfg["bitrate"]} bps, {uart_cfg["mode"]}'
         print(data)
 
         output = template('gnss',

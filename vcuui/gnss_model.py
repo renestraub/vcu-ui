@@ -3,18 +3,16 @@ import threading
 
 from ubxlib.server import GnssUBlox
 from ubxlib.ubx_ack import UbxAckAck
-# from ubxlib.ubx_cfg_tp5 import UbxCfgTp5Poll, UbxCfgTp5
 # from ubxlib.ubx_upd_sos import UbxUpdSosPoll, UbxUpdSos, UbxUpdSosAction
 from ubxlib.ubx_mon_ver import UbxMonVerPoll, UbxMonVer
 from ubxlib.ubx_cfg_nmea import UbxCfgNmeaPoll, UbxCfgNmea
+from ubxlib.ubx_cfg_prt import UbxCfgPrtPoll, UbxCfgPrtUart
 from ubxlib.ubx_cfg_rst import UbxCfgRstAction
 # from ubxlib.ubx_esf_status import UbxEsfStatusPoll, UbxEsfStatus
-#  from ubxlib.ubx_mga_ini_time_utc import UbxMgaIniTimeUtc
 # from ubxlib.ubx_cfg_gnss import UbxCfgGnssPoll, UbxCfgGnss
 from ubxlib.ubx_cfg_nav5 import UbxCfgNav5Poll, UbxCfgNav5
 # from ubxlib.ubx_cfg_esfalg import UbxCfgEsfAlgPoll, UbxCfgEsfAlg
 # from ubxlib.ubx_esf_alg import UbxEsfAlgPoll, UbxEsfAlg, UbxEsfResetAlgAction
-# from ubxlib.frame import UbxCID
 
 
 class Gnss(object):
@@ -34,6 +32,7 @@ class Gnss(object):
         # self.data = dict()
         # TODO: Init from real values
         self.__msg_version = None
+        self.__cfg_port = None
         self.__msg_nmea = None
         self.__msg_cfg_nav5 = None
 
@@ -42,7 +41,7 @@ class Gnss(object):
         self.gnss.setup()
 
         # Register the frame types we use
-        protocols = [UbxMonVer, UbxCfgNmea, UbxCfgNav5]
+        protocols = [UbxMonVer, UbxCfgNmea, UbxCfgPrtUart, UbxCfgNav5]
         for p in protocols:
             self.ubx.register_frame(p)
 
@@ -50,6 +49,12 @@ class Gnss(object):
         self.__msg_version = self.ubx.poll(m)
         if self.__msg_version:
             print(self.__msg_version)
+
+        m = UbxCfgPrtPoll()
+        m.f.PortId = UbxCfgPrtPoll.PORTID_Uart
+        self.__cfg_port = self.ubx.poll(m)
+        if self.__cfg_port:
+            print(self.__cfg_port)
 
         self.__msg_nmea = self.__cfg_nmea()
         if self.__msg_nmea:
@@ -90,6 +95,21 @@ class Gnss(object):
                 'protocol': 'n/a'
             }
 
+        return data
+
+    def uart_settings(self):
+        cfg = self.__cfg_port
+        if cfg:
+            mode_str = str(cfg.get('mode')).split(': ')[1]
+            data = {
+                'bitrate': int(cfg.f.baudRate),
+                'mode': mode_str
+            }
+        else:
+            data = {
+                'bitrate': 0,
+                'mode': 'n/a'
+            }
         return data
 
     def nmea_protocol(self):
@@ -154,7 +174,6 @@ class Gnss(object):
         return res
 
 
-# TODO: Move to gnss_model.py
 class GnssWorker(threading.Thread):
     # Singleton accessor
     # TODO: required?

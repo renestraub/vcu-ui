@@ -42,8 +42,8 @@
 
             <table>
                 <tr>
-                    <td class="td_notyet">UART Bitrate</td>
-                    <td>9600|115200</td>
+                    <td>UART</td>
+                    <td>{{data['uart_settings']}}</td>
                 </tr>
                 <tr>
                     <td>NMEA Protocol</td>
@@ -154,7 +154,7 @@
         // data provided to web page
         %if data:
             %for key, value in data.items():
-                localStorage.{{key}} = {{value}};
+                localStorage.{{key}} = '{{value}}';
             %end
         %end
 
