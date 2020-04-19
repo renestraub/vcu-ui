@@ -4,6 +4,7 @@ from ping3 import ping, verbose_ping
 
 from vcuui.sysinfo import SysInfo
 from vcuui.mm import MM
+from vcuui.led import LED_BiColor
 
 
 class Model(object):
@@ -21,9 +22,14 @@ class Model(object):
         self.lock = threading.Lock()
         self.data = dict()
 
-        self.bearer_ip = None
+        self.led_ind = LED_BiColor('/sys/class/leds/ind')
+        self.led_stat = LED_BiColor('/sys/class/leds/status')
+        self.cnt = 0
 
     def setup(self):
+        self.led_stat.green()
+        self.led_ind.green()
+
         self.worker.setup()
         self.gsm_connection.setup()
 
@@ -37,12 +43,22 @@ class Model(object):
                 return self.data[origin]
 
     def publish(self, origin, value):
+        """
+        Report event (with data) to data model
+
+        Safe to be called from any thread
+        """
+
         # print(f'get data from {origin}')
         # print(f'values {value}')
         with self.lock:
             self.data[origin] = value
 
-        # print(self.data)
+            if origin == 'things':
+                if value['state'] == 'sending':
+                    self.led_ind.yellow()
+                else:
+                    self.led_ind.green()
 
 
 class ModelWorker(threading.Thread):
@@ -50,7 +66,7 @@ class ModelWorker(threading.Thread):
         super().__init__()
 
         self.model = model
-        self.test = 0
+        self.test = 0   # TODO: Remove
 
     def setup(self):
         self.lock = threading.Lock()

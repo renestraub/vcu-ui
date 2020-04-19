@@ -297,8 +297,19 @@ class Things(threading.Thread):
         c.setopt(pycurl.POSTFIELDSIZE, len(body_as_json_string))
 
         try:
+            info = dict()
+            info['state'] = 'sending'
+            self.model.publish('things', info)
+
             c.perform()
-            print(f'Sent {len(body_as_json_bytes)} to {self.api_server}')
+            bytes_sent = len(body_as_json_bytes)
+
+            print(f'Sent {bytes_sent} to {self.api_server}')
+
+            info['state'] = 'sent'
+            info['bytes'] = bytes_sent
+            self.model.publish('things', info)
+
         except pycurl.error as e:
             print("ERROR uploading data to Thingsboard")
             print(e)
