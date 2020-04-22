@@ -366,10 +366,13 @@ class Gpsd(threading.Thread):
                 try:
                     data = self.listen_sock.recv(8192)
                     if data:
-                        json_strings = data.decode()
-                        for s in json_strings.splitlines():
-                            obj = json.loads(s)     # obj = dict of json
-                            self.response_queue.put(obj)
+                        try:
+                            json_strings = data.decode()
+                            for s in json_strings.splitlines():
+                                obj = json.loads(s)     # obj = dict of json
+                                self.response_queue.put(obj)
+                        except json.JSONDecodeError:
+                            logger.warning('could not decode JSON data from gpsd, discarding')
 
                 except socket.timeout:
                     pass
