@@ -304,7 +304,7 @@ class Things(threading.Thread):
             c.perform()
             bytes_sent = len(body_as_json_bytes)
 
-            print(f'Sent {bytes_sent} to {self.api_server}')
+            # print(f'Sent {bytes_sent} to {self.api_server}')
 
             info['state'] = 'sent'
             info['bytes'] = bytes_sent

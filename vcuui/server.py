@@ -130,10 +130,14 @@ def do_clear_gnss():
 @app.route('/do_gnss_config')
 def do_gnss_config():
     dyn_model = request.query['dyn_model']
-    print(f'dynamic model {dyn_model}')
+    # print(f'dynamic model {dyn_model}')
+    auto_align = request.query['auto_align']
+    # print(f'auto_align {auto_align}')
 
     # TODO: Argument check (1st level)
     gnss = Gnss.instance
+
+    # Todo results string formatting
     res = gnss.set_dynamic_model(int(dyn_model))
 
     return res

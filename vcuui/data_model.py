@@ -215,6 +215,7 @@ class GsmWorker(threading.Thread):
                                 info['delay'] = round(float(delay), 3)
                             else:
                                 delay = 0.0
+                                # TODO: ?
 
                             self.model.publish('link', info)
 
