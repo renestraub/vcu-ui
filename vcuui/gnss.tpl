@@ -50,28 +50,20 @@
                     <td>{{data['nmea_protocol']}}</td>
                 </tr>
                 <tr>
-                    <td class="td_notyet">ESF Status</td>
+                    <td>ESF Alignment</td>
                     <td></td>
                 </tr>
                 <tr>
-                    <td class="td_notyet">Auto Alignment</td>
-                    <td>On/Off</td>
+                    <td>IMU Auto Alignment</td>
+                    <td id="auto_imu_align_state">{{data['imu_auto_align_state']}}</td>
                 </tr>
                 <tr>
-                    <td class="td_notyet">Alignment Status</td>
-                    <td>xxx/Coarse/Fine fkdjsljf dklsfjlksdjflkdsöjfdslkö</td>
+                    <td>Mounting</td>
+                    <td>{{data['imu_angles']}}</td>
                 </tr>
                 <tr>
-                    <td class="td_notyet">Mounting Roll</td>
-                    <td>1.23 deg</td>
-                </tr>
-                <tr>
-                    <td class="td_notyet">Mounting Pitch</td>
-                    <td>1.23 deg</td>
-                </tr>
-                <tr>
-                    <td class="td_notyet">Mounting Yaw</td>
-                    <td>1.23 deg</td>
+                    <td>ESF Status</td>
+                    <td>{{data['esf_status']}}</td>
                 </tr>
             </table>
 
@@ -91,12 +83,20 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="td_notyet">Automatic Alignment</td>
+                    <td>Automatic Alignment</td>
                     <td>
                         <select id="auto_imu_align">
-                            <option value="on">On</option>
-                            <option value="off">Off</option>
+                            <option value="On">On</option>
+                            <option value="Off">Off</option>
                         </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="td_notyet">Mounting</td>
+                    <td>
+                        Roll [-180, 180]: <input type="number" id="imu_cfg_roll" class="input_vrp" min="-180" max="180" step="1">
+                        Pitch [-90, 90]: <input type="number" id="imu_cfg_pitch" class="input_vrp" min="-90" max="90" step="1">
+                        Yaw [0, 360]: <input type="number" id="imu_cfg_yaw" class="input_vrp" min="0" max="360" step="1">
                     </td>
                 </tr>
                 <tr>
@@ -163,6 +163,7 @@
         console.log(`system nmea is {{data['nmea_protocol']}}`)
 
         document.getElementById("dyn_model").value = "{{data['dyn_model']}}";
+        document.getElementById("auto_imu_align").value = "{{data['imu_auto_align']}}";
 
         var timer_close = null;
 
@@ -289,9 +290,13 @@
             modal_enable_close_timer();
 
             var dyn_model = document.getElementById("dyn_model").value; 
-            console.log(`new dyn_model is ${dyn_model}`)
+            console.log(`new dyn_model is ${dyn_model}`);
+
+            var auto_align = document.getElementById("auto_imu_align").value; 
+            console.log(`auto_align is ${auto_align}`);
 
             query = `dyn_model=${dyn_model}`;
+            query += `&auto_align=${auto_align}`;
             uri = "/do_gnss_config?" + encodeURI(query);
 
             xhttp.open("GET", uri, true);

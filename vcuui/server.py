@@ -139,6 +139,7 @@ def do_gnss_config():
 
     # Todo results string formatting
     res = gnss.set_dynamic_model(int(dyn_model))
+    res = gnss.set_auto_align(auto_align == "On")
 
     return res
 

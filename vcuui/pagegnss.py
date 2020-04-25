@@ -47,9 +47,11 @@ def build_gnss():
         serial = md['sys-version']['serial']
 
         gnss = Gnss.instance
+        gnss.invalidate()
 
         # GNSS Version
 
+        print("1")
         ver = gnss.version()
         print(ver)
         tes.append(TE('Version', ''))
@@ -61,6 +63,7 @@ def build_gnss():
 
         # GNSS Status (live)
         if 'gnss-pos' in md:
+            print("2")
             tes.append(TE('Status', ''))
 
             pos = md['gnss-pos']
@@ -72,11 +75,37 @@ def build_gnss():
             # tes.append(TE('', ''))
 
         # Config
+        print("3")
         data['dyn_model'] = str(gnss.dynamic_model())
+        print("4")
         data['nmea_protocol'] = gnss.nmea_protocol()
 
+        print("5")
         uart_cfg = gnss.uart_settings()
         data['uart_settings'] = f'{uart_cfg["bitrate"]} bps, {uart_cfg["mode"]}'
+
+        print("6")
+        align = gnss.auto_align()
+        data['imu_auto_align'] = 'On' if align else 'Off'
+
+        print("7")
+        align_state = gnss.auto_align_state()
+        data['imu_auto_align_state'] = align_state
+
+        print("8")
+        cfg_angles = gnss.auto_align_cfg_angles()
+        print(cfg_angles)
+
+        print("10")
+        esf_status = gnss.esf_status()
+        text = nice([('fusion', 'Fusion', ''),
+                    ('ins', 'INS', ''),
+                    ('ins', 'INS', ''),
+                    ('imu', 'IMU', ''),
+                    ('imu-align', 'IMU Alignment', '')],
+                    esf_status)
+        data['esf_status'] = text
+
         print(data)
 
         output = template('gnss',

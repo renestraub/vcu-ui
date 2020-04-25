@@ -1,3 +1,4 @@
+import re
 import time
 import threading
 
@@ -8,11 +9,11 @@ from ubxlib.ubx_mon_ver import UbxMonVerPoll, UbxMonVer
 from ubxlib.ubx_cfg_nmea import UbxCfgNmeaPoll, UbxCfgNmea
 from ubxlib.ubx_cfg_prt import UbxCfgPrtPoll, UbxCfgPrtUart
 from ubxlib.ubx_cfg_rst import UbxCfgRstAction
-# from ubxlib.ubx_esf_status import UbxEsfStatusPoll, UbxEsfStatus
 # from ubxlib.ubx_cfg_gnss import UbxCfgGnssPoll, UbxCfgGnss
 from ubxlib.ubx_cfg_nav5 import UbxCfgNav5Poll, UbxCfgNav5
-# from ubxlib.ubx_cfg_esfalg import UbxCfgEsfAlgPoll, UbxCfgEsfAlg
-# from ubxlib.ubx_esf_alg import UbxEsfAlgPoll, UbxEsfAlg, UbxEsfResetAlgAction
+from ubxlib.ubx_cfg_esfalg import UbxCfgEsfAlgPoll, UbxCfgEsfAlg
+from ubxlib.ubx_esf_alg import UbxEsfAlgPoll, UbxEsfAlg, UbxEsfResetAlgAction
+from ubxlib.ubx_esf_status import UbxEsfStatusPoll, UbxEsfStatus
 
 
 class Gnss(object):
@@ -22,6 +23,11 @@ class Gnss(object):
     def __init__(self, model):
         super().__init__()
 
+        FORMAT = '%(asctime)-15s %(levelname)-8s %(message)s'
+        logging.basicConfig(format=FORMAT)
+        logger = logging.getLogger('gnss_tool')
+        logger.setLevel(logging.INFO)
+
         assert Gnss.instance is None
         Gnss.instance = self
 
@@ -29,42 +35,43 @@ class Gnss(object):
         self.ubx = GnssUBlox('/dev/ttyS3')
         self.gnss = GnssWorker(self.model)
 
-        # self.data = dict()
-        # TODO: Init from real values
+        # Static values, read once in setup()
+        self.__msg_cfg_port = None
         self.__msg_version = None
-        self.__cfg_port = None
         self.__msg_nmea = None
+
+        # Config values, can be cached until changed by model itself
         self.__msg_cfg_nav5 = None
+        self.__msg_cfg_esfalg = None
+
+        # Live values, can be cached on page reload, see invalidate()
+        self.__msg_esf_alg = None
 
     def setup(self):
         self.ubx.setup()
         self.gnss.setup()
 
         # Register the frame types we use
-        protocols = [UbxMonVer, UbxCfgNmea, UbxCfgPrtUart, UbxCfgNav5]
+        protocols = [UbxMonVer, UbxCfgNmea, UbxCfgPrtUart, UbxCfgNav5, UbxCfgEsfAlg, 
+                     UbxEsfAlg, UbxEsfStatus]
         for p in protocols:
             self.ubx.register_frame(p)
 
-        m = UbxMonVerPoll()
-        self.__msg_version = self.ubx.poll(m)
-        if self.__msg_version:
-            print(self.__msg_version)
+        # Read constant information, never reloaded
+        self._mon_ver()
+        self._cfg_port()
 
-        m = UbxCfgPrtPoll()
-        m.f.PortId = UbxCfgPrtPoll.PORTID_Uart
-        self.__cfg_port = self.ubx.poll(m)
-        if self.__cfg_port:
-            print(self.__cfg_port)
+        res = self._cfg_nmea()
+        if res:
+            print(res)
+            # # Change NMEA protocol to 4.1
+            # self.__msg_nmea.f.nmeaVersion = 0x41
+            # self.ubx.set(self.__msg_nmea)
+            pass
 
-        self.__msg_nmea = self.__cfg_nmea()
-        if self.__msg_nmea:
-            print(self.__msg_nmea)
-            self.__msg_nmea.f.nmeaVersion = 0x41
-            self.ubx.set(self.__msg_nmea)
-
-        self.__msg_cfg_nav5 = self.__cfg_nav5()
-        if self.__msg_cfg_nav5:
-            print(self.__msg_cfg_nav5)
+    def invalidate(self):
+        # self.__msg_cfg_esfalg = None
+        self.__msg_esf_alg = None
 
     def version(self):
         """
@@ -76,7 +83,7 @@ class Gnss(object):
         extension_5: GPS;GLO;GAL;BDS
         extension_6: SBAS;IMES;QZSS
         """
-        ver = self.__msg_version
+        ver = self._mon_ver()
         if ver:
             fw = ver.f.extension_1.split('=')[1]
             proto = ver.f.extension_2.split('=')[1]
@@ -98,7 +105,7 @@ class Gnss(object):
         return data
 
     def uart_settings(self):
-        cfg = self.__cfg_port
+        cfg = self._cfg_port()
         if cfg:
             mode_str = str(cfg.get('mode')).split(': ')[1]
             data = {
@@ -113,11 +120,9 @@ class Gnss(object):
         return data
 
     def nmea_protocol(self):
-        self.__msg_nmea = self.__cfg_nmea()
-        if self.__msg_nmea:
-            ver_in_hex = self.__msg_nmea.f.nmeaVersion
-            print(ver_in_hex)
-
+        res = self._cfg_nmea()
+        if res:
+            ver_in_hex = res.f.nmeaVersion
             ver = int(ver_in_hex / 16)
             rev = int(ver_in_hex % 16)
         else:
@@ -138,40 +143,188 @@ class Gnss(object):
         return 'Success'
 
     def dynamic_model(self):
-        self.__msg_cfg_nav5 = self.__cfg_nav5()
-        if self.__msg_cfg_nav5:
-            return self.__msg_cfg_nav5.f.dynModel
+        res = self._cfg_nav5()
+        if res:
+            return res.f.dynModel
         else:
             return -1
 
     def set_dynamic_model(self, dyn_model):
-        print(f'Changing dynamic model to {dyn_model}')
+        print(f'Requesting dynamic model {dyn_model}')
         assert(0 <= dyn_model <= 7)
 
-        self.__msg_cfg_nav5 = self.__cfg_nav5()
-        if self.__msg_cfg_nav5:
-            print(f'current dyn model: {self.__msg_cfg_nav5.f.dynModel}')
-            if dyn_model != self.__msg_cfg_nav5.f.dynModel:
-                print('changing')
-                self.__msg_cfg_nav5.f.dynModel = dyn_model
-                self.ubx.set(self.__msg_cfg_nav5)
+        res = self._cfg_nav5(force=True)
+        if res:
+            print(f'Current dynamic model {res.f.dynModel}')
+            if dyn_model != res.f.dynModel:
+                print('  Changing')
+                res.f.dynModel = dyn_model
+                self.ubx.set(res)
                 res = 'Success'
             else:
+                print('  Ignoring')
                 res = 'Ignored'
         else:
             res = 'Failed: GNSS not accesible.'
 
         return res
 
-    def __cfg_nav5(self):
-        msg = UbxCfgNav5Poll()
-        res = self.ubx.poll(msg)
+    """
+    IMU Auto Alignment Configuration
+    """
+    def auto_align(self):
+        res = self._cfg_esfalg()
+        if res:
+            return bool(res.f.bitfield & UbxCfgEsfAlg.BITFIELD_doAutoMntAlg)
+        else:
+            return -1
+
+    def set_auto_align(self, align_mode):
+        print(f'Requesting alignment mode {align_mode}')
+        res = self._cfg_esfalg(force=True)
+        if res:
+            current = bool(res.f.bitfield & UbxCfgEsfAlg.BITFIELD_doAutoMntAlg)
+            print(f'Current alignment mode {current}')
+            if align_mode != (current == 1):
+                print('  Changing')
+                if align_mode:
+                    res.f.bitfield |= UbxCfgEsfAlg.BITFIELD_doAutoMntAlg
+                else:
+                    res.f.bitfield &= ~UbxCfgEsfAlg.BITFIELD_doAutoMntAlg
+
+                self.ubx.set(res)
+                res = 'Success'
+            else:
+                print('  Ignoring')
+                res = 'Ignored'
+        else:
+            res = 'Failed: GNSS not accesible.'
+
+    def auto_align_cfg_angles(self):
+        res = self._cfg_esfalg()
+        if res:
+            data = {
+                'roll': res.f.roll / 100.0,
+                'pitch': res.f.pitch / 100.0,
+                'yaw': res.f.yaw / 100.0
+            }
+        else:
+            data = {
+                'roll': 0.0,
+                'pitch': 0.0,
+                'yaw': 0.0
+            }
+        return data
+
+    """
+    IMU Auto Alignment State
+    """
+    def auto_align_state(self):
+        if not self.__msg_esf_alg:
+            self.__msg_esf_alg = self._esf_alg()
+
+        if self.__msg_esf_alg:
+            res = str(self.__msg_esf_alg.get('flags'))
+        else:
+            res = '<error>'
         return res
 
-    def __cfg_nmea(self):
-        msg = UbxCfgNmeaPoll()
+    def auto_align_angles(self):
+        if not self.__msg_esf_alg:
+            self.__msg_esf_alg = self._esf_alg()
+
+        if self.__msg_esf_alg:
+            roll = self.__msg_esf_alg.f.roll / 100.0
+            pitch = self.__msg_esf_alg.f.pitch / 100.0
+            yaw = self.__msg_esf_alg.f.yaw / 100.0
+        else:
+            roll, pitch, yaw = 0.0, 0.0, 0.0
+        return (roll, pitch, yaw)
+
+    def esf_status(self):
+        res = self._esf_status()
+        if res:
+            stat0_str = str(res.get('fusionMode'))
+            stat1_str = str(res.get('initStatus1'))
+            stat2_str = str(res.get('initStatus2'))
+            data = {
+                'fusion': Gnss.__extract(stat0_str, 'fusionMode'),
+                'ins': Gnss.__extract(stat1_str, 'ins'),
+                'imu': Gnss.__extract(stat2_str, 'imu'),
+                'imu-align': Gnss.__extract(stat1_str, 'mntAlg'),
+            }
+        else:
+            data = {
+                'fusion': '-',
+                'ins': '-',
+                'imu': '-',
+                'imu-align': '-',
+            }
+        return data
+
+    """
+    Modem access
+    Try to cache accesses as much as possible
+    """
+    def _mon_ver(self):
+        if not self.__msg_version:
+            self.__msg_version = self.ubx.poll(UbxMonVerPoll())
+
+        return self.__msg_version
+
+    def _cfg_port(self):
+        if not self.__msg_cfg_port:
+            m = UbxCfgPrtPoll()
+            m.f.PortId = UbxCfgPrtPoll.PORTID_Uart
+            self.__msg_cfg_port = self.ubx.poll(m)
+
+        return self.__msg_cfg_port
+
+    def _cfg_nav5(self, force=False):
+        if force or not self.__msg_cfg_nav5:
+            print('rereading __msg_cfg_nav5')
+            self.__msg_cfg_nav5 = self.ubx.poll(UbxCfgNav5Poll())
+
+        return self.__msg_cfg_nav5
+
+    def _cfg_nmea(self):
+        if not self.__msg_nmea:
+            self.__msg_nmea = self.ubx.poll(UbxCfgNmeaPoll())
+
+        return self.__msg_nmea
+
+    def _cfg_esfalg(self, force=False):
+        if force or not self.__msg_cfg_esfalg:
+            print('rereading __msg_cfg_esfalg')
+            self.__msg_cfg_esfalg = self.ubx.poll(UbxCfgEsfAlgPoll())
+
+        return self.__msg_cfg_esfalg
+
+    def _esf_alg(self):
+        # TODO: Cache result, only reload if required (invalidate)
+        msg = UbxEsfAlgPoll()
         res = self.ubx.poll(msg)
+        if res:
+            print(res)
         return res
+
+    def _esf_status(self):
+        # TODO: Cache result, only reload if required (invalidate)
+        res = self.ubx.poll(UbxEsfStatusPoll())
+        if res:
+            print('ESF-STATUS')
+        #     print(res)
+        return res
+
+    @staticmethod
+    def __extract(text, token):
+        # print(f'extract {text} {token}')
+        p = re.compile(token + r': ([a-z]*)')
+        res = p.findall(text)
+        if res:
+            return res[0]
+        else:
+            return '-'
 
 
 class GnssWorker(threading.Thread):
