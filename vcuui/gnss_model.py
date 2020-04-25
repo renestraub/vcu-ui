@@ -36,9 +36,9 @@ class Gnss(object):
         self.gnss = GnssWorker(self.model)
 
         # Static values, read once in setup()
+        self.__msg_mon_ver = None
         self.__msg_cfg_port = None
-        self.__msg_version = None
-        self.__msg_nmea = None
+        self.__msg_cfg_nmea = None
 
         # Config values, can be cached until changed by model itself
         self.__msg_cfg_nav5 = None
@@ -63,14 +63,14 @@ class Gnss(object):
 
         res = self._cfg_nmea()
         if res:
-            print(res)
+            # print(res)
             # # Change NMEA protocol to 4.1
             # self.__msg_nmea.f.nmeaVersion = 0x41
             # self.ubx.set(self.__msg_nmea)
             pass
 
     def invalidate(self):
-        # self.__msg_cfg_esfalg = None
+        self.__msg_cfg_esfalg = None
         self.__msg_esf_alg = None
 
     def version(self):
@@ -142,6 +142,9 @@ class Gnss(object):
 
         return 'Success'
 
+    """
+    Get/set dynamic model
+    """
     def dynamic_model(self):
         res = self._cfg_nav5()
         if res:
@@ -160,10 +163,11 @@ class Gnss(object):
                 print('  Changing')
                 res.f.dynModel = dyn_model
                 self.ubx.set(res)
-                res = 'Success'
+                # TODO: Move text stuff out of this module
+                res = f'Dynamic model set to {dyn_model}'
             else:
                 print('  Ignoring')
-                res = 'Ignored'
+                res = 'Dynamic model left as is'
         else:
             res = 'Failed: GNSS not accesible.'
 
@@ -193,12 +197,15 @@ class Gnss(object):
                     res.f.bitfield &= ~UbxCfgEsfAlg.BITFIELD_doAutoMntAlg
 
                 self.ubx.set(res)
-                res = 'Success'
+                # TODO: Move text stuff out of this module
+                res = f'IMU automatic alignment set to {align_mode}'
             else:
                 print('  Ignoring')
-                res = 'Ignored'
+                res = 'IMU automatic alignment left as is'
         else:
             res = 'Failed: GNSS not accesible.'
+
+        return res
 
     def auto_align_cfg_angles(self):
         res = self._cfg_esfalg()
@@ -225,6 +232,7 @@ class Gnss(object):
 
         if self.__msg_esf_alg:
             res = str(self.__msg_esf_alg.get('flags'))
+            res = res[len('flags: '):]
         else:
             res = '<error>'
         return res
@@ -267,10 +275,10 @@ class Gnss(object):
     Try to cache accesses as much as possible
     """
     def _mon_ver(self):
-        if not self.__msg_version:
-            self.__msg_version = self.ubx.poll(UbxMonVerPoll())
+        if not self.__msg_mon_ver:
+            self.__msg_mon_ver = self.ubx.poll(UbxMonVerPoll())
 
-        return self.__msg_version
+        return self.__msg_mon_ver
 
     def _cfg_port(self):
         if not self.__msg_cfg_port:
@@ -282,20 +290,20 @@ class Gnss(object):
 
     def _cfg_nav5(self, force=False):
         if force or not self.__msg_cfg_nav5:
-            print('rereading __msg_cfg_nav5')
+            # print('rereading __msg_cfg_nav5')
             self.__msg_cfg_nav5 = self.ubx.poll(UbxCfgNav5Poll())
 
         return self.__msg_cfg_nav5
 
     def _cfg_nmea(self):
-        if not self.__msg_nmea:
-            self.__msg_nmea = self.ubx.poll(UbxCfgNmeaPoll())
+        if not self.__msg_cfg_nmea:
+            self.__msg_cfg_nmea = self.ubx.poll(UbxCfgNmeaPoll())
 
-        return self.__msg_nmea
+        return self.__msg_cfg_nmea
 
     def _cfg_esfalg(self, force=False):
         if force or not self.__msg_cfg_esfalg:
-            print('rereading __msg_cfg_esfalg')
+            # print('rereading __msg_cfg_esfalg')
             self.__msg_cfg_esfalg = self.ubx.poll(UbxCfgEsfAlgPoll())
 
         return self.__msg_cfg_esfalg
@@ -534,4 +542,3 @@ class Gpsd(threading.Thread):
             logger.error(msg)
 
         logger.debug('receiver done')
-

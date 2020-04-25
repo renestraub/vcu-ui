@@ -137,10 +137,9 @@ def do_gnss_config():
     # TODO: Argument check (1st level)
     gnss = Gnss.instance
 
-    # Todo results string formatting
-    res = gnss.set_dynamic_model(int(dyn_model))
-    res = gnss.set_auto_align(auto_align == "On")
-
+    res1 = gnss.set_dynamic_model(int(dyn_model))
+    res2 = gnss.set_auto_align(auto_align == "On")
+    res = res1 + '<br>' + res2
     return res
 
 

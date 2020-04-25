@@ -94,12 +94,18 @@ def build_gnss():
 
         print("8")
         cfg_angles = gnss.auto_align_cfg_angles()
-        print(cfg_angles)
+        data['imu_cfg_roll'] = str(round(cfg_angles['roll']))
+        data['imu_cfg_pitch'] = str(round(cfg_angles['pitch']))
+        data['imu_cfg_yaw'] = str(round(cfg_angles['yaw']))
+
+        print("9")
+        roll, pitch, yaw = gnss.auto_align_angles()
+        angles_str = f'roll: {roll}°, pitch: {pitch}°, yaw: {yaw}°'
+        data['imu_angles'] = angles_str
 
         print("10")
         esf_status = gnss.esf_status()
         text = nice([('fusion', 'Fusion', ''),
-                    ('ins', 'INS', ''),
                     ('ins', 'INS', ''),
                     ('imu', 'IMU', ''),
                     ('imu-align', 'IMU Alignment', '')],

@@ -94,9 +94,9 @@
                 <tr>
                     <td class="td_notyet">Mounting</td>
                     <td>
-                        Roll [-180, 180]: <input type="number" id="imu_cfg_roll" class="input_vrp" min="-180" max="180" step="1">
-                        Pitch [-90, 90]: <input type="number" id="imu_cfg_pitch" class="input_vrp" min="-90" max="90" step="1">
-                        Yaw [0, 360]: <input type="number" id="imu_cfg_yaw" class="input_vrp" min="0" max="360" step="1">
+                        Roll [-180, 180]: <input type="number" id="imu_cfg_roll" class="input_vrp" min="-180" max="180" step="1" value="{{data['imu_cfg_roll']}}">
+                        Pitch [-90, 90]: <input type="number" id="imu_cfg_pitch" class="input_vrp" min="-90" max="90" step="1" value="{{data['imu_cfg_pitch']}}"}>
+                        Yaw [0, 360]: <input type="number" id="imu_cfg_yaw" class="input_vrp" min="0" max="360" step="1" value="{{data['imu_cfg_yaw']}}">
                     </td>
                 </tr>
                 <tr>
