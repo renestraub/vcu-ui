@@ -26,7 +26,7 @@ setuptools.setup(
         'bottle',
         'requests',
         'ping3',
-        'ubxlib>=0.1.4'
+        'ubxlib>=0.1.5'
     ],
     package_data={
         '': ['*.css', '*.tpl'],
