@@ -1,19 +1,21 @@
+import logging
 import re
-import time
 import threading
+import time
 
 from ubxlib.server import GnssUBlox
 from ubxlib.ubx_ack import UbxAckAck
-# from ubxlib.ubx_upd_sos import UbxUpdSosPoll, UbxUpdSos, UbxUpdSosAction
-from ubxlib.ubx_mon_ver import UbxMonVerPoll, UbxMonVer
-from ubxlib.ubx_cfg_nmea import UbxCfgNmeaPoll, UbxCfgNmea
+from ubxlib.ubx_cfg_esfalg import UbxCfgEsfAlg, UbxCfgEsfAlgPoll
+# from ubxlib.ubx_cfg_gnss import UbxCfgGnssPoll, UbxCfgGnss
+from ubxlib.ubx_cfg_nav5 import UbxCfgNav5, UbxCfgNav5Poll
+from ubxlib.ubx_cfg_nmea import UbxCfgNmea, UbxCfgNmeaPoll
 from ubxlib.ubx_cfg_prt import UbxCfgPrtPoll, UbxCfgPrtUart
 from ubxlib.ubx_cfg_rst import UbxCfgRstAction
-# from ubxlib.ubx_cfg_gnss import UbxCfgGnssPoll, UbxCfgGnss
-from ubxlib.ubx_cfg_nav5 import UbxCfgNav5Poll, UbxCfgNav5
-from ubxlib.ubx_cfg_esfalg import UbxCfgEsfAlgPoll, UbxCfgEsfAlg
-from ubxlib.ubx_esf_alg import UbxEsfAlgPoll, UbxEsfAlg, UbxEsfResetAlgAction
-from ubxlib.ubx_esf_status import UbxEsfStatusPoll, UbxEsfStatus
+from ubxlib.ubx_esf_alg import UbxEsfAlg, UbxEsfAlgPoll, UbxEsfResetAlgAction
+from ubxlib.ubx_esf_status import UbxEsfStatus, UbxEsfStatusPoll
+# from ubxlib.ubx_upd_sos import UbxUpdSosPoll, UbxUpdSos, UbxUpdSosAction
+from ubxlib.ubx_mon_ver import UbxMonVer, UbxMonVerPoll
+from vcuui.gpsd import Gpsd
 
 
 class Gnss(object):
@@ -26,7 +28,7 @@ class Gnss(object):
         FORMAT = '%(asctime)-15s %(levelname)-8s %(message)s'
         logging.basicConfig(format=FORMAT)
         logger = logging.getLogger('gnss_tool')
-        logger.setLevel(logging.INFO)
+        logger.setLevel(logging.DEBUG)
 
         assert Gnss.instance is None
         Gnss.instance = self
@@ -373,7 +375,6 @@ class GnssWorker(threading.Thread):
                 # try to connect to gpsd
                 try:
                     print('trying to connect to gpsd')
-                    # self.gps_session = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
                     print('gps connected')
                     self.state = 'connected'
                     # time.sleep(2.0)
@@ -384,7 +385,6 @@ class GnssWorker(threading.Thread):
 
             elif self.state == 'connected':
                 try:
-                    # report = self.gps_session.next()
                     report = self.gps.next()
                     # TODO: Replace with positive if report:
                     if not report:
@@ -433,112 +433,3 @@ class GnssWorker(threading.Thread):
 
             else:
                 time.sleep(1.0)
-
-
-
-# TODO: Temporary replacement for gps module
-
-import queue
-import socket
-import json    # or `import simplejson as json` if on Python < 2.6
-
-import logging
-
-
-FORMAT = '%(asctime)-15s %(levelname)-8s %(message)s'
-logging.basicConfig(format=FORMAT)
-logger = logging.getLogger('gnss_tool')
-logger.setLevel(logging.INFO)
-# logger.setLevel(logging.DEBUG)
-
-
-class Gpsd(threading.Thread):
-    gpsd_data_socket = ('127.0.0.1', 2947)
-
-    def __init__(self, device_name):
-        super().__init__()
-
-        self.device_name = device_name
-        self.cmd_header = f'&{self.device_name}='.encode()
-        self.connect_msg = f'?WATCH={{"device":"{self.device_name}","enable":true,"json":true}}'.encode()
-
-        self.listen_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.response_queue = queue.Queue()
-        self.thread_ready_event = threading.Event()
-        self.thread_stop_event = threading.Event()
-
-    def setup(self):
-        # Start worker thread in daemon mode, will invoke run() method
-        self.daemon = True
-        self.start()
-
-        # Wait for worker thread to become ready.
-        # Without this wait we might send the command before the thread can
-        # handle the response.
-        logger.info('waiting for receive thread to become active')
-        self.thread_ready_event.wait()
-
-    def cleanup(self):
-        logger.info('requesting thread to stop')
-        self.thread_stop_event.set()
-
-        # Wait until thread ended
-        self.join(timeout=1.0)
-        logger.info('thread stopped')
-
-    def next(self, timeout=5.0):
-        logger.debug(f'waiting {timeout}s for reponse from listener thread')
-
-        try:
-            response = self.response_queue.get(True, timeout)
-            logger.debug(f'got response {response}')
-
-            return response
-
-        except queue.Empty:
-            logger.warning('timeout...')
-
-    def run(self):
-        """
-        Thread running method
-
-        - receives raw data from gpsd
-        - parses ubx frames, decodes them
-        - if a frame is received it is put in the receive queue
-        """
-        # TODO: State machine with reconnect features?
-
-        try:
-            logger.info('connecting to gpsd')
-            self.listen_sock.connect(self.gpsd_data_socket)
-        except socket.error as msg:
-            logger.error(msg)
-            # TODO: Error handling
-
-        try:
-            logger.debug('starting raw listener on gpsd')
-            self.listen_sock.send(self.connect_msg)
-            self.listen_sock.settimeout(0.25)
-
-            logger.debug('receiver ready')
-            self.thread_ready_event.set()
-
-            while not self.thread_stop_event.is_set():
-                try:
-                    data = self.listen_sock.recv(8192)
-                    if data:
-                        try:
-                            json_strings = data.decode()
-                            for s in json_strings.splitlines():
-                                obj = json.loads(s)     # obj = dict of json
-                                self.response_queue.put(obj)
-                        except json.JSONDecodeError:
-                            logger.warning('could not decode JSON data from gpsd, discarding')
-
-                except socket.timeout:
-                    pass
-
-        except socket.error as msg:
-            logger.error(msg)
-
-        logger.debug('receiver done')
