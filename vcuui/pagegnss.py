@@ -93,7 +93,7 @@ def build_gnss():
         data['imu_auto_align_state'] = align_state
 
         print("8")
-        cfg_angles = gnss.auto_align_cfg_angles()
+        cfg_angles = gnss.imu_cfg_angles()
         data['imu_cfg_roll'] = str(round(cfg_angles['roll']))
         data['imu_cfg_pitch'] = str(round(cfg_angles['pitch']))
         data['imu_cfg_yaw'] = str(round(cfg_angles['yaw']))

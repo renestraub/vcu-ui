@@ -209,7 +209,7 @@ class Gnss(object):
 
         return res
 
-    def auto_align_cfg_angles(self):
+    def imu_cfg_angles(self):
         res = self._cfg_esfalg()
         if res:
             data = {
@@ -224,6 +224,29 @@ class Gnss(object):
                 'yaw': 0.0
             }
         return data
+
+    def set_imu_cfg_angles(self, angles):
+        print(f'Requesting angles {angles}')
+        res = self._cfg_esfalg(force=True)
+        if res:
+            # print(f'Current alignment mode {current}')
+            # if align_mode != (current == 1):
+            if True:
+                print('  Changing')
+
+                res.f.roll = angles['roll']
+                res.f.pitch = angles['pitch']
+                res.f.yaw = angles['yaw']
+                self.ubx.set(res)
+                # TODO: Move text stuff out of this module
+                res = f'IMU angles set to {angles}'
+            else:
+                print('  Ignoring')
+                res = 'IMU angles left as is'
+        else:
+            res = 'Failed: GNSS not accesible.'
+
+        return res
 
     """
     IMU Auto Alignment State

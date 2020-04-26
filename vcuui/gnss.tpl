@@ -94,9 +94,9 @@
                 <tr>
                     <td class="td_notyet">Mounting</td>
                     <td>
-                        Roll [-180, 180]: <input type="number" id="imu_cfg_roll" class="input_vrp" min="-180" max="180" step="1" value="{{data['imu_cfg_roll']}}">
-                        Pitch [-90, 90]: <input type="number" id="imu_cfg_pitch" class="input_vrp" min="-90" max="90" step="1" value="{{data['imu_cfg_pitch']}}"}>
-                        Yaw [0, 360]: <input type="number" id="imu_cfg_yaw" class="input_vrp" min="0" max="360" step="1" value="{{data['imu_cfg_yaw']}}">
+                        Roll [-180, 180]: <input type="number" id="imu_cfg_roll" class="input_vrp" min="-180" max="180" step="1">
+                        Pitch [-90, 90]: <input type="number" id="imu_cfg_pitch" class="input_vrp" min="-90" max="90" step="1"}>
+                        Yaw [0, 360]: <input type="number" id="imu_cfg_yaw" class="input_vrp" min="0" max="360" step="1">
                     </td>
                 </tr>
                 <tr>
@@ -159,11 +159,14 @@
         %end
 
         // Set UI configuration items with values provided by system
-        console.log(`system dyn_model is {{data['dyn_model']}}`)
-        console.log(`system nmea is {{data['nmea_protocol']}}`)
-
+        // console.log(`system dyn_model is {{data['dyn_model']}}`)
+        // console.log(`system nmea is {{data['nmea_protocol']}}`)
         document.getElementById("dyn_model").value = "{{data['dyn_model']}}";
         document.getElementById("auto_imu_align").value = "{{data['imu_auto_align']}}";
+
+        document.getElementById("imu_cfg_roll").value = "{{data['imu_cfg_roll']}}";
+        document.getElementById("imu_cfg_pitch").value = "{{data['imu_cfg_pitch']}}";
+        document.getElementById("imu_cfg_yaw").value = "{{data['imu_cfg_yaw']}}";
 
         var timer_close = null;
 
@@ -282,7 +285,7 @@
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     dialog_message.innerHTML += "<br>" + this.responseText;
-                    start_close_timer(2);
+                    start_close_timer(5);
                 }
             };
 
@@ -295,8 +298,15 @@
             var auto_align = document.getElementById("auto_imu_align").value; 
             console.log(`auto_align is ${auto_align}`);
 
+            var imu_cfg_roll = document.getElementById("imu_cfg_roll").value; 
+            var imu_cfg_pitch = document.getElementById("imu_cfg_pitch").value; 
+            var imu_cfg_yaw = document.getElementById("imu_cfg_yaw").value; 
+            // console.log(`imu angles are: ${imu_cfg_roll}, ${imu_cfg_pitch}, ${imu_cfg_yaw}`);
+            var imu_angles = [imu_cfg_roll, imu_cfg_pitch, imu_cfg_yaw];
+
             query = `dyn_model=${dyn_model}`;
             query += `&auto_align=${auto_align}`;
+            query += `&imu_cfg_angles=${imu_angles}`;
             uri = "/do_gnss_config?" + encodeURI(query);
 
             xhttp.open("GET", uri, true);

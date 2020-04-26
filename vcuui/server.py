@@ -129,17 +129,28 @@ def do_clear_gnss():
 
 @app.route('/do_gnss_config')
 def do_gnss_config():
+    # TODO: Argument check (1st level)
+
     dyn_model = request.query['dyn_model']
     # print(f'dynamic model {dyn_model}')
+
     auto_align = request.query['auto_align']
     # print(f'auto_align {auto_align}')
 
-    # TODO: Argument check (1st level)
+    imu_cfg_angles = request.query['imu_cfg_angles']
+    angles_as_int = imu_cfg_angles.split(',')
+    angles = {
+        'roll': int(float(angles_as_int[0]) * 100.0),
+        'pitch': int(float(angles_as_int[1]) * 100.0),
+        'yaw': int(float(angles_as_int[2]) * 100.0)
+    }
+
     gnss = Gnss.instance
 
     res1 = gnss.set_dynamic_model(int(dyn_model))
     res2 = gnss.set_auto_align(auto_align == "On")
-    res = res1 + '<br>' + res2
+    res3 = gnss.set_imu_cfg_angles(angles)
+    res = res1 + '<br>' + res2 + '<br>' + res3
     return res
 
 
@@ -177,9 +188,8 @@ def run_server(port=80):
     model.setup()
 
     gnss = Gnss(model)
-    gnss.setup()    # TODO: model required for Gnss?
+    gnss.setup()
 
-    # TODO: ThingsBoard updater
     things = Things(model)
     things.setup()
 
