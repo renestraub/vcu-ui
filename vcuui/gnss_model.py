@@ -28,7 +28,7 @@ class Gnss(object):
         FORMAT = '%(asctime)-15s %(levelname)-8s %(message)s'
         logging.basicConfig(format=FORMAT)
         logger = logging.getLogger('gnss_tool')
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.INFO)
 
         assert Gnss.instance is None
         Gnss.instance = self

@@ -27,13 +27,16 @@ class MmResult():
 
     def id(self, name):
         if not self._exists(name):
+            print(f'{name} does not exist')
             return None
+
         line = self.items[name]
         if line:
-            id = line[line.rfind('/')+1:]
+            id = line[line.rfind('/') + 1:]
             try:
                 return int(id)
             except ValueError:
+                print('MmResult::id() value error')
                 return None
 
     def text(self, name):
@@ -153,7 +156,7 @@ class Modem():
     def bearer(self):
         mmr = self._info()
         bid = mmr.id('modem.generic.bearers.value[1]')
-        if bid:
+        if bid is not None:
             return Bearer(int(bid))
 
     def _info(self, extra=None):
