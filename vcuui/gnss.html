@@ -5,37 +5,39 @@
 
 <head>
     <title>VCU Pro</title>
-    <link type="text/css" href="styles.css" rel="stylesheet">
+    <link type="text/css" href="/static/styles.css" rel="stylesheet">
 </head>
 
 <body>
-    <h1>{{title}}</h1>
+    <h1>{{ title }}</h1>
 
     <div style="overflow:auto">
         <div class="menu">
             <div class="btn-group">
-                <button class="button" onClick="window.location.href = '/'">Home</button>
+                <button class="button" onclick="window.location.href = '/'">Home</button>
                 <p></p>
                 <button id="button_ser2net" class="button button_orange" type="button" onclick="do_sertonet()">uCenter ser2net</button>
                 <p></p>
+                <button id="button_settings_save" class="button button_green" type="button" onclick="do_state_xxx()">Save GNSS Settings</button>
+                <button id="button_settings_save" class="button button_green" type="button" onclick="do_state_xxx()">Factory Reset Settings</button>
                 <button id="button_state_save" class="button button_green" type="button" onclick="do_state_save()">Save GNSS State</button>
                 <button id="button_state_clear" class="button button_green" type="button" onclick="do_state_clear()">Clear GNSS State</button>
-                <button id="button_col_start" class="button button_orange" type="button" onclick="do_gnss_coldstart()">Cold Start</button>
+                <button id="button_col_start" class="button button_green" type="button" onClick="do_gnss_coldstart();">Cold Start</button>
                 <p></p>
-                <button class="button" onClick="window.location.href = '/gnss'">Refresh Page</button>
+                <button class="button" onclick="window.location.href = '/gnss'">Refresh Page</button>
             </div>
         </div>
 
         <div class="main">
             <table>
-                %if table:
-                    %for entry in table:
+                {% if table %}
+                    {% for entry in table %}
                     <tr>
-                        <td>{{entry.header}}</td>
-                        <td>{{!entry.text}}</td>
+                        <td>{{ entry.header }}</td>
+                        <td>{% raw entry.text %}</td>
                     </tr>
-                    %end
-                %end
+                    {% end %}
+                {% end %}
             </table>
 
             <p></p>
@@ -43,11 +45,11 @@
             <table>
                 <tr>
                     <td>UART</td>
-                    <td>{{data['uart_settings']}}</td>
+                    <td>{{ data['uart_settings'] }}</td>
                 </tr>
                 <tr>
                     <td>NMEA Protocol</td>
-                    <td>{{data['nmea_protocol']}}</td>
+                    <td>{{ data['nmea_protocol'] }}</td>
                 </tr>
                 <tr>
                     <td>ESF Alignment</td>
@@ -55,15 +57,15 @@
                 </tr>
                 <tr>
                     <td>IMU Auto Alignment</td>
-                    <td id="auto_imu_align_state">{{data['imu_auto_align_state']}}</td>
+                    <td id="auto_imu_align_state">{{ data['imu_auto_align_state'] }}</td>
                 </tr>
                 <tr>
                     <td>Mounting</td>
-                    <td>{{data['imu_angles']}}</td>
+                    <td>{{ data['imu_angles'] }}</td>
                 </tr>
                 <tr>
                     <td>ESF Status</td>
-                    <td>{{data['esf_status']}}</td>
+                    <td>{{ data['esf_status'] }}</td>
                 </tr>
             </table>
 
@@ -122,9 +124,9 @@
                 </tr>
             </table>
 
-            %if message:
+            {% if message %}
             <p>Status: {{message}}</p>
-            %end
+            {% end %}
 
             <br><br>
 
@@ -148,15 +150,15 @@
         </div>
     </div>
 
-    % include('footer.tpl')
+    {% include 'footer.html' %}
 
     <script>
         // data provided to web page
-        %if data:
-            %for key, value in data.items():
+        {% if data %}
+            {% for key, value in data.items() %}
                 localStorage.{{key}} = '{{value}}';
-            %end
-        %end
+            {% end %}
+        {% end %}
 
         // Set UI configuration items with values provided by system
         // console.log(`system dyn_model is {{data['dyn_model']}}`)

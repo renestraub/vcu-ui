@@ -110,8 +110,9 @@ class Things(threading.Thread):
                     # Gather data #
 
                     # Get gps update every 2nd second
-                    if cnt % 2 == 1:
-                        self._gnss(md)
+                    # if cnt % 2 == 1:
+                    force_update = (cnt % 60) == 0
+                    self._gnss(md, force_update)
 
                     # Less important information
                     if cnt % 15 == 0:
@@ -169,7 +170,7 @@ class Things(threading.Thread):
                 }
                 self._queue_timed(data)
 
-    def _gnss(self, md):
+    def _gnss(self, md, force):
         if 'gnss-pos' in md:
             # print("have gnss data")
             pos = md['gnss-pos']
@@ -179,9 +180,9 @@ class Things(threading.Thread):
 
                 d = self._distance(lon_rad, lat_rad)
                 # print(f'distance {d}')
-                if d > self.GNSS_UPDATE_DISTANCE:
+                if force or d > self.GNSS_UPDATE_DISTANCE:
                     # TODO: extract only values we want
-                    print('position update')
+                    # print('position update')
                     self._queue_timed(pos)
 
                     self.lat_last_rad = lat_rad

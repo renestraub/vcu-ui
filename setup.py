@@ -23,7 +23,7 @@ setuptools.setup(
     ],
     python_requires='>=3.7',
     install_requires=[
-        'bottle',
+        'tornado',
         'requests',
         'ping3',
         'ubxlib>=0.1.5'
