@@ -107,7 +107,7 @@ class Things(threading.Thread):
                                 next_state = 'connected'
 
                 elif self.state == 'connected':
-                    ### Gather data
+                    # Gather data #
 
                     # Get gps update every 2nd second
                     if cnt % 2 == 1:
@@ -117,7 +117,7 @@ class Things(threading.Thread):
                     if cnt % 15 == 0:
                         self._info(md)
 
-                    ### Upload data
+                    # Upload data #
 
                     # Telemetry every 30 seconds
                     if cnt % 30 == 5:

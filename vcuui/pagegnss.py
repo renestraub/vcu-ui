@@ -115,19 +115,19 @@ def build_gnss():
         print(data)
 
         output = template('gnss',
-                        title=f'VCU Pro ({serial})',
-                        table=tes,
-                        data=data,
-                        message='',
-                        version=version)
+                          title=f'VCU Pro ({serial})',
+                          table=tes,
+                          data=data,
+                          message='',
+                          version=version)
 
     except KeyError as e:
         print(e)
         output = template('gnss',
-                        title='VCU Pro',
-                        message=f'Data lookup error: {e} not found',
-                        table=None,
-                        data=None,
-                        version='n/a')
+                          title='VCU Pro',
+                          message=f'Data lookup error: {e} not found',
+                          table=None,
+                          data=None,
+                          version='n/a')
 
     return output

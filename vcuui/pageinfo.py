@@ -158,23 +158,23 @@ def render_page(message=None, console=None):
             tes.append(TE('Speed', f'{pos["speed"]:.0f} m/s, {pos["speed"]*3.60:.0f} km/h'))
 
         output = template('main',
-                        title=f'VCU Pro ({serial})',
-                        table=tes,
-                        data=data,
-                        message=message,
-                        console=console,
-                        version=version,
-                        cloud_log=cloud_log_state)
+                          title=f'VCU Pro ({serial})',
+                          table=tes,
+                          data=data,
+                          message=message,
+                          console=console,
+                          version=version,
+                          cloud_log=cloud_log_state)
 
     except KeyError as e:
         print(e)
         output = template('main',
-                        title='VCU Pro',
-                        message=f'Data lookup error: {e} not found',
-                        table=None,
-                        data=None,
-                        console=None,
-                        version='n/a',
-                        cloud_log=False)
+                          title='VCU Pro',
+                          message=f'Data lookup error: {e} not found',
+                          table=None,
+                          data=None,
+                          console=None,
+                          version='n/a',
+                          cloud_log=False)
 
     return output
