@@ -137,8 +137,9 @@ def render_page(message=None, console=None):
                         tes.append(TE('IP', ip))
 
                 if 'link' in md:
-                    delay_in_ms = md['link']['delay'] * 1000.0
-                    tes.append(TE('Ping', f'{delay_in_ms:.0f} ms'))
+                    if 'delay' in md['link']:
+                        delay_in_ms = md['link']['delay'] * 1000.0
+                        tes.append(TE('Ping', f'{delay_in_ms:.0f} ms'))
 
         else:
             tes.append(TE('', ''))
