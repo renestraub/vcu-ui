@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<head>
+    <title>VCU Pro</title>
+    <link type="text/css" href="/static/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <h1>{{ title }}</h1>
+
+    <div style="overflow:auto">
+         <div class="menu">
+            <div class="btn-group">
+                <button class="button" onclick="window.location.href = '/'">Home</button>
+                <button class="button button_green" onclick="sendMessage()">Test</button>
+                <p id="counter"></p>
+            </div>
+        </div>
+
+        <div class="main">
+            <table>
+                <tr>
+                    <td>Speed</td><td class="td_large" id="gnss-speed"></td>
+                </tr>
+                <tr>
+                    <td>Fix</td><td class="td_medium" id="gnss-fix"></td>
+                </tr>
+                <tr>
+                    <td>ESF</td><td  class="td_medium"id="gnss-esf-state"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    {% include 'footer.html' %}
+
+    <script>
+        var ws = new WebSocket("ws://10.42.0.1:80/websocket");
+
+        ws.onmessage = function(evt) {
+            var messageDict = JSON.parse(evt.data);
+            // console.log(messageDict)
+            // console.log(messageDict.time)
+            //console.log(messageDict.pos.fix)
+
+            document.getElementById("counter").innerHTML = messageDict.time
+            speed_kmh = (messageDict.pos.speed * 3.6).toFixed(1)
+            document.getElementById("gnss-speed").innerHTML = `${speed_kmh} km/h`
+            document.getElementById("gnss-fix").innerHTML = messageDict.pos.fix
+            document.getElementById("gnss-esf-state").innerHTML = messageDict.esf.fusion
+        }
+
+        function sendMessage() {
+            var payload = {
+                "message": "testibus"
+            }
+            ws.send(JSON.stringify(payload))
+        }
+    </script>
+</body>
+
+</html>

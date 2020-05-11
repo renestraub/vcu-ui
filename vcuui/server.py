@@ -169,19 +169,57 @@ def do_clear_gnss():
     return res
 """
 
+class RealtimeHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render('realtime.html', 
+                    title='WebSocket Realtime Test',
+                    version='-'
+                    )
+
+
 class SimpleWebSocket(tornado.websocket.WebSocketHandler):
     connections = set()
+    counter = 0
+    callback = None
+
+    def __init__(self, application, request, **kwargs):
+        print(f'new SimpleWebSocket {self}')
+        super().__init__(application, request, **kwargs)
 
     def open(self):
-        print('opening new websocket')
-        self.connections.add(self)
+        print(f'opening new websocket {self}')
+        SimpleWebSocket.connections.add(self)
+
+        if not SimpleWebSocket.callback:
+            SimpleWebSocket.callback = tornado.ioloop.PeriodicCallback(self.send_data, 999)
+            SimpleWebSocket.callback.start()
+
+    def send_data(self):
+        SimpleWebSocket.counter += 1
+
+        m = Model.instance
+        md = m.get_all()
+        if 'gnss-pos' in md:
+            pos = md['gnss-pos']
+
+        gnss = Gnss.instance
+        esf_status = gnss.esf_status()
+        # print(esf_status)
+        
+        info = {
+            'time': SimpleWebSocket.counter,
+            'pos': pos,
+            'esf': esf_status
+        }
+        [client.write_message(info) for client in SimpleWebSocket.connections]
 
     def on_message(self, message):
         print(f'got message: {message}')
-        [client.write_message(message) for client in self.connections]
+        # [client.write_message(message) for client in self.connections]
 
     def on_close(self):
-        self.connections.remove(self)
+        print('closing websocket')
+        SimpleWebSocket.connections.remove(self)
 
 
 def run_server(port=80):
@@ -204,6 +242,7 @@ def run_server(port=80):
     app = tornado.web.Application([
         (r"/", MainHandler),
         (r"/gnss", GnssHandler),
+        (r"/realtime", RealtimeHandler),
         (r"/do_ping", PingHandler),
         (r"/do_location", LocationHandler),
         (r"/do_signal", SignalHandler),
