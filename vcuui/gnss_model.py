@@ -344,9 +344,7 @@ class Gnss(object):
     def _esf_status(self):
         # TODO: Cache result, only reload if required (invalidate)
         res = self.ubx.poll(UbxEsfStatusPoll())
-        if res:
-            print('ESF-STATUS')
-        #     print(res)
+        # print(res)
         return res
 
     @staticmethod
