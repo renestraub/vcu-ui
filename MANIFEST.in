@@ -1,0 +1,2 @@
+recursive-include vcuui *.html
+recursive-include vcuui/static *.css

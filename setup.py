@@ -15,7 +15,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/renestraub/vcu-ui",
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=("tests",)),
     classifiers=[
         'Programming Language :: Python :: 3.7',
         "License :: OSI Approved :: MIT License",
@@ -28,12 +28,13 @@ setuptools.setup(
         'ping3',
         'ubxlib>=0.1.5'
     ],
-    package_data={
-        '': ['*.css', '*.html'],
-    },
+#    package_data={
+#        'vcuui': ['*.html'],
+#    },
+    include_package_data=True,  # Use MANIFEST.in to add *.html, *.css files
     entry_points={
         'console_scripts': [
             'vcu-ui-start = vcuui.server:run_server'
         ]
-    }
+    },
 )
