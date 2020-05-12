@@ -1,7 +1,7 @@
 """
 GNSS Page
 """
-from bottle import template
+import tornado.web
 
 from vcuui._version import __version__ as version
 from vcuui.data_model import Model
@@ -35,99 +35,100 @@ def nice(items, data, linebreak=False):
     return res
 
 
-def build_gnss():
-    try:
-        tes = list()
-        data = dict()
+class GnssHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.build_gnss()
 
-        # General System Information
-        m = Model.instance
-        md = m.get_all()
+    def build_gnss(self):
+        try:
+            tes = list()
+            data = dict()
 
-        serial = md['sys-version']['serial']
+            # General System Information
+            m = Model.instance
+            md = m.get_all()
 
-        gnss = Gnss.instance
-        gnss.invalidate()
+            serial = md['sys-version']['serial']
 
-        # GNSS Version
+            gnss = Gnss.instance
+            gnss.invalidate()
 
-        print("1")
-        ver = gnss.version()
-        print(ver)
-        tes.append(TE('Version', ''))
-        tes.append(TE('HW', ver['hwVersion']))
-        tes.append(TE('SW', ver['swVersion']))
-        tes.append(TE('FW', ver['fwVersion']))
-        tes.append(TE('Protocol', ver['protocol']))
-        tes.append(TE('', ''))
+            # GNSS Version
 
-        # GNSS Status (live)
-        if 'gnss-pos' in md:
-            print("2")
-            tes.append(TE('Status', ''))
+            print("1")
+            ver = gnss.version()
+            print(ver)
+            tes.append(TE('Version', ''))
+            tes.append(TE('HW', ver['hwVersion']))
+            tes.append(TE('SW', ver['swVersion']))
+            tes.append(TE('FW', ver['fwVersion']))
+            tes.append(TE('Protocol', ver['protocol']))
+            tes.append(TE('', ''))
 
-            pos = md['gnss-pos']
-            tes.append(TE('Fix', pos['fix']))
-            text = f'Longitude: {pos["lon"]:.9f}, Latitude: {pos["lat"]:.9f}'
-            tes.append(TE('Position', text))
-            text = nice([('speed', '', 'km/h')], pos)
-            tes.append(TE('Speed', f'{pos["speed"]:.0f} m/s, {pos["speed"]*3.60:.0f} km/h'))
-            # tes.append(TE('', ''))
+            # GNSS Status (live)
+            if 'gnss-pos' in md:
+                print("2")
+                tes.append(TE('Status', ''))
 
-        # Config
-        print("3")
-        data['dyn_model'] = str(gnss.dynamic_model())
-        print("4")
-        data['nmea_protocol'] = gnss.nmea_protocol()
+                pos = md['gnss-pos']
+                tes.append(TE('Fix', pos['fix']))
+                text = f'Longitude: {pos["lon"]:.9f}, Latitude: {pos["lat"]:.9f}'
+                tes.append(TE('Position', text))
+                text = nice([('speed', '', 'km/h')], pos)
+                tes.append(TE('Speed', f'{pos["speed"]:.0f} m/s, {pos["speed"]*3.60:.0f} km/h'))
+                # tes.append(TE('', ''))
 
-        print("5")
-        uart_cfg = gnss.uart_settings()
-        data['uart_settings'] = f'{uart_cfg["bitrate"]} bps, {uart_cfg["mode"]}'
+            # Config
+            print("3")
+            data['dyn_model'] = str(gnss.dynamic_model())
+            print("4")
+            data['nmea_protocol'] = gnss.nmea_protocol()
 
-        print("6")
-        align = gnss.auto_align()
-        data['imu_auto_align'] = 'On' if align else 'Off'
+            print("5")
+            uart_cfg = gnss.uart_settings()
+            data['uart_settings'] = f'{uart_cfg["bitrate"]} bps, {uart_cfg["mode"]}'
 
-        print("7")
-        align_state = gnss.auto_align_state()
-        data['imu_auto_align_state'] = align_state
+            print("6")
+            align = gnss.auto_align()
+            data['imu_auto_align'] = 'On' if align else 'Off'
 
-        print("8")
-        cfg_angles = gnss.imu_cfg_angles()
-        data['imu_cfg_roll'] = str(round(cfg_angles['roll']))
-        data['imu_cfg_pitch'] = str(round(cfg_angles['pitch']))
-        data['imu_cfg_yaw'] = str(round(cfg_angles['yaw']))
+            print("7")
+            align_state = gnss.auto_align_state()
+            data['imu_auto_align_state'] = align_state
 
-        print("9")
-        roll, pitch, yaw = gnss.auto_align_angles()
-        angles_str = f'roll: {roll}°, pitch: {pitch}°, yaw: {yaw}°'
-        data['imu_angles'] = angles_str
+            print("8")
+            cfg_angles = gnss.imu_cfg_angles()
+            data['imu_cfg_roll'] = str(round(cfg_angles['roll']))
+            data['imu_cfg_pitch'] = str(round(cfg_angles['pitch']))
+            data['imu_cfg_yaw'] = str(round(cfg_angles['yaw']))
 
-        print("10")
-        esf_status = gnss.esf_status()
-        text = nice([('fusion', 'Fusion', ''),
-                    ('ins', 'INS', ''),
-                    ('imu', 'IMU', ''),
-                    ('imu-align', 'IMU Alignment', '')],
-                    esf_status)
-        data['esf_status'] = text
+            print("9")
+            roll, pitch, yaw = gnss.auto_align_angles()
+            angles_str = f'roll: {roll}°, pitch: {pitch}°, yaw: {yaw}°'
+            data['imu_angles'] = angles_str
 
-        print(data)
+            print("10")
+            esf_status = gnss.esf_status()
+            text = nice([('fusion', 'Fusion', ''),
+                        ('ins', 'INS', ''),
+                        ('imu', 'IMU', ''),
+                        ('imu-align', 'IMU Alignment', '')],
+                        esf_status)
+            data['esf_status'] = text
+            print(data)
 
-        output = template('gnss',
+            self.render('gnss.html',
                         title=f'VCU Pro ({serial})',
                         table=tes,
                         data=data,
                         message='',
                         version=version)
 
-    except KeyError as e:
-        print(e)
-        output = template('gnss',
+        except KeyError as e:
+            print(e)
+            self.render('gnss.html',
                         title='VCU Pro',
                         message=f'Data lookup error: {e} not found',
                         table=None,
                         data=None,
                         version='n/a')
-
-    return output

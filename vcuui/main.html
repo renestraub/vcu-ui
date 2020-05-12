@@ -5,33 +5,34 @@
 
 <head>
     <title>VCU Pro</title>
-    <link type="text/css" href="styles.css" rel="stylesheet">
+    <link type="text/css" href="/static/styles.css" rel="stylesheet">
 </head>
 
 <body>
-    <h1>{{title}}</h1>
+    <h1>{{ title }}</h1>
 
     <div style="overflow:auto">
  
         <div class="menu">
             <div class="btn-group">
-                <button class="button" onClick="window.location.href = '/gnss'">GNSS Page</button>
+                <button class="button" onclick="window.location.href = '/gnss'">GNSS Page</button>
+                <button class="button" onclick="window.location.href = '/realtime'">Realtime Display</button>
                 <p></p>
                 <button id="button_location" class="button button_green" type="button" onclick="do_location()">Enable Location</button>
                 <button id="button_signal" class="button button_green" type="button" onclick="do_signal()">Enable Signal Meas.</button>
                 <button id="button_ping" class="button button_green" type="button" onclick="do_ping()">Ping</button>
                 <button id="button_find_cell" class="button button_green" type="button" onclick="do_cell_find()">Find Cell</button>
                 <p></p>
-                %if not cloud_log:
+                {% if not cloud_log %}
                     <button id="button_cloud" class="button button_orange" type="button" onclick="do_cloud(true)">Start Cloud Logging</button>
-                %else:
+                {% else %}
                     <button id="button_cloud" class="button button_green" type="button" onclick="do_cloud(false)">Stop Cloud Logging</button>
-                %end
+                {% end %}
                 <p></p>
                 <button id="button_modem_reset" class="button button_orange" type="button" onclick="do_modem_reset()">Reset GSM Modem</button>
                 <button id="button_reboot" class="button button_red" type="button" onclick="alert('not yet implemented')">Reboot System</button>
                 <p></p>
-                <button class="button button_slider" onClick="window.location.href = '/'">Refresh Page</button>
+                <button class="button button_slider" onclick="window.location.href = '/'">Refresh Page</button>
                 <label class="switch">
                     <input id="checkbox_auto_refresh" type="checkbox" onclick="do_auto_refresh(this)">
                     <span class="slider round"></span>
@@ -41,19 +42,19 @@
 
         <div class="main">
             <table>
-                %if table:
-                    %for entry in table:
+                {% if table %}
+                    {% for entry in table %}
                     <tr>
-                        <td>{{entry.header}}</td>
-                        <td>{{!entry.text}}</td>
+                        <td>{{ entry.header }}</td>
+                        <td>{% raw entry.text %}</td>
                     </tr>
-                    %end
-                %end
+                    {% end %}
+                {% end %}
             </table>
 
-            %if message:
+            {% if message %}
             <p>Status: {{message}}</p>
-            %end
+            {% end %}
 
             <br><br>
 
@@ -77,15 +78,15 @@
         </div>
     </div>
 
-    % include('footer.tpl')
+    {% include 'footer.html' %}
 
     <script>
         // data provided to web page
-        %if data:
-            %for key, value in data.items():
+        {% if data %}
+            {% for key, value in data.items() %}
                 localStorage.{{key}} = {{value}};
-            %end
-        %end
+            {% end %}
+        {% end %}
 
         var timer_close = null;
         var timer_refresh = null;
@@ -269,7 +270,7 @@
             uri = "/do_cell_locate?" + encodeURI(query);
             xhttp.open("GET", uri, true);
             xhttp.send();
-        }        
+        }
 
         function do_cloud(enable) {
             var xhttp = new XMLHttpRequest();

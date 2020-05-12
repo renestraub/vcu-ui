@@ -1,26 +1,28 @@
 """
 Minimal Web UI for VCU automotive gateway
 
-Uses bottle webserver in single threading mode
+Uses Tornado webserver
 """
 
 import json
+import logging
 import os
 
-import bottle
 import requests
-from bottle import Bottle, post, request, route, run, static_file
+import tornado.ioloop
+import tornado.web
+import tornado.websocket
 
 from vcuui._version import __version__ as version
-from vcuui.gnss import save_state, clear_state, start_ser2net
-from vcuui.mm import MM
 from vcuui.data_model import Model
+from vcuui.gnss import clear_state, save_state, start_ser2net
 from vcuui.gnss_model import Gnss
-
-from vcuui.pageinfo import render_page
-from vcuui.pagegnss import build_gnss
-from vcuui.tools import ping
+from vcuui.mm import MM
+from vcuui.pagegnss import GnssHandler
+from vcuui.realtime import RealtimeHandler, RealtimeWebSocket
+from vcuui.pageinfo import MainHandler
 from vcuui.things import Things
+from vcuui.tools import ping
 
 
 # Init section
@@ -28,159 +30,129 @@ print(f'Welcome to VCU-UI v{version}')
 
 path = os.path.abspath(__file__)
 module_path = os.path.dirname(path)
-bottle.TEMPLATE_PATH.insert(0, module_path)
 print(f'Running server from {module_path}')
 
-app = Bottle()
-bottle.debug(True)
+
+class PingHandler(tornado.web.RequestHandler):
+    def get(self):
+        # ToDo: Use asyncio to avoid blocking server
+        console = ping('1.1.1.1')
+        self.write(console)
 
 
-# Static CSS Files
-# Static text Files
-@app.route(r'<filename:re:.*\.txt>')
-@app.route(r'<filename:re:.*\.css>')
-def send_css(filename):
-    return static_file(filename, root=module_path)
+class LocationHandler(tornado.web.RequestHandler):
+    def get(self):
+        # ToDo: Use asyncio to avoid blocking server
+        m = MM.modem()
+        m.setup_location_query()
+        self.write('3GPP Location query enabled')
 
 
-@app.route('/do_ping')
-def do_ping():
-    console = ping('1.1.1.1')
-    return console
+class SignalHandler(tornado.web.RequestHandler):
+    def get(self):
+        # ToDo: Use asyncio to avoid blocking server
+        m = MM.modem()
+        m.setup_location_query()
+        self.write('3GPP Location query enabled')
 
 
-@app.route('/do_location')
-def do_location():
-    m = MM.modem()
-    m.setup_location_query()
-    return '3GPP Location query enabled'
+class ModemResetHandler(tornado.web.RequestHandler):
+    def get(self):
+        m = MM.modem()
+        m.reset()
+        self.write('Modem reset successfully')
 
 
-@app.route('/do_signal')
-def do_signal():
-    m = MM.modem()
-    m.setup_signal_query()
-    return 'Signal quality measurements enabled'
+class CloudHandler(tornado.web.RequestHandler):
+    def get(self):
+        enable = self.get_query_argument('enable', False)
+        print(f'new state {enable}')
+
+        things = Things.instance
+        res = things.start2(enable == 'True')
+        self.write(res)
 
 
-@app.route('/do_modem_reset')
-def do_modem_reset():
-    m = MM.modem()
-    m.reset()
-    return 'Modem reset successfully'
+class GnssColdStartHandler(tornado.web.RequestHandler):
+    def get(self):
+        gnss = Gnss.instance
+        res = gnss.cold_start()
+        self.write(res)
 
 
-@app.route('/do_cell_locate', method='GET')
-def do_cell_locate():
-    mcc = request.query['mcc']
-    mnc = request.query['mnc']
-    lac = request.query['lac']
-    cid = request.query['cid']
-    print(f'cellinfo: mcc {mcc}, mnc {mnc}, lac {lac}, cid {cid}')
+class GnssConfigHandler(tornado.web.RequestHandler):
+    def get(self):
+        # TODO: Argument check (1st level)
 
-    # https://opencellid.org/ajax/searchCell.php?mcc=228&mnc=1&lac=3434&cell_id=17538051
-    args = {'mcc': mcc, 'mnc': mnc, 'lac': lac, 'cell_id': cid}
-    r = requests.get("https://opencellid.org/ajax/searchCell.php", params=args)
-    if r.text != "false":
-        d = json.loads(r.text)
-        lon = d["lon"]
-        lat = d["lat"]
+        dyn_model = self.get_query_argument('dyn_model', 0)
+        print(f'dynamic model {dyn_model}')
 
-        result = f'Cell Location: {d["lon"]}/{d["lat"]}'
+        auto_align = self.get_query_argument('auto_align', 0)
+        print(f'auto_align {auto_align}')
 
-        # try to determine location for lon/lat with OSM reverse search
-        args = {'lon': lon, 'lat': lat, 'format': 'json'}
-        r = requests.get("https://nominatim.openstreetmap.org/reverse",
-                         params=args)
-        d = json.loads(r.text)
-        if 'display_name' in d:
-            print(d['display_name'])
-            location = d['display_name']
+        imu_cfg_angles = self.get_query_argument('imu_cfg_angles')
+        print(f'imu_cfg_angles {imu_cfg_angles}')
+
+        angles_as_int = imu_cfg_angles.split(',')
+        angles = {
+            'roll': int(float(angles_as_int[0]) * 100.0),
+            'pitch': int(float(angles_as_int[1]) * 100.0),
+            'yaw': int(float(angles_as_int[2]) * 100.0)
+        }
+
+        gnss = Gnss.instance
+
+        res1 = gnss.set_dynamic_model(int(dyn_model))
+        res2 = gnss.set_auto_align(auto_align == "On")
+        res3 = gnss.set_imu_cfg_angles(angles)
+        res = res1 + '<br>' + res2 + '<br>' + res3
+
+        self.write(res)
+
+
+class GsmCellLocateHandler(tornado.web.RequestHandler):
+    def get(self):
+        mcc = self.get_query_argument('mcc', 0)
+        mnc = self.get_query_argument('mnc', 0)
+        lac = self.get_query_argument('lac', 0)
+        cid = self.get_query_argument('cid', 0)
+
+        print(f'cellinfo: mcc {mcc}, mnc {mnc}, lac {lac}, cid {cid}')
+
+        # https://opencellid.org/ajax/searchCell.php?mcc=228&mnc=1&lac=3434&cell_id=17538051
+        args = {'mcc': mcc, 'mnc': mnc, 'lac': lac, 'cell_id': cid}
+        r = requests.get("https://opencellid.org/ajax/searchCell.php", params=args)
+        if r.text != "false":
+            d = json.loads(r.text)
+            lon = d["lon"]
+            lat = d["lat"]
+
+            result = f'Cell Location: {d["lon"]}/{d["lat"]}'
+
+            # try to determine location for lon/lat with OSM reverse search
+            args = {'lon': lon, 'lat': lat, 'format': 'json'}
+            r = requests.get("https://nominatim.openstreetmap.org/reverse",
+                             params=args)
+            d = json.loads(r.text)
+            if 'display_name' in d:
+                print(d['display_name'])
+                location = d['display_name']
+
+                result += '</br>'
+                result += f'{location}'
 
             result += '</br>'
-            result += f'{location}'
+            result += f'<a target="_blank" href="http://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom=16">Link To OpenStreetMap</a>'
 
-        result += '</br>'
-        result += f'<a target="_blank" href="http://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom=16">Link To OpenStreetMap</a>'
+        else:
+            result = 'Cell not found in opencellid database'
 
-    else:
-        result = 'Cell not found in opencellid database'
-
-    return result
+        self.write(result)
 
 
-@app.route('/do_ser2net')
-def do_ser2net():
-    res = start_ser2net()
-    return res
-
-
-@app.route('/do_store_gnss')
-def do_store_gnss():
-    res = save_state()
-    return res
-
-
-@app.route('/do_clear_gnss')
-def do_clear_gnss():
-    res = clear_state()
-    return res
-
-
-@app.route('/do_gnss_config')
-def do_gnss_config():
-    # TODO: Argument check (1st level)
-
-    dyn_model = request.query['dyn_model']
-    # print(f'dynamic model {dyn_model}')
-
-    auto_align = request.query['auto_align']
-    # print(f'auto_align {auto_align}')
-
-    imu_cfg_angles = request.query['imu_cfg_angles']
-    angles_as_int = imu_cfg_angles.split(',')
-    angles = {
-        'roll': int(float(angles_as_int[0]) * 100.0),
-        'pitch': int(float(angles_as_int[1]) * 100.0),
-        'yaw': int(float(angles_as_int[2]) * 100.0)
-    }
-
-    gnss = Gnss.instance
-
-    res1 = gnss.set_dynamic_model(int(dyn_model))
-    res2 = gnss.set_auto_align(auto_align == "On")
-    res3 = gnss.set_imu_cfg_angles(angles)
-    res = res1 + '<br>' + res2 + '<br>' + res3
-    return res
-
-
-@app.route('/do_gnss_coldstart')
-def do_gnss_coldstart():
-    gnss = Gnss.instance
-    res = gnss.cold_start()
-    return res
-
-
-@app.route('/do_cloud', method='GET')
-def do_cloud():
-    enable = request.query['enable']
-    print(f'cloud logger new state {enable}')
-
-    things = Things.instance
-    res = things.start2(enable == 'True')
-    return res
-
-
-# Mainpage
-@app.route('/')
-def info():
-    return render_page()
-
-
-# GNSS page
-@app.route('/gnss')
-def gnss():
-    return build_gnss()
+class NotImplementedHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write('Not implemented')
 
 
 def run_server(port=80):
@@ -196,8 +168,36 @@ def run_server(port=80):
     # Start cloud logging by default
     things.start2(True)
 
-    app.run(host='0.0.0.0', port=port)
-    # run(host='0.0.0.0', port=port, debug=True, reloader=True)
+    settings = {
+        "static_path": os.path.join(os.path.dirname(__file__), "static")
+    }
+
+    app = tornado.web.Application([
+        (r"/", MainHandler),
+        (r"/gnss", GnssHandler),
+        (r"/realtime", RealtimeHandler),
+        (r"/do_ping", PingHandler),
+        (r"/do_location", LocationHandler),
+        (r"/do_signal", SignalHandler),
+        (r"/do_modem_reset", ModemResetHandler),
+        (r"/do_cloud", CloudHandler),
+        (r"/do_gnss_coldstart", GnssColdStartHandler),
+        (r"/do_gnss_config", GnssConfigHandler),
+        (r"/do_cell_locate", GsmCellLocateHandler),
+
+        (r"/do_ser2net", NotImplementedHandler),
+        (r"/do_store_gnss", NotImplementedHandler),
+        (r"/do_clear_gnss", NotImplementedHandler),
+
+        (r"/ws_realtime", RealtimeWebSocket),
+    ], **settings)
+
+    # logging.getLogger("tornado.access").setLevel(logging.DEBUG)
+    # logging.getLogger("tornado.application").setLevel(logging.DEBUG)
+    # logging.getLogger("tornado.general").setLevel(logging.DEBUG)
+
+    app.listen(port)
+    tornado.ioloop.IOLoop.current().start()
 
 
 # Can be invoked with python3 -m vcuui.server

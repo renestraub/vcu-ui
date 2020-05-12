@@ -75,6 +75,16 @@ td {
     color: #222;
 }
 
+.td_medium {
+    font-size: 300%;
+    font-weight: bold;
+}
+
+.td_large {
+    font-size: 500%;
+    font-weight: bold;
+}
+
 tr:nth-child(even) {
     background-color: #f2f2f2;
 }

@@ -54,7 +54,7 @@ class Gnss(object):
         self.gnss.setup()
 
         # Register the frame types we use
-        protocols = [UbxMonVer, UbxCfgNmea, UbxCfgPrtUart, UbxCfgNav5, UbxCfgEsfAlg, 
+        protocols = [UbxMonVer, UbxCfgNmea, UbxCfgPrtUart, UbxCfgNav5, UbxCfgEsfAlg,
                      UbxEsfAlg, UbxEsfStatus]
         for p in protocols:
             self.ubx.register_frame(p)
@@ -344,9 +344,7 @@ class Gnss(object):
     def _esf_status(self):
         # TODO: Cache result, only reload if required (invalidate)
         res = self.ubx.poll(UbxEsfStatusPoll())
-        if res:
-            print('ESF-STATUS')
-        #     print(res)
+        # print(res)
         return res
 
     @staticmethod
@@ -400,7 +398,6 @@ class GnssWorker(threading.Thread):
                     print('trying to connect to gpsd')
                     print('gps connected')
                     self.state = 'connected'
-                    # time.sleep(2.0)
 
                 except ConnectionRefusedError:
                     print('cannot connect to gpsd, is it running?')
@@ -409,37 +406,34 @@ class GnssWorker(threading.Thread):
             elif self.state == 'connected':
                 try:
                     report = self.gps.next()
-                    # TODO: Replace with positive if report:
-                    if not report:
-                        continue
+                    if report:
+                        if report['class'] == 'TPV':
+                            fix = report['mode']
+                            if fix == 0 or fix == 1:
+                                self.fix = 'No Fix'
+                            elif fix == 2:
+                                self.fix = '2D'
+                            elif fix == 3:
+                                self.fix = '3D'
 
-                    if report['class'] == 'TPV':
-                        fix = report['mode']
-                        if fix == 0 or fix == 1:
-                            self.fix = 'No Fix'
-                        elif fix == 2:
-                            self.fix = '2D'
-                        elif fix == 3:
-                            self.fix = '3D'
+                            if 'status' in report:
+                                status = report['status']
+                                if status == 2 and self.fix == '3D':
+                                    self.fix = '3D DGPS'
 
-                        if 'status' in report:
-                            status = report['status']
-                            if status == 2 and self.fix == '3D':
-                                self.fix = '3D DGPS'
+                            self.lon = report['lon']
+                            self.lat = report['lat']
+                            if 'speed' in report:
+                                self.speed = report['speed']
 
-                        self.lon = report['lon']
-                        self.lat = report['lat']
-                        if 'speed' in report:
-                            self.speed = report['speed']
+                            pos = dict()
+                            pos['fix'] = self.fix
+                            pos['lon'] = self.lon
+                            pos['lat'] = self.lat
+                            pos['speed'] = self.speed
 
-                        pos = dict()
-                        pos['fix'] = self.fix
-                        pos['lon'] = self.lon
-                        pos['lat'] = self.lat
-                        pos['speed'] = self.speed
-
-                        # print(f'gps data {pos}')
-                        self.model.publish('gnss-pos', pos)
+                            # print(f'gps data {pos}')
+                            self.model.publish('gnss-pos', pos)
 
                 except KeyError as e:
                     # For whatever reasons getting GPS data from gps
@@ -449,10 +443,11 @@ class GnssWorker(threading.Thread):
                     print('gps module KeyError')
                     print(e)
 
+                # TODO: Remove, not required anymore
                 except StopIteration:
                     print('lost connection to gpsd')
                     time.sleep(2.0)
                     self.state = 'disconnected'
 
             else:
-                time.sleep(1.0)
+                time.sleep(0.8)
