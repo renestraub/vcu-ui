@@ -15,7 +15,6 @@
          <div class="menu">
             <div class="btn-group">
                 <button class="button" onclick="window.location.href = '/'">Home</button>
-                <button class="button button_green" onclick="sendMessage()">Test</button>
                 <p id="counter"></p>
             </div>
         </div>
@@ -31,6 +30,9 @@
                 <tr>
                     <td>ESF</td><td  class="td_medium"id="gnss-esf-state"></td>
                 </tr>
+                <tr>
+                    <td>wwan0</td><td  class="td_medium"id="wwan-data"></td>
+                </tr>
             </table>
         </div>
     </div>
@@ -38,27 +40,34 @@
     {% include 'footer.html' %}
 
     <script>
-        var ws = new WebSocket("ws://10.42.0.1:80/websocket");
+        console.log(self.location.host)
+        // console.log(self.location.hostname)
+        var server_ip = self.location.host
+        var ws = new WebSocket(`ws://${server_ip}:80/ws_realtime`);
 
         ws.onmessage = function(evt) {
             var messageDict = JSON.parse(evt.data);
             // console.log(messageDict)
             // console.log(messageDict.time)
-            //console.log(messageDict.pos.fix)
+            // console.log(messageDict.pos.fix)
 
-            document.getElementById("counter").innerHTML = messageDict.time
+            document.getElementById("counter").innerHTML = `WebSocket ticks: ${messageDict.time}`
+
             speed_kmh = (messageDict.pos.speed * 3.6).toFixed(1)
             document.getElementById("gnss-speed").innerHTML = `${speed_kmh} km/h`
             document.getElementById("gnss-fix").innerHTML = messageDict.pos.fix
             document.getElementById("gnss-esf-state").innerHTML = messageDict.esf.fusion
+            document.getElementById("wwan-data").innerHTML = `Rx: ${messageDict.wwan0.rx}<br>Tx: ${messageDict.wwan0.tx}`
         }
 
+        /*
         function sendMessage() {
             var payload = {
                 "message": "testibus"
             }
             ws.send(JSON.stringify(payload))
         }
+        */
     </script>
 </body>
 

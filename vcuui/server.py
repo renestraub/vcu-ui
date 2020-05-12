@@ -5,25 +5,24 @@ Uses Tornado webserver
 """
 
 import json
-import os
 import logging
+import os
 
+import requests
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
 
-import requests
-
 from vcuui._version import __version__ as version
-from vcuui.gnss import save_state, clear_state, start_ser2net
-from vcuui.mm import MM
 from vcuui.data_model import Model
+from vcuui.gnss import clear_state, save_state, start_ser2net
 from vcuui.gnss_model import Gnss
-
-from vcuui.pageinfo import MainHandler
+from vcuui.mm import MM
 from vcuui.pagegnss import GnssHandler
-from vcuui.tools import ping
+from vcuui.realtime import RealtimeHandler, RealtimeWebSocket
+from vcuui.pageinfo import MainHandler
 from vcuui.things import Things
+from vcuui.tools import ping
 
 
 # Init section
@@ -111,115 +110,49 @@ class GnssConfigHandler(tornado.web.RequestHandler):
         self.write(res)
 
 
-"""
-@app.route('/do_cell_locate', method='GET')
-def do_cell_locate():
-    mcc = request.query['mcc']
-    mnc = request.query['mnc']
-    lac = request.query['lac']
-    cid = request.query['cid']
-    print(f'cellinfo: mcc {mcc}, mnc {mnc}, lac {lac}, cid {cid}')
+class GsmCellLocateHandler(tornado.web.RequestHandler):
+    def get(self):
+        mcc = self.get_query_argument('mcc', 0)
+        mnc = self.get_query_argument('mnc', 0)
+        lac = self.get_query_argument('lac', 0)
+        cid = self.get_query_argument('cid', 0)
 
-    # https://opencellid.org/ajax/searchCell.php?mcc=228&mnc=1&lac=3434&cell_id=17538051
-    args = {'mcc': mcc, 'mnc': mnc, 'lac': lac, 'cell_id': cid}
-    r = requests.get("https://opencellid.org/ajax/searchCell.php", params=args)
-    if r.text != "false":
-        d = json.loads(r.text)
-        lon = d["lon"]
-        lat = d["lat"]
+        print(f'cellinfo: mcc {mcc}, mnc {mnc}, lac {lac}, cid {cid}')
 
-        result = f'Cell Location: {d["lon"]}/{d["lat"]}'
+        # https://opencellid.org/ajax/searchCell.php?mcc=228&mnc=1&lac=3434&cell_id=17538051
+        args = {'mcc': mcc, 'mnc': mnc, 'lac': lac, 'cell_id': cid}
+        r = requests.get("https://opencellid.org/ajax/searchCell.php", params=args)
+        if r.text != "false":
+            d = json.loads(r.text)
+            lon = d["lon"]
+            lat = d["lat"]
 
-        # try to determine location for lon/lat with OSM reverse search
-        args = {'lon': lon, 'lat': lat, 'format': 'json'}
-        r = requests.get("https://nominatim.openstreetmap.org/reverse",
-                         params=args)
-        d = json.loads(r.text)
-        if 'display_name' in d:
-            print(d['display_name'])
-            location = d['display_name']
+            result = f'Cell Location: {d["lon"]}/{d["lat"]}'
+
+            # try to determine location for lon/lat with OSM reverse search
+            args = {'lon': lon, 'lat': lat, 'format': 'json'}
+            r = requests.get("https://nominatim.openstreetmap.org/reverse",
+                             params=args)
+            d = json.loads(r.text)
+            if 'display_name' in d:
+                print(d['display_name'])
+                location = d['display_name']
+
+                result += '</br>'
+                result += f'{location}'
 
             result += '</br>'
-            result += f'{location}'
+            result += f'<a target="_blank" href="http://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom=16">Link To OpenStreetMap</a>'
 
-        result += '</br>'
-        result += f'<a target="_blank" href="http://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom=16">Link To OpenStreetMap</a>'
+        else:
+            result = 'Cell not found in opencellid database'
 
-    else:
-        result = 'Cell not found in opencellid database'
-
-    return result
+        self.write(result)
 
 
-@app.route('/do_ser2net')
-def do_ser2net():
-    res = start_ser2net()
-    return res
-
-
-@app.route('/do_store_gnss')
-def do_store_gnss():
-    res = save_state()
-    return res
-
-
-@app.route('/do_clear_gnss')
-def do_clear_gnss():
-    res = clear_state()
-    return res
-"""
-
-class RealtimeHandler(tornado.web.RequestHandler):
+class NotImplementedHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render('realtime.html', 
-                    title='WebSocket Realtime Test',
-                    version='-'
-                    )
-
-
-class SimpleWebSocket(tornado.websocket.WebSocketHandler):
-    connections = set()
-    counter = 0
-    callback = None
-
-    def __init__(self, application, request, **kwargs):
-        print(f'new SimpleWebSocket {self}')
-        super().__init__(application, request, **kwargs)
-
-    def open(self):
-        print(f'opening new websocket {self}')
-        SimpleWebSocket.connections.add(self)
-
-        if not SimpleWebSocket.callback:
-            SimpleWebSocket.callback = tornado.ioloop.PeriodicCallback(self.send_data, 999)
-            SimpleWebSocket.callback.start()
-
-    def send_data(self):
-        SimpleWebSocket.counter += 1
-
-        m = Model.instance
-        md = m.get_all()
-        if 'gnss-pos' in md:
-            pos = md['gnss-pos']
-
-        gnss = Gnss.instance
-        esf_status = gnss.esf_status()
-        # print(esf_status)
-        
-        info = {
-            'time': SimpleWebSocket.counter,
-            'pos': pos,
-            'esf': esf_status
-        }
-        [client.write_message(info) for client in SimpleWebSocket.connections]
-
-    def on_message(self, message):
-        print(f'got message: {message}')
-        # [client.write_message(message) for client in self.connections]
-
-    def on_close(self):
-        print('closing websocket')
-        SimpleWebSocket.connections.remove(self)
+        self.write('Not implemented')
 
 
 def run_server(port=80):
@@ -250,13 +183,18 @@ def run_server(port=80):
         (r"/do_cloud", CloudHandler),
         (r"/do_gnss_coldstart", GnssColdStartHandler),
         (r"/do_gnss_config", GnssConfigHandler),
-        (r"/websocket", SimpleWebSocket),
-    ], debug=True, **settings)
-    # (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "static/"}),
+        (r"/do_cell_locate", GsmCellLocateHandler),
 
-    logging.getLogger("tornado.access").setLevel(logging.DEBUG)
-    logging.getLogger("tornado.application").setLevel(logging.DEBUG)
-    logging.getLogger("tornado.general").setLevel(logging.DEBUG)
+        (r"/do_ser2net", NotImplementedHandler),
+        (r"/do_store_gnss", NotImplementedHandler),
+        (r"/do_clear_gnss", NotImplementedHandler),
+
+        (r"/ws_realtime", RealtimeWebSocket),
+    ], **settings)
+
+    # logging.getLogger("tornado.access").setLevel(logging.DEBUG)
+    # logging.getLogger("tornado.application").setLevel(logging.DEBUG)
+    # logging.getLogger("tornado.general").setLevel(logging.DEBUG)
 
     app.listen(port)
     tornado.ioloop.IOLoop.current().start()
