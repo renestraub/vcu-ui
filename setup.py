@@ -29,7 +29,7 @@ setuptools.setup(
         'ubxlib>=0.1.5'
     ],
     package_data={
-        '': ['*.css', '*.tpl'],
+        '': ['*.css', '*.html'],
     },
     entry_points={
         'console_scripts': [
