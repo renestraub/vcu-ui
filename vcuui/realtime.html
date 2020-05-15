@@ -6,6 +6,7 @@
 <head>
     <title>VCU Pro</title>
     <link type="text/css" href="/static/styles.css" rel="stylesheet">
+    <link rel="shortcut icon" href="{{ static_url('favicon.ico') }}">
 </head>
 
 <body>
@@ -42,7 +43,7 @@
 
         ws.onmessage = function(evt) {
             var messageDict = JSON.parse(evt.data);
-            console.log(messageDict)
+            // console.log(messageDict)
             // console.log(messageDict.time)
             // console.log(messageDict.pos.fix)
 
