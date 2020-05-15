@@ -48,8 +48,7 @@ class Gpsd(threading.Thread):
         logger.info('thread stopped')
 
     def next(self, timeout=5.0):
-        logger.debug(f'waiting {timeout}s for reponse from listener thread')
-
+        # logger.debug(f'waiting {timeout}s for reponse from listener thread')
         try:
             response = self.response_queue.get(True, timeout)
             logger.debug(f'got response {response}')

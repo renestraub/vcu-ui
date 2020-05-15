@@ -29,27 +29,29 @@ class RealtimeWebSocket(tornado.websocket.WebSocketHandler):
     def __init__(self, application, request, **kwargs):
         print(f'new SimpleWebSocket {self}')
         super().__init__(application, request, **kwargs)
-        RealtimeWebSocket.timer_fn = tornado.ioloop.PeriodicCallback(self.timer, 500)
+
+        RealtimeWebSocket.esf_status = None
+        RealtimeWebSocket.timer_fn = tornado.ioloop.PeriodicCallback(self.timer, 900)
 
     def open(self):
-        print(f'opening new websocket {self}')
+        print(f'adding new connection {self}')
         RealtimeWebSocket.connections.add(self)
 
-        if not RealtimeWebSocket.timer_fn.is_running():
+        if len(RealtimeWebSocket.connections) == 1:
             print('Starting timer')
             self.timer()
             RealtimeWebSocket.timer_fn.start()
+        else:
+            print('Timer already running')
 
     def on_close(self):
-        print('closing websocket')
+        print('closing connection')
         RealtimeWebSocket.connections.remove(self)
         if len(RealtimeWebSocket.connections) == 0:
             print('Stopping timer')
             RealtimeWebSocket.timer_fn.stop()
 
     def timer(self):
-        RealtimeWebSocket.counter += 1
-
         m = Model.instance
         md = m.get_all()
         gnss = Gnss.instance
@@ -63,15 +65,20 @@ class RealtimeWebSocket(tornado.websocket.WebSocketHandler):
         default = {'fix': '-', 'lon': 0.0, 'lat': 0.0, 'speed': 0.0}
         pos = RealtimeWebSocket.safeget(default, md, 'gnss-pos')
 
-        esf_status = gnss.esf_status()
+        # TODO: Let this run in GNSS daemon
+        if (RealtimeWebSocket.counter % 6) == 0:
+            print('updating esf status')
+            RealtimeWebSocket.esf_status = gnss.esf_status()
 
         info = {
             'time': RealtimeWebSocket.counter,
             'pos': pos,
-            'esf': esf_status,
+            'esf': RealtimeWebSocket.esf_status,
             'wwan0': wwan0,
         }
         [client.write_message(info) for client in RealtimeWebSocket.connections]
+
+        RealtimeWebSocket.counter += 1
 
     @staticmethod
     def safeget(default, dct, *keys):
