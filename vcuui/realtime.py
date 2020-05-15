@@ -71,6 +71,7 @@ class RealtimeWebSocket(tornado.websocket.WebSocketHandler):
             RealtimeWebSocket.esf_status = gnss.esf_status()
 
         info = {
+            'clients': len(RealtimeWebSocket.connections),
             'time': RealtimeWebSocket.counter,
             'pos': pos,
             'esf': RealtimeWebSocket.esf_status,

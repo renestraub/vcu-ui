@@ -47,7 +47,8 @@
             // console.log(messageDict.time)
             // console.log(messageDict.pos.fix)
 
-            document.getElementById("counter").innerHTML = `WebSocket ticks: ${messageDict.time}`
+            clients = messageDict.clients
+            document.getElementById("counter").innerHTML = `WebSocket clients/ticks: ${clients}/${messageDict.time}`
 
             speed_kmh = (messageDict.pos.speed * 3.6).toFixed(1)
             gnss_info = `${messageDict.pos.fix} / ${messageDict.esf.fusion}`
