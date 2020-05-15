@@ -1,5 +1,8 @@
 """
-Main Page (Single Page)
+Realtime Display Page
+
+Display speed, gnss fix & esf status and mobile link information
+using a websocket
 """
 import tornado.web
 
@@ -22,36 +25,37 @@ class RealtimeHandler(tornado.web.RequestHandler):
 
 
 class RealtimeWebSocket(tornado.websocket.WebSocketHandler):
+    instance = None
     connections = set()
     counter = 0
     timer_fn = None
+    esf_status = None
 
     def __init__(self, application, request, **kwargs):
         print(f'new SimpleWebSocket {self}')
         super().__init__(application, request, **kwargs)
 
-        RealtimeWebSocket.esf_status = None
-        RealtimeWebSocket.timer_fn = tornado.ioloop.PeriodicCallback(self.timer, 900)
+        if not RealtimeWebSocket.instance:
+            RealtimeWebSocket.instance = self
+
+            RealtimeWebSocket.counter = 0
+            gnss = Gnss.instance
+            RealtimeWebSocket.esf_status = gnss.esf_status()
+
+            print('Starting websocket timer')
+            RealtimeWebSocket.timer_fn = tornado.ioloop.PeriodicCallback(RealtimeWebSocket.timer, 900)
+            RealtimeWebSocket.timer_fn.start()
 
     def open(self):
         print(f'adding new connection {self}')
         RealtimeWebSocket.connections.add(self)
 
-        if len(RealtimeWebSocket.connections) == 1:
-            print('Starting timer')
-            self.timer()
-            RealtimeWebSocket.timer_fn.start()
-        else:
-            print('Timer already running')
-
     def on_close(self):
         print('closing connection')
         RealtimeWebSocket.connections.remove(self)
-        if len(RealtimeWebSocket.connections) == 0:
-            print('Stopping timer')
-            RealtimeWebSocket.timer_fn.stop()
 
-    def timer(self):
+    @staticmethod
+    def timer():
         m = Model.instance
         md = m.get_all()
         gnss = Gnss.instance
@@ -67,7 +71,7 @@ class RealtimeWebSocket(tornado.websocket.WebSocketHandler):
 
         # TODO: Let this run in GNSS daemon
         if (RealtimeWebSocket.counter % 6) == 0:
-            print('updating esf status')
+            # print('updating esf status')
             RealtimeWebSocket.esf_status = gnss.esf_status()
 
         info = {

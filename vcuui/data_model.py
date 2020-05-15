@@ -85,7 +85,7 @@ class ModelWorker(threading.Thread):
             # if cnt % 5 == 0:
             self._sysinfo()
 
-            if cnt % 10 == 2:
+            if cnt % 4 == 2:
                 self._network()
 
             if cnt % 10 == 5:
