@@ -29,3 +29,9 @@ pip install --index-url https://[tag]:<<access-token>>@index.pydist.com/simple/ 
 
 [global]
 index-url = https://[tag]:<<Key>>@index.pydist.com/simple/
+
+
+
+pip3 install --index-url https://[tag]:9WGqxB0nmAXSX8OnJEo91UO0lhKKjsE3@index.pydist.com/simple/ vcu-ui --upgrade
+pip3 install --index-url https://[tag]:9WGqxB0nmAXSX8OnJEo91UO0lhKKjsE3@index.pydist.com/simple/ ubxlib --upgrade
+
