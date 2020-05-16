@@ -14,6 +14,7 @@
          <div class="menu">
             <div class="btn-group">
                 <button class="button" onclick="window.location.href = '/'">Home</button>
+                <p id="dot">&#x2B24;</p>
                 <p id="counter"></p>
             </div>
         </div>
@@ -36,27 +37,36 @@
     {% include 'footer.html' %}
 
     <script>
-        console.log(self.location.host)
+        // console.log(self.location.host);
         // console.log(self.location.hostname)
-        var server_ip = self.location.host
+        var server_ip = self.location.host;
         var ws = new WebSocket(`ws://${server_ip}:80/ws_realtime`);
 
         ws.onmessage = function(evt) {
             var messageDict = JSON.parse(evt.data);
-            // console.log(messageDict)
-            // console.log(messageDict.time)
-            // console.log(messageDict.pos.fix)
+            // console.log(messageDict);
+            // console.log(messageDict.time);
+            // console.log(messageDict.pos.fix);
 
-            clients = messageDict.clients
-            document.getElementById("counter").innerHTML = `WebSocket clients/ticks: ${clients}/${messageDict.time}`
+            clients = messageDict.clients;
+            counter = messageDict.time;
 
-            speed_kmh = (messageDict.pos.speed * 3.6).toFixed(1)
-            gnss_info = `${messageDict.pos.fix} / ${messageDict.esf.fusion}`
-            wwan_info = `Delay: ${messageDict.wwan0.latency} ms<br>Rx: ${messageDict.wwan0.rx}<br>Tx: ${messageDict.wwan0.tx}`
+            if (counter % 2 == 0) {
+                dot_color = "#00DD00";
+            } else {
+                dot_color = "#005500";
+            }
+            document.getElementById("dot").style.color = dot_color;
 
-            document.getElementById("gnss-speed").innerHTML = `${speed_kmh} km/h`
-            document.getElementById("gnss-fix").innerHTML = gnss_info
-            document.getElementById("wwan-data").innerHTML = wwan_info
+            document.getElementById("counter").innerHTML = `WebSocket Clients/Counter: ${clients}/${counter}`;
+
+            speed_kmh = (messageDict.pos.speed * 3.6).toFixed(1);
+            gnss_info = `${messageDict.pos.fix} / ${messageDict.esf.fusion}`;
+            wwan_info = `Delay: ${messageDict.wwan0.latency} ms<br>Rx: ${messageDict.wwan0.rx}<br>Tx: ${messageDict.wwan0.tx}`;
+
+            document.getElementById("gnss-speed").innerHTML = `${speed_kmh} km/h`;
+            document.getElementById("gnss-fix").innerHTML = gnss_info;
+            document.getElementById("wwan-data").innerHTML = wwan_info;
         }
 
         /*
