@@ -70,7 +70,7 @@ class RealtimeWebSocket(tornado.websocket.WebSocketHandler):
             'signal': str(sq)
         }
 
-        default = {'fix': '-', 'lon': 0.0, 'lat': 0.0, 'speed': 0.0}
+        default = {'fix': '-', 'lon': 0.0, 'lat': 0.0, 'speed': 0.0, 'pdop': 99.99}
         pos = RealtimeWebSocket.safeget(default, md, 'gnss-pos')
 
         # TODO: Let this run in GNSS daemon

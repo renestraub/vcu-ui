@@ -25,7 +25,7 @@
                     <td>Speed</td><td class="td_xlarge" id="gnss-speed"></td>
                 </tr>
                 <tr>
-                    <td>Navigation<br>Fix/ESF</td><td class="td_large" id="gnss-fix"></td>
+                    <td>Navigation<br>Fix/ESF/PDOP</td><td class="td_large" id="gnss-fix"></td>
                 </tr>
                 <tr>
                     <td>Mobile</td><td class="td_medium" id="wwan-data"></td>
@@ -44,7 +44,7 @@
 
         ws.onmessage = function(evt) {
             var msg = JSON.parse(evt.data);
-            // console.log(messageDict);
+            console.log(msg);
             // console.log(messageDict.time);
             // console.log(messageDict.pos.fix);
 
@@ -61,7 +61,8 @@
             document.getElementById("counter").innerHTML = `WebSocket Clients/Counter: ${clients}/${counter}`;
 
             speed_kmh = (msg.pos.speed * 3.6).toFixed(0);
-            gnss_info = `${msg.pos.fix} / ${msg.esf.fusion}`;
+            pdop_str = (msg.pos.pdop).toFixed(2);
+            gnss_info = `${msg.pos.fix}, ${msg.esf.fusion}, ${pdop_str}`;
             wwan_info = `Signal: ${msg.wwan0.signal} %<br>Delay: ${msg.wwan0.latency} ms<br>Rx: ${msg.wwan0.rx}<br>Tx: ${msg.wwan0.tx}`;
 
             document.getElementById("gnss-speed").innerHTML = `${speed_kmh} km/h`;

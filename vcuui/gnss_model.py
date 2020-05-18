@@ -377,6 +377,7 @@ class GnssWorker(threading.Thread):
         self.lat = 0
         self.fix = 0
         self.speed = 0
+        self.pdop = 0
 
         self.gps = Gpsd('/dev/ttyS3')
 
@@ -407,6 +408,13 @@ class GnssWorker(threading.Thread):
                 try:
                     report = self.gps.next()
                     if report:
+                        # print('-------------------------')
+                        # print(report)
+
+                        if report['class'] == 'SKY':
+                            if 'pdop' in report:
+                                self.pdop = report['pdop']
+
                         if report['class'] == 'TPV':
                             fix = report['mode']
                             if fix == 0 or fix == 1:
@@ -426,11 +434,13 @@ class GnssWorker(threading.Thread):
                             if 'speed' in report:
                                 self.speed = report['speed']
 
+                            # Always update on TPV message
                             pos = dict()
                             pos['fix'] = self.fix
                             pos['lon'] = self.lon
                             pos['lat'] = self.lat
                             pos['speed'] = self.speed
+                            pos['pdop'] = self.pdop
 
                             # print(f'gps data {pos}')
                             self.model.publish('gnss-pos', pos)
@@ -442,12 +452,6 @@ class GnssWorker(threading.Thread):
                     # running
                     print('gps module KeyError')
                     print(e)
-
-                # TODO: Remove, not required anymore
-                except StopIteration:
-                    print('lost connection to gpsd')
-                    time.sleep(2.0)
-                    self.state = 'disconnected'
 
             else:
                 time.sleep(0.8)
