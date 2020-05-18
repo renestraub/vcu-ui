@@ -43,13 +43,13 @@
         var ws = new WebSocket(`ws://${server_ip}:80/ws_realtime`);
 
         ws.onmessage = function(evt) {
-            var messageDict = JSON.parse(evt.data);
+            var msg = JSON.parse(evt.data);
             // console.log(messageDict);
             // console.log(messageDict.time);
             // console.log(messageDict.pos.fix);
 
-            clients = messageDict.clients;
-            counter = messageDict.time;
+            clients = msg.clients;
+            counter = msg.time;
 
             if (counter % 2 == 0) {
                 dot_color = "#00DD00";
@@ -60,9 +60,9 @@
 
             document.getElementById("counter").innerHTML = `WebSocket Clients/Counter: ${clients}/${counter}`;
 
-            speed_kmh = (messageDict.pos.speed * 3.6).toFixed(1);
-            gnss_info = `${messageDict.pos.fix} / ${messageDict.esf.fusion}`;
-            wwan_info = `Delay: ${messageDict.wwan0.latency} ms<br>Rx: ${messageDict.wwan0.rx}<br>Tx: ${messageDict.wwan0.tx}`;
+            speed_kmh = (msg.pos.speed * 3.6).toFixed(0);
+            gnss_info = `${msg.pos.fix} / ${msg.esf.fusion}`;
+            wwan_info = `Signal: ${msg.wwan0.signal} %<br>Delay: ${msg.wwan0.latency} ms<br>Rx: ${msg.wwan0.rx}<br>Tx: ${msg.wwan0.tx}`;
 
             document.getElementById("gnss-speed").innerHTML = `${speed_kmh} km/h`;
             document.getElementById("gnss-fix").innerHTML = gnss_info;
