@@ -1,6 +1,6 @@
 import time
 import threading
-from ping3 import ping, verbose_ping
+from ping3 import ping
 
 from vcuui.sysinfo import SysInfo
 from vcuui.mm import MM
@@ -208,7 +208,7 @@ class GsmWorker(threading.Thread):
                         self.state = 'init'
 
                     else:
-                        if self.counter % 60 == 10:
+                        if self.counter % 5 == 2:
                             info = dict()
                             delay = ping('1.1.1.1', timeout=1.0)
                             if delay:
