@@ -380,5 +380,9 @@ select {
   .slider.round:before {
     border-radius: 2px;
   } 
-
   
+.dot-animated {
+  font-size: 120%;
+  color: darkgreen;
+  transition: color 0.35s ease;
+}
