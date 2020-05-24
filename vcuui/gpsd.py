@@ -16,12 +16,10 @@ logger.setLevel(logging.INFO)
 class Gpsd(threading.Thread):
     gpsd_data_socket = ('127.0.0.1', 2947)
 
-    def __init__(self, device_name):
+    def __init__(self):
         super().__init__()
 
-        self.device_name = device_name
-        self.cmd_header = f'&{self.device_name}='.encode()
-        self.connect_msg = f'?WATCH={{"device":"{self.device_name}","enable":true,"json":true}}'.encode()
+        self.connect_msg = f'?WATCH={{"enable":true,"json":true}}'.encode()
 
         self.listen_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.response_queue = queue.Queue()
