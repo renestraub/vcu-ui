@@ -379,17 +379,19 @@ class GnssWorker(threading.Thread):
         self.speed = 0
         self.pdop = 0
 
-        self.gps = Gpsd('/dev/ttyS3')
+        self.gps = Gpsd()
 
     def setup(self):
-        self.gps.setup()
-
-        self.daemon = True
-        self.name = 'gps-reader'
-        self.start()
+        ready = self.gps.setup()
+        if ready:
+            self.daemon = True
+            self.name = 'gps-reader'
+            self.start()
+        else:
+            print('cannot connect to gpsd device')
 
     def run(self):
-        print("running gps thread")
+        print('running gps thread')
         self.state = 'init'
 
         while True:
