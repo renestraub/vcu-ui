@@ -35,7 +35,8 @@ class Gnss(object):
 
         self.model = model
         self.ubx = GnssUBlox()
-        self.gnss = GnssWorker(self.model)
+        self.gnss_status = GnssStatusWorker(self, self.model)
+        self.gnss_pos = GnssPositionWorker(self.model)
 
         # Static values, read once in setup()
         self.__msg_mon_ver = None
@@ -51,7 +52,6 @@ class Gnss(object):
 
     def setup(self):
         self.ubx.setup()
-        self.gnss.setup()
 
         # Register the frame types we use
         protocols = [UbxMonVer, UbxCfgNmea, UbxCfgPrtUart, UbxCfgNav5, UbxCfgEsfAlg,
@@ -65,11 +65,13 @@ class Gnss(object):
 
         res = self._cfg_nmea()
         if res:
-            # print(res)
             # # Change NMEA protocol to 4.1
             # self.__msg_nmea.f.nmeaVersion = 0x41
             # self.ubx.set(self.__msg_nmea)
             pass
+
+        self.gnss_status.setup()
+        self.gnss_pos.setup()
 
     def invalidate(self):
         self.__msg_cfg_esfalg = None
@@ -358,7 +360,39 @@ class Gnss(object):
             return '-'
 
 
-class GnssWorker(threading.Thread):
+class GnssStatusWorker(threading.Thread):
+    def __init__(self, gnss, model):
+        super().__init__()
+
+        self.gnss = gnss
+        self.model = model
+
+    def setup(self):
+        self.daemon = True
+        self.name = 'gnss-status'
+        self.start()
+
+    def run(self):
+        self._gnss()
+
+        cnt = 0
+        while True:
+            if cnt % 10 == 3:
+                self._gnss()
+
+            cnt += 1
+            time.sleep(1.0)
+
+    def _gnss(self):
+        info = dict()
+
+        esf_status = self.gnss.esf_status()
+        info['esfstatus'] = esf_status
+
+        self.model.publish('gnss-state', info)
+
+
+class GnssPositionWorker(threading.Thread):
     # Singleton accessor
     # TODO: required?
     instance = None
@@ -366,8 +400,8 @@ class GnssWorker(threading.Thread):
     def __init__(self, model):
         super().__init__()
 
-        assert GnssWorker.instance is None
-        GnssWorker.instance = self
+        assert GnssPositionWorker.instance is None
+        GnssPositionWorker.instance = self
 
         self.model = model
 
@@ -382,13 +416,10 @@ class GnssWorker(threading.Thread):
         self.gps = Gpsd()
 
     def setup(self):
-        ready = self.gps.setup()
-        if ready:
-            self.daemon = True
-            self.name = 'gps-reader'
-            self.start()
-        else:
-            print('cannot connect to gpsd device')
+        self.gps.setup()
+        self.daemon = True
+        self.name = 'gps-reader'
+        self.start()
 
     def run(self):
         print('running gps thread')
