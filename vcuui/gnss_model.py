@@ -387,7 +387,7 @@ class GnssStatusWorker(threading.Thread):
         info = dict()
 
         esf_status = self.gnss.esf_status()
-        info['esfstatus'] = esf_status
+        info['esf-status'] = esf_status
 
         self.model.publish('gnss-state', info)
 
