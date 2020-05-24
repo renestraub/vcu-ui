@@ -34,7 +34,7 @@ class Gnss(object):
         Gnss.instance = self
 
         self.model = model
-        self.ubx = GnssUBlox('/dev/ttyS3')
+        self.ubx = GnssUBlox()
         self.gnss = GnssWorker(self.model)
 
         # Static values, read once in setup()

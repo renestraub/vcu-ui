@@ -26,7 +26,7 @@ setuptools.setup(
         'tornado',
         'requests',
         'ping3',
-        'ubxlib>=0.1.5'
+        'ubxlib>=0.1.7'
     ],
 #    package_data={
 #        'vcuui': ['*.html'],
