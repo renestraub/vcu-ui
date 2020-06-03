@@ -45,15 +45,15 @@ class LocationHandler(tornado.web.RequestHandler):
         # ToDo: Use asyncio to avoid blocking server
         m = MM.modem()
         m.setup_location_query()
-        self.write('3GPP Location query enabled')
+        self.write('3GPP location query enabled')
 
 
 class SignalHandler(tornado.web.RequestHandler):
     def get(self):
         # ToDo: Use asyncio to avoid blocking server
         m = MM.modem()
-        m.setup_location_query()
-        self.write('3GPP Location query enabled')
+        m.setup_signal_query()
+        self.write('Signal query enabled')
 
 
 class ModemResetHandler(tornado.web.RequestHandler):
