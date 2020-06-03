@@ -462,8 +462,10 @@ class GnssPositionWorker(threading.Thread):
                                 if status == 2 and self.fix == '3D':
                                     self.fix = '3D DGPS'
 
-                            self.lon = report['lon']
-                            self.lat = report['lat']
+                            if 'lon' in report and 'lat' in report:
+                                self.lon = report['lon']
+                                self.lat = report['lat']
+
                             if 'speed' in report:
                                 self.speed = report['speed']
 
@@ -481,8 +483,8 @@ class GnssPositionWorker(threading.Thread):
                 except KeyError as e:
                     # For whatever reasons getting GPS data from gps
                     # daemon is very unstable.
-                    # Have to handke KeyErrors in order to keep system
-                    # running
+                    # Have to handle KeyErrors in order to keep system
+                    # running.
                     print('gps module KeyError')
                     print(e)
 
