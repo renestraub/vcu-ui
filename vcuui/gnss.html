@@ -17,13 +17,18 @@
             <div class="btn-group">
                 <button class="button" onclick="window.location.href = '/'">Home</button>
                 <p></p>
+<!--
                 <button id="button_ser2net" class="button button_orange" type="button" onclick="do_sertonet()">uCenter ser2net</button>
                 <p></p>
-                <button id="button_settings_save" class="button button_green" type="button" onclick="do_state_xxx()">Save GNSS Settings</button>
-                <button id="button_settings_save" class="button button_green" type="button" onclick="do_state_xxx()">Factory Reset Settings</button>
+-->
+                <button id="button_settings_save" class="button button_green" type="button" onclick="do_settings_save()">Save GNSS Settings</button>
+                <button id="button_settings_save" class="button button_green" type="button" onclick="do_factory_reset()">Factory Reset Settings</button>
+
+<!--
                 <button id="button_state_save" class="button button_green" type="button" onclick="do_state_save()">Save GNSS State</button>
                 <button id="button_state_clear" class="button button_green" type="button" onclick="do_state_clear()">Clear GNSS State</button>
-                <button id="button_col_start" class="button button_green" type="button" onClick="do_gnss_coldstart();">Cold Start</button>
+-->
+                <button id="button_col_start" class="button button_orange" type="button" onClick="do_gnss_coldstart()">Cold Start</button>
                 <p></p>
                 <button class="button" onclick="window.location.href = '/gnss'">Refresh Page</button>
             </div>
@@ -204,7 +209,7 @@
             modal.style.display = "none";
 
             // check if this is safe
-            location.reload();
+            // location.reload();
         }
 
         function modal_enable_close_timer() {
@@ -251,6 +256,38 @@
             xhttp.send();
         }
 
+        function do_settings_save() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    dialog_message.innerHTML += "<br>" + this.responseText;
+                    start_close_timer(3);
+                }
+            };
+
+            model_open('Saving GNSS configuration');
+            modal_enable_close_timer();
+
+            xhttp.open("GET", "do_settings_save", true);
+            xhttp.send();
+        }
+
+        function do_factory_reset() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    dialog_message.innerHTML += "<br>" + this.responseText;
+                    start_close_timer(3);
+                }
+            };
+
+            model_open('Performing factory reset');
+            modal_enable_close_timer();
+
+            xhttp.open("GET", "do_factory_reset", true);
+            xhttp.send();
+        }
+
         function do_state_save() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
@@ -263,7 +300,7 @@
             model_open('Saving GNSS State');
             modal_enable_close_timer();
 
-            xhttp.open("GET", "do_store_gnss", true);
+            xhttp.open("GET", "do_state_save", true);
             xhttp.send();
         }
 
@@ -279,7 +316,7 @@
             model_open('Clearing GNSS State');
             modal_enable_close_timer();
 
-            xhttp.open("GET", "do_clear_gnss", true);
+            xhttp.open("GET", "do_state_clear", true);
             xhttp.send();
         }
 

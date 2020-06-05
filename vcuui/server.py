@@ -73,11 +73,27 @@ class CloudHandler(tornado.web.RequestHandler):
         self.write(res)
 
 
+class GnssSaveConfigHandler(tornado.web.RequestHandler):
+    def get(self):
+        gnss = Gnss.instance
+        # res = gnss.cold_start()
+        # self.write(res)
+        self.write('WARNING: Config saving not yet implemented')
+
+
 class GnssColdStartHandler(tornado.web.RequestHandler):
     def get(self):
         gnss = Gnss.instance
         res = gnss.cold_start()
         self.write(res)
+
+
+class GnssFactoryResetHandler(tornado.web.RequestHandler):
+    def get(self):
+        gnss = Gnss.instance
+        # res = gnss.cold_start()
+        # self.write(res)
+        self.write('WARNING: Factory Reset not yet implemented')
 
 
 class GnssConfigHandler(tornado.web.RequestHandler):
@@ -152,7 +168,7 @@ class GsmCellLocateHandler(tornado.web.RequestHandler):
 
 class NotImplementedHandler(tornado.web.RequestHandler):
     def get(self):
-        self.write('Not implemented')
+        self.write('WARNING: Function not yet implemented')
 
 
 def run_server(port=80):
@@ -176,18 +192,22 @@ def run_server(port=80):
         (r"/", MainHandler),
         (r"/gnss", GnssHandler),
         (r"/realtime", RealtimeHandler),
-        (r"/do_ping", PingHandler),
+
         (r"/do_location", LocationHandler),
         (r"/do_signal", SignalHandler),
-        (r"/do_modem_reset", ModemResetHandler),
+        (r"/do_ping", PingHandler),
+        (r"/do_cell_locate", GsmCellLocateHandler),
         (r"/do_cloud", CloudHandler),
+        (r"/do_modem_reset", ModemResetHandler),
+
         (r"/do_gnss_coldstart", GnssColdStartHandler),
         (r"/do_gnss_config", GnssConfigHandler),
-        (r"/do_cell_locate", GsmCellLocateHandler),
 
         (r"/do_ser2net", NotImplementedHandler),
-        (r"/do_store_gnss", NotImplementedHandler),
-        (r"/do_clear_gnss", NotImplementedHandler),
+        (r"/do_settings_save", GnssSaveConfigHandler),
+        (r"/do_factory_reset", GnssFactoryResetHandler),
+        (r"/do_state_save", NotImplementedHandler),
+        (r"/do_state_clear", NotImplementedHandler),
 
         (r"/ws_realtime", RealtimeWebSocket),
     ], **settings)
@@ -196,7 +216,11 @@ def run_server(port=80):
     # logging.getLogger("tornado.application").setLevel(logging.DEBUG)
     # logging.getLogger("tornado.general").setLevel(logging.DEBUG)
 
-    app.listen(port)
+    try:
+        app.listen(port)
+    except OSError:
+        print(f'ERROR: Server port {port} in use. Is another webserver running?')
+
     tornado.ioloop.IOLoop.current().start()
 
 
