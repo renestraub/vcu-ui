@@ -10,7 +10,6 @@ Token=xyz
 import configparser
 import json
 import math
-import subprocess
 import threading
 import time
 from io import BytesIO
@@ -155,7 +154,7 @@ class Things(threading.Thread):
                 'temperature': info['temp'],
                 'cpu-load': info['load'][0],
                 'voltage-in': info['v_in'],
-                'mem-used': info['mem'][1]
+                'mem-free': info['mem'][1]
             }
             # print(data)
             self._queue_timed(data)
@@ -235,43 +234,6 @@ class Things(threading.Thread):
 
         # TODO: only remove from list what has been sent
         self._data_queue = list()
-
-    """
-    def _upload_data2(self):
-        # Send queued data
-        # TODO: more clever algorithm, sending useful sized batches every some seconds
-
-        # print('uploading data')
-
-        # Get data to send from queue
-        # TODO: Limit based on size
-        http_data = list()
-        for entry in self._data_queue:
-            # print(entry)
-            data = {'ts': entry['time'], 'values': entry['data']}
-            http_data.append(data)
-
-        tmp = tempfile.NamedTemporaryFile(delete=False)
-        try:
-            # print(tmp.name)
-            as_json_string = json.dumps(http_data)  # dict to json
-            # print(as_json_string)
-            tmp.write(as_json_string.encode())
-            tmp.close()
-
-            args = ['curl', '-v', '-d', f'@{tmp.name}',
-                    f'{self.api_server}/api/v1/{self.api_token}/telemetry',
-                    '--header', 'Content-Type:application/json']
-            print(f'starting curl utility with args {args}')
-            cp = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            print(f'{len(as_json_string)} bytes uploaded, curl returned {cp.returncode}')
-
-        finally:
-            os.unlink(tmp.name)
-
-        # TODO: only remove from list what has been sent
-        self._data_queue = list()
-    """
 
     def _send_attribute(self, payload):
         self._post_data('attributes', payload)
