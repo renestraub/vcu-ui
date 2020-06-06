@@ -15,7 +15,6 @@ import tornado.websocket
 
 from vcuui._version import __version__ as version
 from vcuui.data_model import Model
-from vcuui.gnss import clear_state, save_state, start_ser2net
 from vcuui.gnss_model import Gnss
 from vcuui.mm import MM
 from vcuui.pagegnss import GnssHandler
@@ -63,6 +62,12 @@ class ModemResetHandler(tornado.web.RequestHandler):
         self.write('Modem reset successfully')
 
 
+class SystemRebootHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write('Initiated system reboot')
+        os.system("reboot")
+
+
 class CloudHandler(tornado.web.RequestHandler):
     def get(self):
         enable = self.get_query_argument('enable', False)
@@ -73,12 +78,32 @@ class CloudHandler(tornado.web.RequestHandler):
         self.write(res)
 
 
+class GnssSaveStateHandler(tornado.web.RequestHandler):
+    def get(self):
+        gnss = Gnss.instance
+        res = gnss.save_state()
+        self.write(res)
+
+
+class GnssClearStateHandler(tornado.web.RequestHandler):
+    def get(self):
+        gnss = Gnss.instance
+        res = gnss.clear_state()
+        self.write(res)
+
+
 class GnssSaveConfigHandler(tornado.web.RequestHandler):
     def get(self):
         gnss = Gnss.instance
-        # res = gnss.cold_start()
-        # self.write(res)
-        self.write('WARNING: Config saving not yet implemented')
+        res = gnss.save_config()
+        self.write(res)
+
+
+class GnssFactoryResetHandler(tornado.web.RequestHandler):
+    def get(self):
+        gnss = Gnss.instance
+        res = gnss.reset_config()
+        self.write(res)
 
 
 class GnssColdStartHandler(tornado.web.RequestHandler):
@@ -86,14 +111,6 @@ class GnssColdStartHandler(tornado.web.RequestHandler):
         gnss = Gnss.instance
         res = gnss.cold_start()
         self.write(res)
-
-
-class GnssFactoryResetHandler(tornado.web.RequestHandler):
-    def get(self):
-        gnss = Gnss.instance
-        # res = gnss.cold_start()
-        # self.write(res)
-        self.write('WARNING: Factory Reset not yet implemented')
 
 
 class GnssConfigHandler(tornado.web.RequestHandler):
@@ -199,15 +216,16 @@ def run_server(port=80):
         (r"/do_cell_locate", GsmCellLocateHandler),
         (r"/do_cloud", CloudHandler),
         (r"/do_modem_reset", ModemResetHandler),
+        (r"/do_system_reboot", SystemRebootHandler),
 
-        (r"/do_gnss_coldstart", GnssColdStartHandler),
         (r"/do_gnss_config", GnssConfigHandler),
 
         (r"/do_ser2net", NotImplementedHandler),
-        (r"/do_settings_save", GnssSaveConfigHandler),
-        (r"/do_factory_reset", GnssFactoryResetHandler),
-        (r"/do_state_save", NotImplementedHandler),
-        (r"/do_state_clear", NotImplementedHandler),
+        (r"/do_gnss_state_save", GnssSaveStateHandler),
+        (r"/do_gnss_state_clear", GnssClearStateHandler),
+        (r"/do_gnss_settings_save", GnssSaveConfigHandler),
+        (r"/do_gnss_factory_reset", GnssFactoryResetHandler),
+        (r"/do_gnss_coldstart", GnssColdStartHandler),
 
         (r"/ws_realtime", RealtimeWebSocket),
     ], **settings)

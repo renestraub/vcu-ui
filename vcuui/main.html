@@ -31,7 +31,7 @@
                 {% end %}
                 <p></p>
                 <button id="button_modem_reset" class="button button_orange" type="button" onclick="do_modem_reset()">Reset GSM Modem</button>
-                <button id="button_reboot" class="button button_red" type="button" onclick="alert('not yet implemented')">Reboot System</button>
+                <button id="button_reboot" class="button button_red" type="button" onclick="do_system_reboot()">Reboot System</button>
                 <p></p>
                 <button class="button button_slider" onclick="window.location.href = '/'">Refresh Page</button>
                 <label class="switch">
@@ -201,56 +201,25 @@
         }
 
         function do_location() {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                    dialog_message.innerHTML += "<br>" + this.responseText;
-                    start_close_timer(3);
-                }
-            };
-
-            model_open('Enabling 3GPP location detection');
-            modal_enable_close_timer();
-
-            xhttp.open("GET", "do_location", true);
-            xhttp.send();
+            operate("Enabling 3GPP location detection", "do_location");
         }
 
         function do_signal() {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                    dialog_message.innerHTML += "<br>" + this.responseText;
-                    start_close_timer(3);
-                }
-            };
-
-            model_open('Enabling signal quality measurements');
-            modal_enable_close_timer();
-
-            xhttp.open("GET", "do_signal", true);
-            xhttp.send();
+            operate("Enabling signal quality measurements", "do_signal");
         }
 
         function do_modem_reset() {
             res = confirm("Do you really want to reset the GSM modem?");
-            if (res == false) {
-                return
+            if (res) {
+                operate("Resetting modem", "do_modem_reset");
             }
+        }
 
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                    dialog_message.innerHTML += "<br>" + this.responseText;
-                    start_close_timer(3);
-                }
-            };
-
-            model_open('Resetting modem');
-            modal_enable_close_timer();
-
-            xhttp.open("GET", "do_modem_reset", true);
-            xhttp.send();
+        function do_system_reboot() {
+            res = confirm("Do you really want to reboot the system?");
+            if (res) {
+                operate("Doing system reboot", "do_system_reboot");
+            }
         }
 
         function do_cell_find() {
@@ -274,23 +243,30 @@
         }
 
         function do_cloud(enable) {
+            if (enable) {
+                title = "Starting cloud logging";
+                query = `enable=True`;
+            } else { 
+                title = "Stopping cloud logging";
+                query = `enable=False`;
+            }
+            uri = "/do_cloud?" + encodeURI(query);
+            operate(title, uri);
+        }
+
+        /* Helper method for basic dialog/request/response sequence */
+        function operate(title, uri) {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     dialog_message.innerHTML += "<br>" + this.responseText;
-                    start_close_timer(2);
+                    start_close_timer(3);
                 }
             };
 
-            model_open('Starting cloud logging');
+            model_open(title);
             modal_enable_close_timer();
 
-            if (enable) {
-                query = `enable=True`;
-            } else { 
-                query = `enable=False`;
-            }
-            uri = "/do_cloud?" + encodeURI(query);
             xhttp.open("GET", uri, true);
             xhttp.send();
         }

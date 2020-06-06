@@ -4,16 +4,15 @@ import threading
 import time
 
 from ubxlib.server import GnssUBlox
-from ubxlib.ubx_ack import UbxAckAck
 from ubxlib.ubx_cfg_esfalg import UbxCfgEsfAlg, UbxCfgEsfAlgPoll
-# from ubxlib.ubx_cfg_gnss import UbxCfgGnssPoll, UbxCfgGnss
 from ubxlib.ubx_cfg_nav5 import UbxCfgNav5, UbxCfgNav5Poll
 from ubxlib.ubx_cfg_nmea import UbxCfgNmea, UbxCfgNmeaPoll
 from ubxlib.ubx_cfg_prt import UbxCfgPrtPoll, UbxCfgPrtUart
 from ubxlib.ubx_cfg_rst import UbxCfgRstAction
+from ubxlib.ubx_cfg_cfg import UbxCfgCfgAction
 from ubxlib.ubx_esf_alg import UbxEsfAlg, UbxEsfAlgPoll, UbxEsfResetAlgAction
 from ubxlib.ubx_esf_status import UbxEsfStatus, UbxEsfStatusPoll
-# from ubxlib.ubx_upd_sos import UbxUpdSosPoll, UbxUpdSos, UbxUpdSosAction
+from ubxlib.ubx_upd_sos import UbxUpdSosAction
 from ubxlib.ubx_mon_ver import UbxMonVer, UbxMonVerPoll
 from vcuui.gpsd import Gpsd
 
@@ -44,8 +43,7 @@ class Gnss(object):
         self.__msg_cfg_nmea = None
 
         # Config values, can be cached until changed by model itself
-        self.__msg_cfg_nav5 = None
-        self.__msg_cfg_esfalg = None
+        self._clear_cached_values()
 
         # Live values, can be cached on page reload, see invalidate()
         self.__msg_esf_alg = None
@@ -141,8 +139,72 @@ class Gnss(object):
         msg = UbxCfgRstAction()
         msg.cold_start()
         msg.pack()
-        self.ubx.send(msg)
+        self.ubx.send(msg)      # Will not be ACK'ed
         # TODO: Remove .pack as soon as ubxlib implements this internally
+
+        self._clear_cached_values()
+
+        return 'Success'
+
+    """
+    Config Save / Reset
+    """
+    def save_config(self):
+        print('Saving GNSS config')
+
+        msg = UbxCfgCfgAction()
+        msg.f.saveMask = UbxCfgCfgAction.MASK_NavConf     # To save CFG-NAV-NMEA
+        self.ubx.set(msg)
+
+        return 'Success'
+
+    def reset_config(self):
+        print('Resetting GNSS config')
+
+        msg = UbxCfgCfgAction()
+        msg.f.clearMask = UbxCfgCfgAction.MASK_NavConf
+        msg.f.loadMask = UbxCfgCfgAction.MASK_NavConf
+        self.ubx.set(msg)
+
+        self._clear_cached_values()
+
+        return 'Success'
+
+    """
+    SOS - Save on Shutdown
+    """
+    def save_state(self):
+        print('Saving GNSS state (save on shutdown)')
+
+        print('Stopping receiver')
+        msg = UbxCfgRstAction()
+        msg.stop()
+        msg.pack()
+        self.ubx.send(msg)      # Will not be ACK'ed
+        # TODO: Remove .pack as soon as ubxlib implements this internally
+
+        time.sleep(0.1)
+
+        print('Saving')
+        msg = UbxUpdSosAction()
+        msg.f.cmd = UbxUpdSosAction.SAVE
+        self.ubx.set(msg)
+
+        print('Restarting')
+        msg = UbxCfgRstAction()
+        msg.start()
+        msg.pack()
+        self.ubx.send(msg)      # Will not be ACK'ed
+        # TODO: Remove .pack as soon as ubxlib implements this internally
+
+        return 'Success'
+
+    def clear_state(self):
+        print('Clearing GNSS state (save on shutdown)')
+
+        msg = UbxUpdSosAction()
+        msg.f.cmd = UbxUpdSosAction.CLEAR
+        self.ubx.set(msg)
 
         return 'Success'
 
@@ -349,6 +411,10 @@ class Gnss(object):
         # print(res)
         return res
 
+    def _clear_cached_values(self):
+        self.__msg_cfg_nav5 = None
+        self.__msg_cfg_esfalg = None
+
     @staticmethod
     def __extract(text, token):
         # print(f'extract {text} {token}')
@@ -386,6 +452,7 @@ class GnssStatusWorker(threading.Thread):
     def _gnss(self):
         info = dict()
 
+        # TODO: Code is not thread safe!! Should not call from here...
         esf_status = self.gnss.esf_status()
         info['esf-status'] = esf_status
 

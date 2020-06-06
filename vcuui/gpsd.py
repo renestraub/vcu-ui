@@ -1,3 +1,9 @@
+"""
+gpsd wrapper
+
+runs thread to receive JSON data from gpsd and store in queue
+use .next() to get gpsd message
+"""
 import json  # or `import simplejson as json` if on Python < 2.6
 import logging
 import queue
