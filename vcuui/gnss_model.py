@@ -445,6 +445,7 @@ class GnssPositionWorker(threading.Thread):
                         # print(report)
 
                         if report['class'] == 'SKY':
+                            # Remember PDOP only, will be sent on next TPV message
                             if 'pdop' in report:
                                 self.pdop = report['pdop']
 
@@ -462,23 +463,24 @@ class GnssPositionWorker(threading.Thread):
                                 if status == 2 and self.fix == '3D':
                                     self.fix = '3D DGPS'
 
+                            if 'speed' in report:
+                                self.speed = report['speed']
+
+                            # Ensure we have lon/lat in report
+                            # only update when present, to avoid 0/0 position messages
                             if 'lon' in report and 'lat' in report:
                                 self.lon = report['lon']
                                 self.lat = report['lat']
 
-                            if 'speed' in report:
-                                self.speed = report['speed']
+                                pos = dict()
+                                pos['fix'] = self.fix
+                                pos['lon'] = self.lon
+                                pos['lat'] = self.lat
+                                pos['speed'] = self.speed
+                                pos['pdop'] = self.pdop
 
-                            # Always update on TPV message
-                            pos = dict()
-                            pos['fix'] = self.fix
-                            pos['lon'] = self.lon
-                            pos['lat'] = self.lat
-                            pos['speed'] = self.speed
-                            pos['pdop'] = self.pdop
-
-                            # print(f'gps data {pos}')
-                            self.model.publish('gnss-pos', pos)
+                                # print(f'gps data {pos}')
+                                self.model.publish('gnss-pos', pos)
 
                 except KeyError as e:
                     # For whatever reasons getting GPS data from gps
