@@ -24,6 +24,12 @@ class SysInfo():
 
         return res
 
+    def hw_version(self):
+        with open('/proc/device-tree/nm,carrierboard,version') as f:
+            res = f.readline().strip()
+
+        return res
+
     def meminfo(self):
         with open('/proc/meminfo') as f:
             res = f.readlines()

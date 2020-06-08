@@ -101,6 +101,7 @@ class ModelWorker(threading.Thread):
         ver['serial'] = si.serial()
         ver['sys'] = si.version()
         ver['bl'] = si.bootloader_version()
+        ver['hw'] = si.hw_version()
         self.model.publish('sys-version', ver)
 
         dt = dict()

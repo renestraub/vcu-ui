@@ -54,7 +54,8 @@ class MainHandler(tornado.web.RequestHandler):
 
             tes.append(TE('System', ''))
             text = nice([('sys', 'System', ''),
-                        ('bl', 'Bootloader', '')],
+                        ('bl', 'Bootloader', ''),
+                        ('hw', 'Hardware', '')],
                         md['sys-version'], True)
             tes.append(TE('Version', text))
 

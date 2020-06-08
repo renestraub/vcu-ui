@@ -141,9 +141,13 @@ class Things(threading.Thread):
     def _attributes(self, md):
         version = md['sys-version']['sys']
         serial = md['sys-version']['serial']
+        hw_ver = md['sys-version']['hw']
+        uptime = md['sys-datetime']['uptime']
         attrs = {
             "serial": serial,
             "version": version,
+            "hardware": hw_ver,
+            "uptime": uptime
         }
         self._send_attribute(attrs)
 
