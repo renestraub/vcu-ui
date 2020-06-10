@@ -35,23 +35,31 @@ print(f'Running server from {module_path}')
 class LocationHandler(tornado.web.RequestHandler):
     def get(self):
         m = MM.modem()
-        m.setup_location_query()
-        self.write('3GPP location query enabled')
+        if m:
+            m.setup_location_query()
+            self.write('3GPP location query enabled')
+        else:
+            self.write('No modem found')
 
 
 class SignalHandler(tornado.web.RequestHandler):
     def get(self):
         m = MM.modem()
-        m.setup_signal_query()
-        self.write('Signal query enabled')
+        if m:
+            m.setup_signal_query()
+            self.write('Signal query enabled')
+        else:
+            self.write('No modem found')
 
 
 class ModemResetHandler(tornado.web.RequestHandler):
     def get(self):
         m = MM.modem()
-        m.reset()
-        self.write('Modem reset successfully')
-
+        if m:
+            m.reset()
+            self.write('Modem reset successfully')
+        else:
+            self.write('No modem found')
 
 class SystemRebootHandler(tornado.web.RequestHandler):
     def get(self):
