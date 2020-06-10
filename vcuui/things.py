@@ -23,9 +23,10 @@ class Things(threading.Thread):
     # Singleton accessor
     instance = None
 
-    TELEMETRY_UPLOAD_PERIOD = 30      # Upload every 30 seconds
-    ATTRIBUTE_UPLOAD_PERIOD = 120
-    MAX_QUEUE_SIZE = 300
+    TELEMETRY_UPLOAD_PERIOD = 30    # Upload every 30 seconds
+    ATTRIBUTE_UPLOAD_PERIOD = 120   # Upload every 120 seconds
+    MAX_QUEUE_SIZE = 300            # New entries are dropped when this size is reached
+                                    # Note: entries can have more than one data element
     GNSS_UPDATE_DISTANCE = 1.5      # Suppress GNSS update if movement less than this distance in meter
 
     def __init__(self, model):
@@ -210,10 +211,11 @@ class Things(threading.Thread):
         # Store in map with current time
         now = time.time()
         now_ms = int(1000.0 * now)
-        # print(now_ms)
         data_set = {"time": now_ms, "data": data}
 
         num_entries = len(self._data_queue)
+        # print(f'num q entries {num_entries}')
+        # print(data)
         if num_entries > self.MAX_QUEUE_SIZE:
             # print('queue overflow, dropping old elements')
             self._data_queue = self._data_queue[-self.MAX_QUEUE_SIZE:]
@@ -227,20 +229,30 @@ class Things(threading.Thread):
 
         # Get data to send from queue
         # TODO: Limit based on size
+
+        # On every upload report current queue size
+        num_entries = len(self._data_queue)
+        data = {'tb-qsize': num_entries}
+        self._queue_timed(data)
+
+        # Build HTTP quey string with all queue data
         http_data = list()
         for entry in self._data_queue:
             data = {'ts': entry['time'], 'values': entry['data']}
             http_data.append(data)
 
-        self._post_data('telemetry', http_data)
-
-        # TODO: only remove from list what has been sent
-        self._data_queue = list()
+        res = self._post_data('telemetry', http_data)
+        if res:
+            self._data_queue = list()
+        else:
+            print('Could not upload telemetry data, keeping queue')
 
     def _send_attribute(self, payload):
         self._post_data('attributes', payload)
 
     def _post_data(self, msgtype, payload):
+        res = False
+
         assert msgtype == 'attributes' or msgtype == 'telemetry'
 
         c = pycurl.Curl()
@@ -275,8 +287,12 @@ class Things(threading.Thread):
             info['bytes'] = bytes_sent
             self.model.publish('things', info)
 
+            res = True
+
         except pycurl.error as e:
             print("ERROR uploading data to Thingsboard")
             print(e)
         finally:
             c.close()
+
+        return res
