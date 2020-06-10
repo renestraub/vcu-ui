@@ -89,21 +89,19 @@ class MainHandler(tornado.web.RequestHandler):
                 tes.append(TE('wwan0', f'Rx: {rx:.1f} MB<br>Tx: {tx:.1f} MB'))
 
             # Modem Information
-
-            # TODO: Check
-            m2 = md['modem']
-            if 'modem-id' in m2:
+            mi = md['modem']
+            if 'modem-id' in mi:
                 tes.append(TE('', ''))
                 tes.append(TE('Mobile', ''))
 
-                tes.append(TE('Modem Id', m2['modem-id']))
+                tes.append(TE('Modem Id', mi['modem-id']))
 
-                state = m2['state']
-                access_tech = m2['access-tech']
+                state = mi['state']
+                access_tech = mi['access-tech']
                 tes.append(TE('State', f'{state}, {access_tech}'))
 
-                if 'location' in m2:
-                    loc_info = m2['location']
+                if 'location' in mi:
+                    loc_info = mi['location']
                     if loc_info['mcc']:
                         text = nice([('mcc', 'MCC', ''),
                                     ('mnc', 'MNC', ''),
@@ -113,32 +111,32 @@ class MainHandler(tornado.web.RequestHandler):
                         tes.append(TE('Cell', text))
                         data.update(loc_info)
 
-                sq = m2['signal-quality']
+                sq = mi['signal-quality']
                 tes.append(TE('Signal', f'{sq} %'))
 
                 if access_tech == 'lte':
-                    sig = m2['signal-lte']
+                    sig = mi['signal-lte']
                     text = nice([('rsrp', 'RSRP', 'dBm'),
                                 ('rsrq', 'RSRQ', 'dBm')],
                                 sig, True)
                     tes.append(TE('Signal LTE', text))
                 elif access_tech == 'umts':
-                    sig = m2['signal-umts']
+                    sig = mi['signal-umts']
                     text = nice([('rscp', 'RSRP', 'dBm'),
                                 ('ecio', 'ECIO', 'dBm')],
                                 sig, True)
                     tes.append(TE('Signal UMTS', text))
 
-                if 'bearer-id' in m2:
+                if 'bearer-id' in mi:
                     tes.append(TE('', ''))
-                    tes.append(TE('Bearer Id', m2['bearer-id']))
+                    tes.append(TE('Bearer Id', mi['bearer-id']))
 
-                    if 'bearer-uptime' in m2:
-                        ut = m2['bearer-uptime']
+                    if 'bearer-uptime' in mi:
+                        ut = mi['bearer-uptime']
                         if ut:
                             uth, utm = secs_to_hhmm(ut)
                             tes.append(TE('Uptime', f'{uth}:{utm:02} h'))
-                            ip = m2['bearer-ip']
+                            ip = mi['bearer-ip']
                             tes.append(TE('IP', ip))
 
                     if 'link' in md:

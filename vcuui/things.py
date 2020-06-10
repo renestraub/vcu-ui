@@ -23,8 +23,10 @@ class Things(threading.Thread):
     # Singleton accessor
     instance = None
 
+    TELEMETRY_UPLOAD_PERIOD = 30      # Upload every 30 seconds
+    ATTRIBUTE_UPLOAD_PERIOD = 120
     MAX_QUEUE_SIZE = 300
-    GNSS_UPDATE_DISTANCE = 1.5
+    GNSS_UPDATE_DISTANCE = 1.5      # Suppress GNSS update if movement less than this distance in meter
 
     def __init__(self, model):
         super().__init__()
@@ -57,8 +59,7 @@ class Things(threading.Thread):
         if self.has_server:
             self.start()
 
-    # TODO: rename to enable or activate
-    def start2(self, enable):
+    def enable(self, enable):
         if enable:
             if self.has_server:
                 if not self.active:
@@ -108,8 +109,7 @@ class Things(threading.Thread):
                 elif self.state == 'connected':
                     # Gather data #
 
-                    # Get gps update every 2nd second
-                    # if cnt % 2 == 1:
+                    # Force GNSS update once a minute, even if not moving
                     force_update = (cnt % 60) == 0
                     self._gnss(md, force_update)
 
@@ -119,14 +119,14 @@ class Things(threading.Thread):
 
                     # Upload data #
 
-                    # Telemetry every 30 seconds
-                    if cnt % 30 == 5:
-                        self._upload_data()
+                    # Telemetry upload
+                    if cnt % Things.TELEMETRY_UPLOAD_PERIOD == 5:
+                        self._upload_telemetry()
 
                     # TODO: check for error and switch to disconnected state in case of problem
 
                     # Attributes every now and then
-                    if cnt % 120 == 5:
+                    if cnt % Things.ATTRIBUTE_UPLOAD_PERIOD == 7:
                         self._attributes(md)
 
                 # state change
@@ -166,10 +166,10 @@ class Things(threading.Thread):
         if 'link' in md:
             info = md['link']
             if 'delay' in info:
+                delay_in_ms = info['delay'] * 1000.0
                 data = {
                     # TODO: rename -> wwan-delay ?
-                    # TODO: format result .0f ?
-                    'delay': info['delay'] * 1000.0,
+                    'delay': f'{delay_in_ms:.0f}'
                 }
                 self._queue_timed(data)
 
@@ -184,8 +184,6 @@ class Things(threading.Thread):
                 d = self._distance(lon_rad, lat_rad)
                 # print(f'distance {d}')
                 if force or d > self.GNSS_UPDATE_DISTANCE:
-                    # TODO: extract only values we want
-                    # print('position update')
                     self._queue_timed(pos)
 
                     self.lat_last_rad = lat_rad
@@ -223,7 +221,7 @@ class Things(threading.Thread):
         self._data_queue.append(data_set)
         # print(len(self._data_queue2))
 
-    def _upload_data(self):
+    def _upload_telemetry(self):
         # Send queued data
         # TODO: more clever algorithm, sending useful sized batches every some seconds
 

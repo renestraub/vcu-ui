@@ -93,7 +93,3 @@ class RealtimeWebSocket(tornado.websocket.WebSocketHandler):
                 print(f'cannot get {e}')
                 return default
         return dct
-
-    # TODO: Add some useful function or remove
-    # def on_message(self, message):
-    #     print(f'got message: {message}')

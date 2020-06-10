@@ -14,9 +14,6 @@ def start_ser2net():
     Starts ser2net tool for connection with u-Center
     """
     res = ''
-
-    # Todo: Stopp GnssWorker ...
-
     res += _stop_services()
     res += _stop_ser2net()
 

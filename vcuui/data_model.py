@@ -66,7 +66,6 @@ class ModelWorker(threading.Thread):
         super().__init__()
 
         self.model = model
-        self.test = 0   # TODO: Remove
 
     def setup(self):
         self.lock = threading.Lock()
@@ -127,8 +126,7 @@ class ModelWorker(threading.Thread):
     def _modem(self):
         info = dict()
         m = MM.modem()
-        if m:  # self.test == 0:
-            self.test = 1
+        if m:
             info['modem-id'] = str(m.id)
 
             state = m.state()

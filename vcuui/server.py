@@ -32,16 +32,8 @@ module_path = os.path.dirname(path)
 print(f'Running server from {module_path}')
 
 
-class PingHandler(tornado.web.RequestHandler):
-    def get(self):
-        # ToDo: Use asyncio to avoid blocking server
-        console = ping('1.1.1.1')
-        self.write(console)
-
-
 class LocationHandler(tornado.web.RequestHandler):
     def get(self):
-        # ToDo: Use asyncio to avoid blocking server
         m = MM.modem()
         m.setup_location_query()
         self.write('3GPP location query enabled')
@@ -49,7 +41,6 @@ class LocationHandler(tornado.web.RequestHandler):
 
 class SignalHandler(tornado.web.RequestHandler):
     def get(self):
-        # ToDo: Use asyncio to avoid blocking server
         m = MM.modem()
         m.setup_signal_query()
         self.write('Signal query enabled')
@@ -74,7 +65,7 @@ class CloudHandler(tornado.web.RequestHandler):
         print(f'new state {enable}')
 
         things = Things.instance
-        res = things.start2(enable == 'True')
+        res = things.enable(enable == 'True')
         self.write(res)
 
 
@@ -199,7 +190,7 @@ def run_server(port=80):
     things.setup()
 
     # Start cloud logging by default
-    things.start2(True)
+    things.enable(True)
 
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static")
@@ -212,7 +203,6 @@ def run_server(port=80):
 
         (r"/do_location", LocationHandler),
         (r"/do_signal", SignalHandler),
-        (r"/do_ping", PingHandler),
         (r"/do_cell_locate", GsmCellLocateHandler),
         (r"/do_cloud", CloudHandler),
         (r"/do_modem_reset", ModemResetHandler),
