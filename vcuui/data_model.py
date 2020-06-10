@@ -185,18 +185,17 @@ class GsmWorker(threading.Thread):
         print("running gsm thread")
         self.state = 'init'
         self.counter = 0
+        link_data = dict()
 
         while True:
             info = self.model.get('modem')
             # print(info)
-
             if self.state == 'init':
                 # check if we have a valid bearer
                 try:
                     if info and 'bearer-ip' in info:
                         print('bearer found')
                         self.state = 'connected'
-
                 except KeyError:
                     pass
 
@@ -204,25 +203,28 @@ class GsmWorker(threading.Thread):
                 try:
                     if info and 'bearer-ip' not in info:
                         print('lost IP connection')
-                        self.state = 'init'
 
+                        link_data['delay'] = 0.0
+                        self.model.publish('link', link_data)
+                        self.state = 'init'
                     else:
                         if self.counter % 5 == 2:
                             try:
-                                info = dict()
                                 delay = ping('1.1.1.1', timeout=1.0)
-                                print(f'ping delay {delay}')
                                 if delay:
-                                    info['delay'] = round(float(delay), 3)
+                                    link_data['delay'] = round(float(delay), 3)
                                 else:
-                                    delay = 0.0
+                                    link_data['delay'] = 0.0
 
-                                self.model.publish('link', info)
+                                self.model.publish('link', link_data)
+
                             except OSError as e:
                                 print('Captured ping error')
                                 print(e)
-                                self.state = 'init'
 
+                                link_data['delay'] = 0.0
+                                self.model.publish('link', link_data)
+                                self.state = 'init'
                 except KeyError:
                     pass
 
