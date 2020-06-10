@@ -208,15 +208,20 @@ class GsmWorker(threading.Thread):
 
                     else:
                         if self.counter % 5 == 2:
-                            info = dict()
-                            delay = ping('1.1.1.1', timeout=1.0)
-                            if delay:
-                                info['delay'] = round(float(delay), 3)
-                            else:
-                                delay = 0.0
-                                # TODO: ?
+                            try:
+                                info = dict()
+                                delay = ping('1.1.1.1', timeout=1.0)
+                                print(f'ping delay {delay}')
+                                if delay:
+                                    info['delay'] = round(float(delay), 3)
+                                else:
+                                    delay = 0.0
 
-                            self.model.publish('link', info)
+                                self.model.publish('link', info)
+                            except OSError as e:
+                                print('Captured ping error')
+                                print(e)
+                                self.state = 'init'
 
                 except KeyError:
                     pass
