@@ -114,17 +114,17 @@ systemctl start vcu-ui      # Start service right now
 #### v0.4.1 (20200606)
 
 - Updated this documentation
+- Restart ping process after mobile link loss
+- Queue telemetry data on upload error to retry later
 - GNSS configuration save/reset added
 - GNSS state save/clear (save-on-shutdown) added
 - System reboot function added
 - JavaScript code refactored
-- Upgrade to ubxlib 0.1.9
 - General code cleanup, remove dead code
+- Upgrade to ubxlib 0.1.9
 
 
 #### Known Bugs & Limitations
 
 - Thread safety issue when getting ESF status for GNSS. Leads to occasional page loading error.
-
-
 
