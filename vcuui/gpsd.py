@@ -12,11 +12,7 @@ import socket
 import threading
 import time
 
-FORMAT = '%(asctime)-15s %(levelname)-8s %(message)s'
-logging.basicConfig(format=FORMAT)
-logger = logging.getLogger('gpsd_tool')
-logger.setLevel(logging.INFO)
-# logger.setLevel(logging.DEBUG)
+logger = logging.getLogger('vcu-ui')
 
 
 class Gpsd(threading.Thread):
@@ -55,7 +51,7 @@ class Gpsd(threading.Thread):
         # logger.debug(f'waiting {timeout}s for reponse from listener thread')
         try:
             response = self.response_queue.get(True, timeout)
-            logger.debug(f'got response {response}')
+            # logger.debug(f'got response {response}')
             return response
         except queue.Empty:
             logger.warning('timeout...')

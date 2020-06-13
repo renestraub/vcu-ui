@@ -1,4 +1,7 @@
+import logging
 import subprocess
+
+logger = logging.getLogger('vcu-ui')
 
 
 class MM():
@@ -27,7 +30,7 @@ class MmResult():
 
     def id(self, name):
         if not self._exists(name):
-            print(f'{name} does not exist')
+            logger.info(f'{name} does not exist')
             return None
 
         line = self.items[name]
@@ -36,7 +39,7 @@ class MmResult():
             try:
                 return int(id)
             except ValueError:
-                print('MmResult::id() value error')
+                logger.warning('MmResult::id() value error')
                 return None
 
     def text(self, name):

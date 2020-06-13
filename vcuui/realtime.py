@@ -4,12 +4,16 @@ Realtime Display Page
 Display speed, gnss fix & esf status and mobile link information
 using a websocket
 """
+import logging
+
 import tornado.web
 
 from vcuui._version import __version__ as version
-from vcuui.tools import secs_to_hhmm
 from vcuui.data_model import Model
 from vcuui.gnss_model import Gnss
+from vcuui.tools import secs_to_hhmm
+
+logger = logging.getLogger('vcu-ui')
 
 
 class RealtimeHandler(tornado.web.RequestHandler):
@@ -32,23 +36,23 @@ class RealtimeWebSocket(tornado.websocket.WebSocketHandler):
     esf_status = None
 
     def __init__(self, application, request, **kwargs):
-        print(f'new SimpleWebSocket {self}')
+        logger.info(f'new SimpleWebSocket {self}')
         super().__init__(application, request, **kwargs)
 
         if not RealtimeWebSocket.instance:
             RealtimeWebSocket.instance = self
             RealtimeWebSocket.counter = 0
 
-            print('Starting websocket timer')
+            logger.info('starting websocket timer')
             RealtimeWebSocket.timer_fn = tornado.ioloop.PeriodicCallback(RealtimeWebSocket.timer, 900)
             RealtimeWebSocket.timer_fn.start()
 
     def open(self):
-        print(f'adding new connection {self}')
+        logger.info(f'adding new connection {self}')
         RealtimeWebSocket.connections.add(self)
 
     def on_close(self):
-        print('closing connection')
+        logger.info('closing connection')
         RealtimeWebSocket.connections.remove(self)
 
     @staticmethod
@@ -90,6 +94,6 @@ class RealtimeWebSocket(tornado.websocket.WebSocketHandler):
             try:
                 dct = dct[key]
             except KeyError as e:
-                print(f'cannot get {e}')
+                logger.warning(f'cannot get {e}')
                 return default
         return dct

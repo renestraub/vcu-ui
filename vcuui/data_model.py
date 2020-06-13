@@ -1,10 +1,13 @@
-import time
+import logging
 import threading
-from ping3 import ping
+import time
 
-from vcuui.sysinfo import SysInfo
-from vcuui.mm import MM
+from ping3 import ping
 from vcuui.led import LED_BiColor
+from vcuui.mm import MM
+from vcuui.sysinfo import SysInfo
+
+logger = logging.getLogger('vcu-ui')
 
 
 class Model(object):
@@ -49,8 +52,8 @@ class Model(object):
         Safe to be called from any thread
         """
 
-        # print(f'get data from {origin}')
-        # print(f'values {value}')
+        # logger.debug(f'get data from {origin}')
+        # logger.debug(f'values {value}')
         with self.lock:
             self.data[origin] = value
 
@@ -80,8 +83,6 @@ class ModelWorker(threading.Thread):
 
         cnt = 0
         while True:
-            # print('worker')
-            # if cnt % 5 == 0:
             self._sysinfo()
 
             if cnt % 4 == 2:
@@ -157,7 +158,6 @@ class ModelWorker(threading.Thread):
                     ip = b.ip()
                     info['bearer-ip'] = ip
 
-        # print(f'modem data {info}')
         self.model.publish('modem', info)
 
 
@@ -182,19 +182,18 @@ class GsmWorker(threading.Thread):
         self.start()
 
     def run(self):
-        print("running gsm thread")
+        logger.info("running gsm thread")
         self.state = 'init'
         self.counter = 0
         link_data = dict()
 
         while True:
             info = self.model.get('modem')
-            # print(info)
             if self.state == 'init':
                 # check if we have a valid bearer
                 try:
                     if info and 'bearer-ip' in info:
-                        print('bearer found')
+                        logger.info('bearer found')
                         self.state = 'connected'
                 except KeyError:
                     pass
@@ -202,7 +201,7 @@ class GsmWorker(threading.Thread):
             elif self.state == 'connected':
                 try:
                     if info and 'bearer-ip' not in info:
-                        print('lost IP connection')
+                        logger.warning('lost IP connection')
 
                         link_data['delay'] = 0.0
                         self.model.publish('link', link_data)
@@ -219,8 +218,8 @@ class GsmWorker(threading.Thread):
                                 self.model.publish('link', link_data)
 
                             except OSError as e:
-                                print('Captured ping error')
-                                print(e)
+                                logger.warning('Captured ping error')
+                                logger.warning(e)
 
                                 link_data['delay'] = 0.0
                                 self.model.publish('link', link_data)

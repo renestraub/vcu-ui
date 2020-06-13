@@ -4,17 +4,19 @@ import threading
 import time
 
 from ubxlib.server import GnssUBlox
+from ubxlib.ubx_cfg_cfg import UbxCfgCfgAction
 from ubxlib.ubx_cfg_esfalg import UbxCfgEsfAlg, UbxCfgEsfAlgPoll
 from ubxlib.ubx_cfg_nav5 import UbxCfgNav5, UbxCfgNav5Poll
 from ubxlib.ubx_cfg_nmea import UbxCfgNmea, UbxCfgNmeaPoll
 from ubxlib.ubx_cfg_prt import UbxCfgPrtPoll, UbxCfgPrtUart
 from ubxlib.ubx_cfg_rst import UbxCfgRstAction
-from ubxlib.ubx_cfg_cfg import UbxCfgCfgAction
 from ubxlib.ubx_esf_alg import UbxEsfAlg, UbxEsfAlgPoll, UbxEsfResetAlgAction
 from ubxlib.ubx_esf_status import UbxEsfStatus, UbxEsfStatusPoll
-from ubxlib.ubx_upd_sos import UbxUpdSosAction
 from ubxlib.ubx_mon_ver import UbxMonVer, UbxMonVerPoll
+from ubxlib.ubx_upd_sos import UbxUpdSosAction
 from vcuui.gpsd import Gpsd
+
+logger = logging.getLogger('vcu-ui')
 
 
 class Gnss(object):
@@ -23,11 +25,6 @@ class Gnss(object):
 
     def __init__(self, model):
         super().__init__()
-
-        FORMAT = '%(asctime)-15s %(levelname)-8s %(message)s'
-        logging.basicConfig(format=FORMAT)
-        logger = logging.getLogger('gnss_tool')
-        logger.setLevel(logging.INFO)
 
         assert Gnss.instance is None
         Gnss.instance = self
@@ -134,7 +131,7 @@ class Gnss(object):
         return f'{ver}.{rev}'
 
     def cold_start(self):
-        print('Executing GNSS cold start')
+        logger.debug('executing GNSS cold start')
 
         msg = UbxCfgRstAction()
         msg.cold_start()
@@ -150,7 +147,7 @@ class Gnss(object):
     Config Save / Reset
     """
     def save_config(self):
-        print('Saving GNSS config')
+        logger.debug('saving GNSS config')
 
         msg = UbxCfgCfgAction()
         msg.f.saveMask = UbxCfgCfgAction.MASK_NavConf     # To save CFG-NAV-NMEA
@@ -159,7 +156,7 @@ class Gnss(object):
         return 'Success'
 
     def reset_config(self):
-        print('Resetting GNSS config')
+        logger.debug('resetting GNSS config')
 
         msg = UbxCfgCfgAction()
         msg.f.clearMask = UbxCfgCfgAction.MASK_NavConf
@@ -174,9 +171,9 @@ class Gnss(object):
     SOS - Save on Shutdown
     """
     def save_state(self):
-        print('Saving GNSS state (save on shutdown)')
+        logger.debug('saving GNSS state (save on shutdown)')
 
-        print('Stopping receiver')
+        logger.debug('stopping receiver')
         msg = UbxCfgRstAction()
         msg.stop()
         msg.pack()
@@ -185,12 +182,12 @@ class Gnss(object):
 
         time.sleep(0.1)
 
-        print('Saving')
+        logger.debug('saving')
         msg = UbxUpdSosAction()
         msg.f.cmd = UbxUpdSosAction.SAVE
         self.ubx.set(msg)
 
-        print('Restarting')
+        logger.debug('restarting')
         msg = UbxCfgRstAction()
         msg.start()
         msg.pack()
@@ -200,7 +197,7 @@ class Gnss(object):
         return 'Success'
 
     def clear_state(self):
-        print('Clearing GNSS state (save on shutdown)')
+        logger.debug('clearing GNSS state (save on shutdown)')
 
         msg = UbxUpdSosAction()
         msg.f.cmd = UbxUpdSosAction.CLEAR
@@ -219,20 +216,20 @@ class Gnss(object):
             return -1
 
     def set_dynamic_model(self, dyn_model):
-        print(f'Requesting dynamic model {dyn_model}')
+        logger.debug(f'requesting dynamic model {dyn_model}')
         assert(0 <= dyn_model <= 7)
 
         res = self._cfg_nav5(force=True)
         if res:
-            print(f'Current dynamic model {res.f.dynModel}')
+            logger.debug(f'current dynamic model {res.f.dynModel}')
             if dyn_model != res.f.dynModel:
-                print('  Changing')
+                logger.debug('  changing')
                 res.f.dynModel = dyn_model
                 self.ubx.set(res)
                 # TODO: Move text stuff out of this module
                 res = f'Dynamic model set to {dyn_model}'
             else:
-                print('  Ignoring')
+                logger.debug('  ignoring')
                 res = 'Dynamic model left as is'
         else:
             res = 'Failed: GNSS not accesible.'
@@ -250,13 +247,13 @@ class Gnss(object):
             return -1
 
     def set_auto_align(self, align_mode):
-        print(f'Requesting alignment mode {align_mode}')
+        logger.debug(f'requesting alignment mode {align_mode}')
         res = self._cfg_esfalg(force=True)
         if res:
             current = bool(res.f.bitfield & UbxCfgEsfAlg.BITFIELD_doAutoMntAlg)
-            print(f'Current alignment mode {current}')
+            logger.debug(f'current alignment mode {current}')
             if align_mode != (current == 1):
-                print('  Changing')
+                logger.debug('  changing')
                 if align_mode:
                     res.f.bitfield |= UbxCfgEsfAlg.BITFIELD_doAutoMntAlg
                 else:
@@ -266,7 +263,7 @@ class Gnss(object):
                 # TODO: Move text stuff out of this module
                 res = f'IMU automatic alignment set to {align_mode}'
             else:
-                print('  Ignoring')
+                logger.debug('  ignoring')
                 res = 'IMU automatic alignment left as is'
         else:
             res = 'Failed: GNSS not accesible.'
@@ -290,13 +287,13 @@ class Gnss(object):
         return data
 
     def set_imu_cfg_angles(self, angles):
-        print(f'Requesting angles {angles}')
+        logger.debug(f'requesting angles {angles}')
         res = self._cfg_esfalg(force=True)
         if res:
-            # print(f'Current alignment mode {current}')
+            # TODO: Add check for change
             # if align_mode != (current == 1):
             if True:
-                print('  Changing')
+                logger.debug('  changing')
 
                 res.f.roll = angles['roll']
                 res.f.pitch = angles['pitch']
@@ -305,7 +302,7 @@ class Gnss(object):
                 # TODO: Move text stuff out of this module
                 res = f'IMU angles set to {angles}'
             else:
-                print('  Ignoring')
+                logger.debug('  ignoring')
                 res = 'IMU angles left as is'
         else:
             res = 'Failed: GNSS not accesible.'
@@ -365,12 +362,14 @@ class Gnss(object):
     """
     def _mon_ver(self):
         if not self.__msg_mon_ver:
+            logger.debug('rereading __msg_mon_ver')
             self.__msg_mon_ver = self.ubx.poll(UbxMonVerPoll())
 
         return self.__msg_mon_ver
 
     def _cfg_port(self):
         if not self.__msg_cfg_port:
+            logger.debug('rereading __msg_cfg_port')
             m = UbxCfgPrtPoll()
             m.f.PortId = UbxCfgPrtPoll.PORTID_Uart
             self.__msg_cfg_port = self.ubx.poll(m)
@@ -379,20 +378,21 @@ class Gnss(object):
 
     def _cfg_nav5(self, force=False):
         if force or not self.__msg_cfg_nav5:
-            # print('rereading __msg_cfg_nav5')
+            logger.debug('rereading __msg_cfg_nav5')
             self.__msg_cfg_nav5 = self.ubx.poll(UbxCfgNav5Poll())
 
         return self.__msg_cfg_nav5
 
     def _cfg_nmea(self):
         if not self.__msg_cfg_nmea:
+            logger.debug('rereading __msg_cfg_nmea')
             self.__msg_cfg_nmea = self.ubx.poll(UbxCfgNmeaPoll())
 
         return self.__msg_cfg_nmea
 
     def _cfg_esfalg(self, force=False):
         if force or not self.__msg_cfg_esfalg:
-            # print('rereading __msg_cfg_esfalg')
+            logger.debug('rereading __msg_cfg_esfalg')
             self.__msg_cfg_esfalg = self.ubx.poll(UbxCfgEsfAlgPoll())
 
         return self.__msg_cfg_esfalg
@@ -401,14 +401,11 @@ class Gnss(object):
         # TODO: Cache result, only reload if required (invalidate)
         msg = UbxEsfAlgPoll()
         res = self.ubx.poll(msg)
-        if res:
-            print(res)
         return res
 
     def _esf_status(self):
         # TODO: Cache result, only reload if required (invalidate)
         res = self.ubx.poll(UbxEsfStatusPoll())
-        # print(res)
         return res
 
     def _clear_cached_values(self):
@@ -417,7 +414,6 @@ class Gnss(object):
 
     @staticmethod
     def __extract(text, token):
-        # print(f'extract {text} {token}')
         p = re.compile(token + r': ([a-z]*)')
         res = p.findall(text)
         if res:
@@ -489,28 +485,25 @@ class GnssPositionWorker(threading.Thread):
         self.start()
 
     def run(self):
-        print('running gps thread')
+        logger.info('running gps thread')
         self.state = 'init'
 
         while True:
             if self.state != 'connected':
                 # try to connect to gpsd
                 try:
-                    print('trying to connect to gpsd')
-                    print('gps connected')
+                    logger.debug('trying to connect to gpsd')
+                    logger.debug('gps connected')
                     self.state = 'connected'
 
                 except ConnectionRefusedError:
-                    print('cannot connect to gpsd, is it running?')
+                    logger.warning('cannot connect to gpsd, is it running?')
                     time.sleep(2.0)
 
             elif self.state == 'connected':
                 try:
                     report = self.gps.next()
                     if report:
-                        # print('-------------------------')
-                        # print(report)
-
                         if report['class'] == 'SKY':
                             # Remember PDOP only, will be sent on next TPV message
                             if 'pdop' in report:
@@ -546,7 +539,6 @@ class GnssPositionWorker(threading.Thread):
                                 pos['speed'] = self.speed
                                 pos['pdop'] = self.pdop
 
-                                # print(f'gps data {pos}')
                                 self.model.publish('gnss-pos', pos)
 
                 except KeyError as e:
@@ -554,8 +546,8 @@ class GnssPositionWorker(threading.Thread):
                     # daemon is very unstable.
                     # Have to handle KeyErrors in order to keep system
                     # running.
-                    print('gps module KeyError')
-                    print(e)
+                    logger.warning('gps module KeyError')
+                    logger.warning(e)
 
             else:
                 time.sleep(0.8)

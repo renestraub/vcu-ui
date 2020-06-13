@@ -9,6 +9,7 @@ Token=xyz
 """
 import configparser
 import json
+import logging
 import math
 import threading
 import time
@@ -19,6 +20,8 @@ import pycurl
 import vcuui.data_model
 from vcuui._version import __version__ as ui_version
 
+logger = logging.getLogger('vcu-ui')
+
 
 class Things(threading.Thread):
     # Singleton accessor
@@ -26,9 +29,13 @@ class Things(threading.Thread):
 
     TELEMETRY_UPLOAD_PERIOD = 30    # Upload every 30 seconds
     ATTRIBUTE_UPLOAD_PERIOD = 120   # Upload every 120 seconds
-    MAX_QUEUE_SIZE = 300            # New entries are dropped when this size is reached
-                                    # Note: entries can have more than one data element
-    GNSS_UPDATE_DISTANCE = 1.5      # Suppress GNSS update if movement less than this distance in meter
+
+    # New entries are dropped when this size is reached
+    # Note: entries can have more than one data element
+    MAX_QUEUE_SIZE = 300
+
+    # Suppress GNSS update if movement less than this distance in meter
+    GNSS_UPDATE_DISTANCE = 1.5
 
     def __init__(self, model):
         super().__init__()
@@ -47,8 +54,8 @@ class Things(threading.Thread):
             self.api_token = self.config.get('API', 'Token')
             self.has_server = True
         except configparser.Error as e:
-            print('ERROR: Cannot get Thingsboard config')
-            print(e)
+            logger.warning('ERROR: Cannot get Thingsboard config')
+            logger.info(e)
             self.has_server = False
 
         self._data_queue = list()
@@ -65,6 +72,7 @@ class Things(threading.Thread):
         if enable:
             if self.has_server:
                 if not self.active:
+                    logger.info("service starting")
                     self.active = True
                     res = 'Started cloud logger'
                 else:
@@ -72,9 +80,8 @@ class Things(threading.Thread):
             else:
                 res = 'Cannot start. No configuration present'
         else:
-            print("stopping")
+            logger.info("service stopping")
             if self.active:
-                print("stopping")
                 self.active = False
                 res = 'Stopped cloud logger'
             else:
@@ -88,23 +95,17 @@ class Things(threading.Thread):
         cnt = 0
 
         while True:
-            # print("things loop")
             if self.active:
-                # print("active")
                 next_state = self.state
-                # print("getting data")
                 md = self.model.get_all()
-                # print(f"have data {self.state}")
 
                 if self.state != 'connected':
                     # Check if we are connected
                     if 'modem' in md:
-                        # print("modem present")
                         m = md['modem']
                         if 'modem-id' in m:
-                            # print("have modem-id")
                             if 'bearer-id' in m:
-                                # print("have bearer-id")
+                                # logger.info('link ready, changing to connected state')
                                 cnt = 0
                                 next_state = 'connected'
 
@@ -133,7 +134,7 @@ class Things(threading.Thread):
 
                 # state change
                 if self.state != next_state:
-                    print(f'Changed state from {self.state} to {next_state}')
+                    logger.info(f'changed state from {self.state} to {next_state}')
                     self.state = next_state
 
                 cnt += 1
@@ -163,7 +164,6 @@ class Things(threading.Thread):
                 'voltage-in': info['v_in'],
                 'mem-free': info['mem'][1]
             }
-            # print(data)
             self._queue_timed(data)
 
         if 'link' in md:
@@ -189,14 +189,12 @@ class Things(threading.Thread):
 
     def _gnss(self, md, force):
         if 'gnss-pos' in md:
-            # print("have gnss data")
             pos = md['gnss-pos']
             if 'lon' in pos and 'lat' in pos:
                 lon_rad = math.radians(pos['lon'])
                 lat_rad = math.radians(pos['lat'])
 
                 d = self._distance(lon_rad, lat_rad)
-                # print(f'distance {d}')
                 if force or d > self.GNSS_UPDATE_DISTANCE:
                     self._queue_timed(pos)
 
@@ -207,9 +205,6 @@ class Things(threading.Thread):
         R = 6371.0e3
         d_lat_rad = self.lat_last_rad - lat_rad
         d_lon_rad = self.lon_last_rad - lon_rad
-        # print(d_lat_rad, d_lon_rad)
-        # print(math.sin(d_lat_rad / 2) * math.sin(d_lat_rad / 2))
-        # print(math.sin(d_lon_rad / 2) * math.sin(d_lon_rad / 2))
 
         a = math.sin(d_lat_rad / 2) * math.sin(d_lat_rad / 2) + \
             math.cos(lat_rad) * math.cos(self.lat_last_rad) * \
@@ -227,14 +222,13 @@ class Things(threading.Thread):
         data_set = {"time": now_ms, "data": data}
 
         num_entries = len(self._data_queue)
-        # print(f'num q entries {num_entries}')
-        # print(data)
+        # logger.debug(f'num q entries {num_entries}')
         if num_entries > self.MAX_QUEUE_SIZE:
-            # print('queue overflow, dropping old elements')
+            logger.info('queue overflow, dropping old elements')
             self._data_queue = self._data_queue[-self.MAX_QUEUE_SIZE:]
 
         self._data_queue.append(data_set)
-        # print(len(self._data_queue2))
+        # logger.debug(len(self._data_queue2))
 
     def _upload_telemetry(self):
         # Send queued data
@@ -258,7 +252,8 @@ class Things(threading.Thread):
         if res:
             self._data_queue = list()
         else:
-            print('Could not upload telemetry data, keeping queue')
+            logger.warning('could not upload telemetry data, keeping in queue')
+            logger.warning(f'{len(self._data_queue)} entries in queue')
 
     def _send_attribute(self, payload):
         self._post_data('attributes', payload)
@@ -276,11 +271,8 @@ class Things(threading.Thread):
         # c.setopt(c.VERBOSE, True)
 
         body_as_json_string = json.dumps(payload)  # dict to json
-        # print(body_as_json_string)
         body_as_json_bytes = body_as_json_string.encode()
-        # print(body_as_json_bytes)
         body_as_file_object = BytesIO(body_as_json_bytes)
-        # print(body_as_file_object)
 
         # prepare and send. See also: pycurl.READFUNCTION to pass function instead
         c.setopt(pycurl.READDATA, body_as_file_object)
@@ -293,8 +285,7 @@ class Things(threading.Thread):
 
             c.perform()
             bytes_sent = len(body_as_json_bytes)
-
-            # print(f'Sent {bytes_sent} to {self.api_server}')
+            logger.debug(f'sent {bytes_sent} to {self.api_server}')
 
             info['state'] = 'sent'
             info['bytes'] = bytes_sent
@@ -303,8 +294,8 @@ class Things(threading.Thread):
             res = True
 
         except pycurl.error as e:
-            print("ERROR uploading data to Thingsboard")
-            print(e)
+            logger.warning("failed uploading data to Thingsboard")
+            logger.warning(e)
         finally:
             c.close()
 

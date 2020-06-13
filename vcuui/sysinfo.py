@@ -45,7 +45,6 @@ class SysInfo():
         with open('/proc/loadavg') as f:
             res = f.readline()
             info = res.split()
-            # print(info)
             return info[0:3]
 
     def date(self):

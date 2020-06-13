@@ -1,11 +1,15 @@
 """
 Main Page (Single Page)
 """
+import logging
+
 import tornado.web
 
 from vcuui._version import __version__ as version
-from vcuui.tools import secs_to_hhmm
 from vcuui.data_model import Model
+from vcuui.tools import secs_to_hhmm
+
+logger = logging.getLogger('vcu-ui')
 
 
 class TE(object):
@@ -40,6 +44,8 @@ class MainHandler(tornado.web.RequestHandler):
         self.render_page()
 
     def render_page(self, message=None, console=None):
+        logger.info('rendering page')
+
         try:
             tes = list()
             data = dict()
@@ -170,7 +176,7 @@ class MainHandler(tornado.web.RequestHandler):
                         cloud_log=cloud_log_state)
 
         except KeyError as e:
-            print(e)
+            logger.warning(f'lookup error {e}')
             self.render('main.html',
                         title='VCU Pro',
                         message=f'Data lookup error: {e} not found',

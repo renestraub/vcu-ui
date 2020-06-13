@@ -1,11 +1,15 @@
 """
 GNSS Page
 """
+import logging
+
 import tornado.web
 
 from vcuui._version import __version__ as version
 from vcuui.data_model import Model
 from vcuui.gnss_model import Gnss
+
+logger = logging.getLogger('vcu-ui')
 
 
 class TE(object):
@@ -40,6 +44,8 @@ class GnssHandler(tornado.web.RequestHandler):
         self.build_gnss()
 
     def build_gnss(self):
+        logger.info('rendering page')
+
         try:
             tes = list()
             data = dict()
@@ -55,9 +61,7 @@ class GnssHandler(tornado.web.RequestHandler):
 
             # GNSS Version
 
-            print("1")
             ver = gnss.version()
-            print(ver)
             tes.append(TE('Version', ''))
             tes.append(TE('HW', ver['hwVersion']))
             tes.append(TE('SW', ver['swVersion']))
@@ -67,7 +71,7 @@ class GnssHandler(tornado.web.RequestHandler):
 
             # GNSS Status (live)
             if 'gnss-pos' in md:
-                print("2")
+                # logger.debug("build_gnss 2")
                 tes.append(TE('Status', ''))
 
                 pos = md['gnss-pos']
@@ -79,35 +83,36 @@ class GnssHandler(tornado.web.RequestHandler):
                 # tes.append(TE('', ''))
 
             # Config
-            print("3")
+            # logger.debug("build_gnss 3")
             data['dyn_model'] = str(gnss.dynamic_model())
-            print("4")
+
+            # logger.debug("build_gnss 4")
             data['nmea_protocol'] = gnss.nmea_protocol()
 
-            print("5")
+            # logger.debug("build_gnss 5")
             uart_cfg = gnss.uart_settings()
             data['uart_settings'] = f'{uart_cfg["bitrate"]} bps, {uart_cfg["mode"]}'
 
-            print("6")
+            # logger.debug("build_gnss 6")
             align = gnss.auto_align()
             data['imu_auto_align'] = 'On' if align else 'Off'
 
-            print("7")
+            logger.debug("build_gnss 7")
             align_state = gnss.auto_align_state()
             data['imu_auto_align_state'] = align_state
 
-            print("8")
+            logger.debug("build_gnss 8")
             cfg_angles = gnss.imu_cfg_angles()
             data['imu_cfg_roll'] = str(round(cfg_angles['roll']))
             data['imu_cfg_pitch'] = str(round(cfg_angles['pitch']))
             data['imu_cfg_yaw'] = str(round(cfg_angles['yaw']))
 
-            print("9")
+            # logger.debug("build_gnss 9")
             roll, pitch, yaw = gnss.auto_align_angles()
             angles_str = f'roll: {roll}°, pitch: {pitch}°, yaw: {yaw}°'
             data['imu_angles'] = angles_str
 
-            print("10")
+            # logger.debug("build_gnss 10")
             esf_status = gnss.esf_status()
             text = nice([('fusion', 'Fusion', ''),
                         ('ins', 'INS', ''),
@@ -115,7 +120,7 @@ class GnssHandler(tornado.web.RequestHandler):
                         ('imu-align', 'IMU Alignment', '')],
                         esf_status)
             data['esf_status'] = text
-            print(data)
+            logger.debug(data)
 
             self.render('gnss.html',
                         title=f'VCU Pro ({serial})',
@@ -125,7 +130,6 @@ class GnssHandler(tornado.web.RequestHandler):
                         version=version)
 
         except KeyError as e:
-            print(e)
             self.render('gnss.html',
                         title='VCU Pro',
                         message=f'Data lookup error: {e} not found',

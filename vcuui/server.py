@@ -24,12 +24,19 @@ from vcuui.things import Things
 from vcuui.tools import ping
 
 
+FORMAT = '%(asctime)-15s %(levelname)-8s %(module)-12s %(message)s'
+logging.basicConfig(format=FORMAT)
+logger = logging.getLogger('vcu-ui')
+logger.setLevel(logging.INFO)
+# logger.setLevel(logging.DEBUG)
+
+
 # Init section
-print(f'Welcome to VCU-UI v{version}')
+logger.info(f'welcome to VCU-UI v{version}')
 
 path = os.path.abspath(__file__)
 module_path = os.path.dirname(path)
-print(f'Running server from {module_path}')
+logger.info(f'running server from {module_path}')
 
 
 class LocationHandler(tornado.web.RequestHandler):
@@ -44,6 +51,7 @@ class LocationHandler(tornado.web.RequestHandler):
 
 class SignalHandler(tornado.web.RequestHandler):
     def get(self):
+        logger.info('enabling modem signal quality measurements')
         m = MM.modem()
         if m:
             m.setup_signal_query()
@@ -54,6 +62,7 @@ class SignalHandler(tornado.web.RequestHandler):
 
 class ModemResetHandler(tornado.web.RequestHandler):
     def get(self):
+        logger.warning('resetting modem')
         m = MM.modem()
         if m:
             m.reset()
@@ -63,14 +72,15 @@ class ModemResetHandler(tornado.web.RequestHandler):
 
 class SystemRebootHandler(tornado.web.RequestHandler):
     def get(self):
+        logger.warning('rebooting system')
         self.write('Initiated system reboot')
         os.system("reboot")
 
 
 class CloudHandler(tornado.web.RequestHandler):
     def get(self):
+        logger.warning('starting/stopping cloud logging service')
         enable = self.get_query_argument('enable', False)
-        print(f'new state {enable}')
 
         things = Things.instance
         res = things.enable(enable == 'True')
@@ -117,13 +127,13 @@ class GnssConfigHandler(tornado.web.RequestHandler):
         # TODO: Argument check (1st level)
 
         dyn_model = self.get_query_argument('dyn_model', 0)
-        print(f'dynamic model {dyn_model}')
+        logger.debug(f'dynamic model {dyn_model}')
 
         auto_align = self.get_query_argument('auto_align', 0)
-        print(f'auto_align {auto_align}')
+        logger.debug(f'auto_align {auto_align}')
 
         imu_cfg_angles = self.get_query_argument('imu_cfg_angles')
-        print(f'imu_cfg_angles {imu_cfg_angles}')
+        logger.debug(f'imu_cfg_angles {imu_cfg_angles}')
 
         angles_as_int = imu_cfg_angles.split(',')
         angles = {
@@ -149,7 +159,7 @@ class GsmCellLocateHandler(tornado.web.RequestHandler):
         lac = self.get_query_argument('lac', 0)
         cid = self.get_query_argument('cid', 0)
 
-        print(f'cellinfo: mcc {mcc}, mnc {mnc}, lac {lac}, cid {cid}')
+        logger.debug(f'cellinfo: mcc {mcc}, mnc {mnc}, lac {lac}, cid {cid}')
 
         # https://opencellid.org/ajax/searchCell.php?mcc=228&mnc=1&lac=3434&cell_id=17538051
         args = {'mcc': mcc, 'mnc': mnc, 'lac': lac, 'cell_id': cid}
@@ -167,7 +177,6 @@ class GsmCellLocateHandler(tornado.web.RequestHandler):
                              params=args)
             d = json.loads(r.text)
             if 'display_name' in d:
-                print(d['display_name'])
                 location = d['display_name']
 
                 result += '</br>'
@@ -235,7 +244,7 @@ def run_server(port=80):
     try:
         app.listen(port)
     except OSError:
-        print(f'ERROR: Server port {port} in use. Is another webserver running?')
+        logger.warning(f'server port {port} in use. Is another webserver running?')
 
     tornado.ioloop.IOLoop.current().start()
 
