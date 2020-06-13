@@ -17,6 +17,7 @@ from io import BytesIO
 import pycurl
 
 import vcuui.data_model
+from vcuui._version import __version__ as ui_version
 
 
 class Things(threading.Thread):
@@ -140,13 +141,14 @@ class Things(threading.Thread):
             time.sleep(1.0)
 
     def _attributes(self, md):
-        version = md['sys-version']['sys']
+        os_version = md['sys-version']['sys']
         serial = md['sys-version']['serial']
         hw_ver = md['sys-version']['hw']
         uptime = md['sys-datetime']['uptime']
         attrs = {
             "serial": serial,
-            "version": version,
+            "os-version": os_version,
+            "ui-version": ui_version,
             "hardware": hw_ver,
             "uptime": uptime
         }
@@ -169,9 +171,20 @@ class Things(threading.Thread):
             if 'delay' in info:
                 delay_in_ms = info['delay'] * 1000.0
                 data = {
-                    # TODO: rename -> wwan-delay ?
-                    'delay': f'{delay_in_ms:.0f}'
+                    'wwan-delay': f'{delay_in_ms:.0f}'
                 }
+                self._queue_timed(data)
+
+        if 'modem' in md:
+            info = md['modem']
+            data = dict()
+
+            if 'bearer-id' in info:
+                id = info['bearer-id']
+                data['bearer-id'] = id
+                if 'bearer-uptime' in info:
+                    uptime = info['bearer-uptime']
+                    data['bearer-uptime'] = uptime
                 self._queue_timed(data)
 
     def _gnss(self, md, force):
