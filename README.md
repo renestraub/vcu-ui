@@ -111,9 +111,11 @@ systemctl start vcu-ui      # Start service right now
 
 ### Revision History
 
-#### v0.4.1 (20200606)
+#### v0.4.2 (20200612)
 
 - Updated this documentation
+- Report bearer info to Thingsboard
+- Report UI version to Thingsboard
 - Restart ping process after mobile link loss
 - Queue telemetry data on upload error to retry later
 - GNSS configuration save/reset added
