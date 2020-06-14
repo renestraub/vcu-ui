@@ -3,6 +3,7 @@ import re
 import threading
 import time
 
+# TODO: Factor out NEO-M8 Code to dedicated 'driver' class
 from ubxlib.server import GnssUBlox
 from ubxlib.ubx_cfg_cfg import UbxCfgCfgAction
 from ubxlib.ubx_cfg_esfalg import UbxCfgEsfAlg, UbxCfgEsfAlgPoll
@@ -17,7 +18,6 @@ from ubxlib.ubx_upd_sos import UbxUpdSosAction
 from vcuui.gpsd import Gpsd
 
 logger = logging.getLogger('vcu-ui')
-
 
 class Gnss(object):
     # Singleton accessor
@@ -88,10 +88,10 @@ class Gnss(object):
             proto = ver.f.extension_2.split('=')[1]
 
             data = {
-                'swVersion': ver.f.swVersion,
-                'hwVersion': ver.f.hwVersion,
-                'fwVersion': fw,
-                'protocol': proto
+                'swVersion': Gnss.sanitize(ver.f.swVersion),
+                'hwVersion': Gnss.sanitize(ver.f.hwVersion),
+                'fwVersion': Gnss.sanitize(fw),
+                'protocol': Gnss.sanitize(proto)
             }
         else:
             data = {
@@ -100,8 +100,11 @@ class Gnss(object):
                 'fwVersion': 'n/a',
                 'protocol': 'n/a'
             }
-
         return data
+
+    @staticmethod
+    def sanitize(string_with_zeroes):
+        return string_with_zeroes.rstrip('\0x00')
 
     def uart_settings(self):
         cfg = self._cfg_port()
@@ -435,6 +438,10 @@ class GnssStatusWorker(threading.Thread):
         self.start()
 
     def run(self):
+        versions = self.gnss.version()
+        logger.info(f'versions: {versions}')
+        self.model.publish('gnss', versions)
+
         self._gnss()
 
         cnt = 0
@@ -456,15 +463,8 @@ class GnssStatusWorker(threading.Thread):
 
 
 class GnssPositionWorker(threading.Thread):
-    # Singleton accessor
-    # TODO: required?
-    instance = None
-
     def __init__(self, model):
         super().__init__()
-
-        assert GnssPositionWorker.instance is None
-        GnssPositionWorker.instance = self
 
         self.model = model
 

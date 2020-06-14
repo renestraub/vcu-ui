@@ -153,6 +153,11 @@ class Things(threading.Thread):
             "hardware": hw_ver,
             "uptime": uptime
         }
+
+        if 'gnss' in md:
+            info = md['gnss']
+            attrs['gnss-fw-version'] = info['fwVersion']
+
         self._send_attribute(attrs)
 
     def _info(self, md):
