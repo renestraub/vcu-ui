@@ -15,6 +15,7 @@ import tornado.websocket
 
 from vcuui._version import __version__ as version
 from vcuui.data_model import Model
+from vcuui.wwan_model import Wwan
 from vcuui.gnss_model import Gnss
 from vcuui.mm import MM
 from vcuui.pagegnss import GnssHandler
@@ -199,6 +200,9 @@ class NotImplementedHandler(tornado.web.RequestHandler):
 def run_server(port=80):
     model = Model()
     model.setup()
+
+    wwan = Wwan(model)
+    wwan.setup()
 
     gnss = Gnss(model)
     gnss.setup()

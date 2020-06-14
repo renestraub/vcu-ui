@@ -2,7 +2,6 @@ import logging
 import threading
 import time
 
-from ping3 import ping
 from vcuui.led import LED_BiColor
 from vcuui.mm import MM
 from vcuui.sysinfo import SysInfo
@@ -21,7 +20,6 @@ class Model(object):
         Model.instance = self
 
         self.worker = ModelWorker(self)
-        self.gsm_connection = GsmWorker(self)
         self.lock = threading.Lock()
         self.data = dict()
 
@@ -34,7 +32,6 @@ class Model(object):
         self.led_ind.green()
 
         self.worker.setup()
-        self.gsm_connection.setup()
 
     def get_all(self):
         with self.lock:
@@ -51,7 +48,6 @@ class Model(object):
 
         Safe to be called from any thread
         """
-
         # logger.debug(f'get data from {origin}')
         # logger.debug(f'values {value}')
         with self.lock:
@@ -159,73 +155,3 @@ class ModelWorker(threading.Thread):
                     info['bearer-ip'] = ip
 
         self.model.publish('modem', info)
-
-
-class GsmWorker(threading.Thread):
-    # Singleton accessor
-    # TODO: required?
-    instance = None
-
-    def __init__(self, model):
-        super().__init__()
-
-        assert GsmWorker.instance is None
-        GsmWorker.instance = self
-
-        self.model = model
-        self.state = 'init'
-        self.counter = 0
-
-    def setup(self):
-        self.daemon = True
-        self.name = 'gsm-worker'
-        self.start()
-
-    def run(self):
-        logger.info("running gsm thread")
-        self.state = 'init'
-        self.counter = 0
-        link_data = dict()
-
-        while True:
-            info = self.model.get('modem')
-            if self.state == 'init':
-                # check if we have a valid bearer
-                try:
-                    if info and 'bearer-ip' in info:
-                        logger.info('bearer found')
-                        self.state = 'connected'
-                except KeyError:
-                    pass
-
-            elif self.state == 'connected':
-                try:
-                    if info and 'bearer-ip' not in info:
-                        logger.warning('lost IP connection')
-
-                        link_data['delay'] = 0.0
-                        self.model.publish('link', link_data)
-                        self.state = 'init'
-                    else:
-                        if self.counter % 5 == 2:
-                            try:
-                                delay = ping('1.1.1.1', timeout=1.0)
-                                if delay:
-                                    link_data['delay'] = round(float(delay), 3)
-                                else:
-                                    link_data['delay'] = 0.0
-
-                                self.model.publish('link', link_data)
-
-                            except OSError as e:
-                                logger.warning('Captured ping error')
-                                logger.warning(e)
-
-                                link_data['delay'] = 0.0
-                                self.model.publish('link', link_data)
-                                self.state = 'init'
-                except KeyError:
-                    pass
-
-            self.counter += 1
-            time.sleep(1.0)
