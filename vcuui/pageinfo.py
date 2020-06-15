@@ -123,13 +123,13 @@ class MainHandler(tornado.web.RequestHandler):
                 if access_tech == 'lte':
                     sig = mi['signal-lte']
                     text = nice([('rsrp', 'RSRP', 'dBm'),
-                                ('rsrq', 'RSRQ', 'dBm')],
+                                ('rsrq', 'RSRQ', 'dB')],
                                 sig, True)
                     tes.append(TE('Signal LTE', text))
                 elif access_tech == 'umts':
                     sig = mi['signal-umts']
                     text = nice([('rscp', 'RSRP', 'dBm'),
-                                ('ecio', 'ECIO', 'dBm')],
+                                ('ecio', 'ECIO', 'dB')],
                                 sig, True)
                     tes.append(TE('Signal UMTS', text))
 
