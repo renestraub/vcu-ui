@@ -114,6 +114,7 @@ systemctl start vcu-ui      # Start service right now
 #### v0.4.2 (20200612)
 
 - Updated this documentation
+- Report RSRQ, ECIO as dB (not dBm)
 - Report bearer info to Thingsboard
 - Report UI version to Thingsboard
 - Restart ping process after mobile link loss
