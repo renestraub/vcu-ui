@@ -39,6 +39,22 @@ def nice(items, data, linebreak=False):
     return res
 
 
+class Data():
+    def __init__(self, data):
+        super().__init__()
+        self._data = data
+
+    def get(self, default, *keys):
+        dct = self._data
+        for key in keys:
+            try:
+                dct = dct[key]
+            except KeyError as e:
+                logger.warning(f'cannot get {e}')
+                return default
+        return dct
+
+
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.render_page()
@@ -53,10 +69,10 @@ class MainHandler(tornado.web.RequestHandler):
             # General System Information
             m = Model.instance
             md = m.get_all()
+            d = Data(md)
 
             cloud_log_state = md['cloud']
-
-            serial = md['sys-version']['serial']
+            serial = d.get('N/A', 'sys-version', 'serial')
 
             tes.append(TE('System', ''))
             text = nice([('sys', 'System', ''),
@@ -65,19 +81,19 @@ class MainHandler(tornado.web.RequestHandler):
                         md['sys-version'], True)
             tes.append(TE('Version', text))
 
-            dt = md['sys-datetime']['date']
+            dt = d.get('N/A', 'sys-datetime', 'date')
             tes.append(TE('Date', dt))
 
-            ut = md['sys-datetime']['uptime']
+            ut = d.get('N/A', 'sys-datetime', 'uptime')
             tes.append(TE('Uptime', ut))
 
-            total, free = md['sys-misc']['mem']
+            total, free = d.get((0, 0), 'sys-misc', 'mem')
             tes.append(TE('Memory', f'Total: {total} kB<br>Free: {free} kB'))
 
-            a, b, c = md['sys-misc']['load']
+            a, b, c = d.get((0, 0, 0), 'sys-misc', 'load')
             tes.append(TE('Load', f'{a}, {b}, {c}'))
 
-            temp = md['sys-misc']['temp']
+            temp = d.get(0, 'sys-misc', 'temp')
             tes.append(TE('Temperature', f'{temp:.0f} °C'))
 
             v_in = md['sys-misc']['v_in']
@@ -88,8 +104,8 @@ class MainHandler(tornado.web.RequestHandler):
             tes.append(TE('', ''))
             tes.append(TE('Network', ''))
 
-            rx, tx = md['net-wwan0']['bytes']
-            if rx and tx:
+            rx, tx = d.get((-1, -1), 'net-wwan0', 'bytes')
+            if rx != -1:
                 rx = int(rx) / 1000000
                 tx = int(tx) / 1000000
                 tes.append(TE('wwan0', f'Rx: {rx:.1f} MB<br>Tx: {tx:.1f} MB'))
