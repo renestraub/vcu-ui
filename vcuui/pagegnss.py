@@ -107,6 +107,16 @@ class GnssHandler(tornado.web.RequestHandler):
             data['imu_cfg_pitch'] = str(round(cfg_angles['pitch']))
             data['imu_cfg_yaw'] = str(round(cfg_angles['yaw']))
 
+            vrp_ant = gnss.vrp_ant()
+            data['vrp_ant_x'] = str(vrp_ant['x'])
+            data['vrp_ant_y'] = str(vrp_ant['y'])
+            data['vrp_ant_z'] = str(vrp_ant['z'])
+
+            vrp_imu = gnss.vrp_imu()
+            data['vrp_imu_x'] = str(vrp_imu['x'])
+            data['vrp_imu_y'] = str(vrp_imu['y'])
+            data['vrp_imu_z'] = str(vrp_imu['z'])
+
             # logger.debug("build_gnss 9")
             roll, pitch, yaw = gnss.auto_align_angles()
             angles_str = f'roll: {roll}°, pitch: {pitch}°, yaw: {yaw}°'

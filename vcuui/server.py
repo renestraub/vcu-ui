@@ -88,6 +88,7 @@ class CloudHandler(tornado.web.RequestHandler):
         self.write(res)
 
 
+# TODO: Move to pagegnss.py
 class GnssSaveStateHandler(tornado.web.RequestHandler):
     def get(self):
         gnss = Gnss.instance
@@ -135,7 +136,6 @@ class GnssConfigHandler(tornado.web.RequestHandler):
 
         imu_cfg_angles = self.get_query_argument('imu_cfg_angles')
         logger.debug(f'imu_cfg_angles {imu_cfg_angles}')
-
         angles_as_int = imu_cfg_angles.split(',')
         angles = {
             'roll': int(float(angles_as_int[0]) * 100.0),
@@ -143,12 +143,32 @@ class GnssConfigHandler(tornado.web.RequestHandler):
             'yaw': int(float(angles_as_int[2]) * 100.0)
         }
 
+        vrp_imu_values = self.get_query_argument('vrp_imu')
+        logger.info(f'vrp_imu {vrp_imu_values}')
+        vrp_imu_in_m = vrp_imu_values.split(',')
+        vrp_imu = {
+            'x': int(vrp_imu_in_m[0]),
+            'y': int(vrp_imu_in_m[1]),
+            'z': int(vrp_imu_in_m[2])
+        }
+
+        vrp_ant_values = self.get_query_argument('vrp_ant')
+        logger.info(f'vrp_ant {vrp_ant_values}')
+        vrp_ant_in_m = vrp_ant_values.split(',')
+        vrp_ant = {
+            'x': int(vrp_ant_in_m[0]),
+            'y': int(vrp_ant_in_m[1]),
+            'z': int(vrp_ant_in_m[2])
+        }
+
         gnss = Gnss.instance
 
         res1 = gnss.set_dynamic_model(int(dyn_model))
         res2 = gnss.set_auto_align(auto_align == "On")
         res3 = gnss.set_imu_cfg_angles(angles)
-        res = res1 + '<br>' + res2 + '<br>' + res3
+        res4 = gnss.set_vrp_ant(vrp_ant)
+        res5 = gnss.set_vrp_imu(vrp_imu)
+        res = res1 + '<br>' + res2 + '<br>' + res3 + '<br>' + res4 + '<br>' + res5
 
         self.write(res)
 

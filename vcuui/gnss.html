@@ -106,23 +106,24 @@
                     </td>
                 </tr>
 
-<!--                 <tr>
-                    <td class="td_notyet">VRP-Antenna</td>
-                    <td>
-                        X: <input type="number" id="vrp-ant-x" class="input_vrp" min="-5.0" max="5.0" step="0.01">
-                        Y: <input type="number" id="vrp-ant-y" class="input_vrp" min="-5.0" max="5.0" step="0.01">
-                        Z: <input type="number" id="vrp-ant-z" class="input_vrp" min="-5.0" max="5.0" step="0.01">
-                    </td>
-                </tr>
                 <tr>
-                    <td class="td_notyet">VRP-IMU</td>
+                    <td>VRP-Antenna</td>
                     <td>
-                        X: <input type="number" id="vrp-imu-x" class="input_vrp" min="-5.0" max="5.0" step="0.01">
-                        Y: <input type="number" id="vrp-imu-y" class="input_vrp" min="-5.0" max="5.0" step="0.01">
-                        Z: <input type="number" id="vrp-imu-z" class="input_vrp" min="-5.0" max="5.0" step="0.01">
+                        X [-200..1000 cm]: <input type="number" id="vrp-ant-x" class="input_vrp" min="-200" max="1000" step="1">
+                        Y [-200..200 cm]: <input type="number" id="vrp-ant-y" class="input_vrp" min="-200" max="200" step="1">
+                        Z [-100..400 cm]: <input type="number" id="vrp-ant-z" class="input_vrp" min="-100" max="400" step="1">
                     </td>
                 </tr>
- -->
+
+                <tr>
+                    <td>VRP-IMU</td>
+                    <td>
+                        X [-200..1000 cm]: <input type="number" id="vrp-imu-x" class="input_vrp" min="-200" max="1000" step="1">
+                        Y [-200..200 cm]: <input type="number" id="vrp-imu-y" class="input_vrp" min="-200" max="200" step="1">
+                        Z [-100..400 cm]: <input type="number" id="vrp-imu-z" class="input_vrp" min="-100" max="400" step="1">
+                    </td>
+                </tr>
+
                 <tr>
                     <td colspan="2">
                         <button id="button_configure" class="button button_orange" type="button" onclick="do_gnss_config()">Configure</button>
@@ -175,6 +176,14 @@
         document.getElementById("imu_cfg_roll").value = "{{data['imu_cfg_roll']}}";
         document.getElementById("imu_cfg_pitch").value = "{{data['imu_cfg_pitch']}}";
         document.getElementById("imu_cfg_yaw").value = "{{data['imu_cfg_yaw']}}";
+
+        document.getElementById("vrp-ant-x").value = "{{data['vrp_ant_x']}}";
+        document.getElementById("vrp-ant-y").value = "{{data['vrp_ant_y']}}";
+        document.getElementById("vrp-ant-z").value = "{{data['vrp_ant_z']}}";
+
+        document.getElementById("vrp-imu-x").value = "{{data['vrp_imu_x']}}";
+        document.getElementById("vrp-imu-y").value = "{{data['vrp_imu_y']}}";
+        document.getElementById("vrp-imu-z").value = "{{data['vrp_imu_z']}}";
 
         var timer_close = null;
 
@@ -300,9 +309,21 @@
             // console.log(`imu angles are: ${imu_cfg_roll}, ${imu_cfg_pitch}, ${imu_cfg_yaw}`);
             var imu_angles = [imu_cfg_roll, imu_cfg_pitch, imu_cfg_yaw];
 
+            var vrp_imu_x = document.getElementById("vrp-imu-x").value;
+            var vrp_imu_y = document.getElementById("vrp-imu-y").value;
+            var vrp_imu_z = document.getElementById("vrp-imu-z").value;
+            var vrp_imu = [vrp_imu_x, vrp_imu_y, vrp_imu_z];
+
+            var vrp_ant_x = document.getElementById("vrp-ant-x").value;
+            var vrp_ant_y = document.getElementById("vrp-ant-y").value;
+            var vrp_ant_z = document.getElementById("vrp-ant-z").value;
+            var vrp_ant = [vrp_ant_x, vrp_ant_y, vrp_ant_z];
+
             query = `dyn_model=${dyn_model}`;
             query += `&auto_align=${auto_align}`;
             query += `&imu_cfg_angles=${imu_angles}`;
+            query += `&vrp_imu=${vrp_imu}`;
+            query += `&vrp_ant=${vrp_ant}`;
             uri = "/do_gnss_config?" + encodeURI(query);
 
             xhttp.open("GET", uri, true);
