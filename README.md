@@ -111,6 +111,12 @@ systemctl start vcu-ui      # Start service right now
 
 ### Revision History
 
+#### v0.4.4 (20200716)
+
+- GNSS lever arm configuration added
+- Upgrade to ubxlib 0.1.11 for lever arm
+
+
 #### v0.4.2 (20200612)
 
 - Updated this documentation
@@ -130,4 +136,4 @@ systemctl start vcu-ui      # Start service right now
 #### Known Bugs & Limitations
 
 - Thread safety issue when getting ESF status for GNSS. Leads to occasional page loading error.
-
+- Rarely data is not sent to cloud. It is lost, since transmit queue is cleared.
