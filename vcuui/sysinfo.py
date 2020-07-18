@@ -21,12 +21,14 @@ class SysInfo():
     def bootloader_version(self):
         with open('/proc/device-tree/nm,bootloader,version') as f:
             res = f.readline().strip()
+            res = res.rstrip('\0x00')
 
         return res
 
     def hw_version(self):
         with open('/proc/device-tree/nm,carrierboard,version') as f:
             res = f.readline().strip()
+            res = res.rstrip('\0x00')
 
         return res
 
