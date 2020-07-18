@@ -111,6 +111,12 @@ systemctl start vcu-ui      # Start service right now
 
 ### Revision History
 
+#### v0.5.0 (20200718)
+
+- Major refactoring of Thingsboard IoT upload
+- New transmit queue class
+
+
 #### v0.4.4 (20200716)
 
 - GNSS lever arm configuration added
