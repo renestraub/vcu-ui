@@ -7,10 +7,8 @@ use .next() to get gpsd message
 import json  # or `import simplejson as json` if on Python < 2.6
 import logging
 import queue
-import re
 import socket
 import threading
-import time
 
 logger = logging.getLogger('vcu-ui')
 
@@ -29,23 +27,33 @@ class Gpsd(threading.Thread):
         self.thread_stop_event = threading.Event()
 
     def setup(self):
-        # Start worker thread in daemon mode, will invoke run() method
-        self.daemon = True
-        self.start()
+        try:
+            logger.info('connecting to gpsd')
+            self.listen_sock.connect(self.gpsd_data_socket)
 
-        # Wait for worker thread to become ready.
-        # Without this wait we might send the command before the thread can
-        # handle the response.
-        logger.info('waiting for receive thread to become active')
-        self.thread_ready_event.wait()
+            # Start worker thread in daemon mode, will invoke run() method
+            self.daemon = True
+            self.start()
+
+            # Wait for worker thread to become ready.
+            # Without this wait we might send the command before the thread can
+            # handle the response.
+            logger.debug('waiting for receive thread to become active')
+            self.thread_ready_event.wait()
+            return True
+
+        except socket.error as msg:
+            logger.warning(msg)
+            return False
 
     def cleanup(self):
-        logger.info('requesting thread to stop')
-        self.thread_stop_event.set()
+        if self.is_alive():
+            logger.debug('requesting thread to stop')
+            self.thread_stop_event.set()
 
-        # Wait until thread ended
-        self.join(timeout=1.0)
-        logger.info('thread stopped')
+            # Wait until thread ended
+            self.join(timeout=1.0)
+            logger.debug('thread stopped')
 
     def next(self, timeout=5.0):
         # logger.debug(f'waiting {timeout}s for reponse from listener thread')
@@ -64,15 +72,6 @@ class Gpsd(threading.Thread):
         - parses ubx frames, decodes them
         - if a frame is received it is put in the receive queue
         """
-        # TODO: State machine with reconnect features?
-
-        try:
-            logger.info('connecting to gpsd')
-            self.listen_sock.connect(self.gpsd_data_socket)
-        except socket.error as msg:
-            logger.error(msg)
-            # TODO: Error handling
-
         try:
             logger.debug('starting raw listener on gpsd')
             self.listen_sock.send(self.connect_msg)

@@ -12,7 +12,7 @@ from ubxlib.ubx_cfg_nav5 import UbxCfgNav5, UbxCfgNav5Poll
 from ubxlib.ubx_cfg_nmea import UbxCfgNmea, UbxCfgNmeaPoll
 from ubxlib.ubx_cfg_prt import UbxCfgPrtPoll, UbxCfgPrtUart
 from ubxlib.ubx_cfg_rst import UbxCfgRstAction
-from ubxlib.ubx_esf_alg import UbxEsfAlg, UbxEsfAlgPoll, UbxEsfResetAlgAction
+from ubxlib.ubx_esf_alg import UbxEsfAlg, UbxEsfAlgPoll
 from ubxlib.ubx_esf_status import UbxEsfStatus, UbxEsfStatusPoll
 from ubxlib.ubx_mon_ver import UbxMonVer, UbxMonVerPoll
 from ubxlib.ubx_upd_sos import UbxUpdSosAction
@@ -20,9 +20,12 @@ from vcuui.gpsd import Gpsd
 
 logger = logging.getLogger('vcu-ui')
 
+
 class Gnss(object):
     # Singleton accessor
     instance = None
+
+    CONNECT_TIMEOUT_IN_SEC = 30
 
     def __init__(self, model):
         super().__init__()
@@ -47,6 +50,30 @@ class Gnss(object):
         self.__msg_esf_alg = None
 
     def setup(self):
+        # Quick and dirty hack to wait until gpsd is ready
+        # Timeout is 30 seconds
+        logger.info('Searching gpsd service')
+        gpsd = Gpsd()
+        for _ in range(self.CONNECT_TIMEOUT_IN_SEC):
+            ready = gpsd.setup()
+            if ready:
+                # gpsd is around, socket exists
+                # wait until first data is seen
+                res = gpsd.next(timeout=10)
+                if res:
+                    logger.info('gps connected')
+                    break
+
+            gpsd.cleanup()
+            time.sleep(1.0)
+        else:
+            # No break, no connection
+            logger.warning('cannot connect to gpsd, is it running?')
+            return False
+
+        gpsd.cleanup()
+        gpsd = None
+
         self.ubx.setup()
 
         # Register the frame types we use
@@ -58,16 +85,12 @@ class Gnss(object):
         # Read constant information, never reloaded
         self._mon_ver()
         self._cfg_port()
-
-        res = self._cfg_nmea()
-        if res:
-            # # Change NMEA protocol to 4.1
-            # self.__msg_nmea.f.nmeaVersion = 0x41
-            # self.ubx.set(self.__msg_nmea)
-            pass
+        self._cfg_nmea()
 
         self.gnss_status.setup()
         self.gnss_pos.setup()
+
+        return True
 
     def invalidate(self):
         self.__msg_cfg_esfalg = None
@@ -552,17 +575,15 @@ class GnssPositionWorker(threading.Thread):
         self.model = model
 
         self.state = 'init'
-        self.gps_session = None
+        self.gps = None
+
         self.lon = 0
         self.lat = 0
         self.fix = 0
         self.speed = 0
         self.pdop = 0
 
-        self.gps = Gpsd()
-
     def setup(self):
-        self.gps.setup()
         self.daemon = True
         self.name = 'gps-reader'
         self.start()
@@ -574,12 +595,14 @@ class GnssPositionWorker(threading.Thread):
         while True:
             if self.state != 'connected':
                 # try to connect to gpsd
-                try:
-                    logger.debug('trying to connect to gpsd')
+                logger.debug('trying to connect to gpsd')
+
+                self.gps = Gpsd()
+                res = self.gps.setup()
+                if res:
                     logger.debug('gps connected')
                     self.state = 'connected'
-
-                except ConnectionRefusedError:
+                else:
                     logger.warning('cannot connect to gpsd, is it running?')
                     time.sleep(2.0)
 

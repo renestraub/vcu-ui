@@ -7,6 +7,7 @@ Uses Tornado webserver
 import json
 import logging
 import os
+import sys
 
 import requests
 import tornado.ioloop
@@ -22,7 +23,6 @@ from vcuui.pagegnss import GnssHandler
 from vcuui.realtime import RealtimeHandler, RealtimeWebSocket
 from vcuui.pageinfo import MainHandler
 from vcuui.things import Things
-from vcuui.tools import ping
 
 
 FORMAT = '%(asctime)-15s %(levelname)-8s %(module)-12s %(message)s'
@@ -70,6 +70,7 @@ class ModemResetHandler(tornado.web.RequestHandler):
             self.write('Modem reset successfully')
         else:
             self.write('No modem found')
+
 
 class SystemRebootHandler(tornado.web.RequestHandler):
     def get(self):
@@ -225,7 +226,10 @@ def run_server(port=80):
     wwan.setup()
 
     gnss = Gnss(model)
-    gnss.setup()
+    res = gnss.setup()
+    if not res:
+        logger.warning(f'cannot connect to gpsd. aborting')
+        sys.exit(10)
 
     things = Things(model)
     things.setup()
