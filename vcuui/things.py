@@ -17,7 +17,6 @@ from io import BytesIO
 
 import pycurl
 
-import vcuui.data_model
 from vcuui.transmit_queue import TransmitQueue
 from vcuui._version import __version__ as ui_version
 
@@ -294,7 +293,6 @@ class ThingsDataCollector(threading.Thread):
 
                 # Force GNSS update once a minute, even if not moving
                 force_update = (cnt % 60) == 0
-                force_update = True
                 self._gnss(md, force_update)
 
                 cnt += 1
