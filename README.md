@@ -84,7 +84,8 @@ The service file is also available on [Github](https://github.com/renestraub/vcu
 ```
 [Unit]
 Description=VCU Pro Minimal WebUI
- 
+After=gnss-mgr.service
+
 [Service]
 Type=simple
 ExecStart=/usr/bin/vcu-ui-start
@@ -110,6 +111,12 @@ systemctl start vcu-ui      # Start service right now
 
 
 ### Revision History
+
+#### v0.5.2 (20200904)
+
+- Wait for gpsd service to become ready at startup
+- Supress minor position changes on cloud upload to save data volume
+
 
 #### v0.5.0 (20200718)
 
