@@ -19,7 +19,7 @@ class Gpsd(threading.Thread):
     def __init__(self):
         super().__init__()
 
-        self.connect_msg = f'?WATCH={{"enable":true,"json":true}}'.encode()
+        self.connect_msg = '?WATCH={"enable":true,"json":true}'.encode()
 
         self.listen_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.response_queue = queue.Queue()
