@@ -1,13 +1,13 @@
-## VCU Pro User Interface
+## NG800/VCU Pro User Interface
 
 ![System](https://img.shields.io/badge/system-VCU%20Pro-blue)
+![System](https://img.shields.io/badge/system-NG800-blue)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/vcu-ui)
-[![Build Status](https://www.travis-ci.org/renestraub/vcu-ui.svg?branch=master)](https://www.travis-ci.org/renestraub/vcu-ui)
 
 
 ### Introduction
 
-A minimal Web user interface for the VCU Pro automotive gateway. It displays important status information and allows basic maintenance actions. Written in Python, based on Tornado webserver.
+A minimal Web user interface for the NG800/VCU Pro automotive gateway. It displays important status information and allows basic maintenance actions. Written in Python, based on Tornado webserver.
 
 
 ### Features
@@ -49,7 +49,7 @@ For drive tests the realtime page is most suitable. It display drive related inf
 
 ### Requirements
 
-* VCU Pro Hardware with developer image installed
+* NG800/VCU Pro Hardware with developer image installed
 * Python 3.7+
 
 
@@ -111,6 +111,14 @@ systemctl start vcu-ui      # Start service right now
 
 
 ### Revision History
+
+#### v0.5.3 (20210109)
+
+- Add NG800
+- Add disc information (eMMC wear level, root/data partition usage)
+- Provide web app manifest to run as app
+- Flake8 Python Linting
+
 
 #### v0.5.2 (20200904)
 
