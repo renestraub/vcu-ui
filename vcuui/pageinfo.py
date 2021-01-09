@@ -183,7 +183,7 @@ class MainHandler(tornado.web.RequestHandler):
                 tes.append(TE('Speed', f'{pos["speed"]:.0f} m/s, {pos["speed"]*3.60:.0f} km/h'))
 
             self.render('main.html',
-                        title=f'VCU Pro ({serial})',
+                        title=f'{serial}',
                         table=tes,
                         data=data,
                         message=message,
@@ -194,7 +194,7 @@ class MainHandler(tornado.web.RequestHandler):
         except KeyError as e:
             logger.warning(f'lookup error {e}')
             self.render('main.html',
-                        title='VCU Pro',
+                        title='NG800/VCU Pro',
                         message=f'Data lookup error: {e} not found',
                         table=None,
                         data=None,

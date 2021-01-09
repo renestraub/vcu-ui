@@ -133,7 +133,7 @@ class GnssHandler(tornado.web.RequestHandler):
             logger.debug(data)
 
             self.render('gnss.html',
-                        title=f'VCU Pro ({serial})',
+                        title=f'{serial}',
                         table=tes,
                         data=data,
                         message='',
@@ -141,7 +141,7 @@ class GnssHandler(tornado.web.RequestHandler):
 
         except KeyError as e:
             self.render('gnss.html',
-                        title='VCU Pro',
+                        title='NG800/VCU Pro',
                         message=f'Data lookup error: {e} not found',
                         table=None,
                         data=None,

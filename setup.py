@@ -11,7 +11,7 @@ setuptools.setup(
     version=version,
     author="Rene Straub",
     author_email="straub@see5.com",
-    description="VCU Pro Web UI",
+    description="NG800/VCU Pro Web UI",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/renestraub/vcu-ui",
@@ -28,9 +28,6 @@ setuptools.setup(
         'ping3',
         'ubxlib>=0.1.11'
     ],
-#    package_data={
-#        'vcuui': ['*.html'],
-#    },
     include_package_data=True,  # Use MANIFEST.in to add *.html, *.css files
     entry_points={
         'console_scripts': [

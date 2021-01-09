@@ -23,7 +23,7 @@ class RealtimeHandler(tornado.web.RequestHandler):
         serial = md['sys-version']['serial']
 
         self.render('realtime.html',
-                    title=f'VCU Pro ({serial})',
+                    title=f'{serial}',
                     version=version
                     )
 

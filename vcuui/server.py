@@ -1,5 +1,5 @@
 """
-Minimal Web UI for VCU automotive gateway
+Minimal Web UI for VCU/NG800 automotive gateway
 
 Uses Tornado webserver
 """
@@ -33,7 +33,7 @@ logger.setLevel(logging.INFO)
 
 
 # Init section
-logger.info(f'welcome to VCU-UI v{version}')
+logger.info(f'welcome to NG800/VCU-UI v{version}')
 
 path = os.path.abspath(__file__)
 module_path = os.path.dirname(path)
