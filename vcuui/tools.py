@@ -1,5 +1,5 @@
 import subprocess
-import asyncio
+# import asyncio
 
 
 def secs_to_hhmm(secs):
@@ -8,11 +8,13 @@ def secs_to_hhmm(secs):
     m = int(t % 60)
     return h, m
 
+
 def ping(ip):
     cp = subprocess.run(['ping', '-c', '4', ip], stdout=subprocess.PIPE)
     res = cp.stdout.decode()
 
     return res
+
 
 """
 async def ping(ip):
@@ -23,6 +25,7 @@ async def ping(ip):
 
     return res
 """
+
 
 def nmcli_c():
     cp = subprocess.run(['nmcli', 'c'], stdout=subprocess.PIPE)
