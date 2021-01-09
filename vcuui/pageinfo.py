@@ -90,6 +90,13 @@ class MainHandler(tornado.web.RequestHandler):
             total, free = d.get((0, 0), 'sys-misc', 'mem')
             tes.append(TE('Memory', f'Total: {total} kB<br>Free: {free} kB'))
 
+            wear_slc, wear_mlc = d.get((0, 0), 'sys-disc', 'wear')
+            sysroot_info = d.get('N/A', 'sys-disc', 'part_sysroot')
+            data_info = d.get('N/A', 'sys-disc', 'part_data')
+            tes.append(TE('Disc', f'eMMC Wear Level: SLC: {wear_slc} %, MLC: {wear_mlc} %<br>'
+                                  f'Root: {sysroot_info}<br>'
+                                  f'Data: {data_info}'))
+
             a, b, c = d.get((0, 0, 0), 'sys-misc', 'load')
             tes.append(TE('Load', f'{a}, {b}, {c}'))
 

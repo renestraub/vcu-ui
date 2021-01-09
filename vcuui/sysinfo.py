@@ -43,6 +43,34 @@ class SysInfo():
 
         return total, free
 
+    def part_size(self, partition):
+        cp = subprocess.run(['df', '-h', partition], stdout=subprocess.PIPE)
+        res = cp.stdout.decode().strip()
+        for line in res.splitlines():
+            if partition in line:
+                res = line
+
+        return res
+
+    def emmc_wear(self):
+        """
+        Check for following output in mmc command
+        eMMC Life Time Estimation A [EXT_CSD_DEVICE_LIFE_TIME_EST_TYP_A]: 0x01
+        """
+        cp = subprocess.run(['mmc', 'extcsd', 'read', '/dev/mmcblk1'], stdout=subprocess.PIPE)
+        res = cp.stdout.decode().strip()
+
+        res_a = 0
+        res_b = 0
+        for line in res.splitlines():
+            if 'Life Time Estimation' in line:
+                if 'TYP_A' in line:
+                    res_a = int(line[-2:], 16) * 10.0
+                if 'TYP_B' in line:
+                    res_b = int(line[-2:], 16) * 10.0
+
+        return res_a, res_b
+
     def load(self):
         with open('/proc/loadavg') as f:
             res = f.readline()

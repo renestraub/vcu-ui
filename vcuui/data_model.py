@@ -73,19 +73,18 @@ class ModelWorker(threading.Thread):
         self.start()
 
     def run(self):
-        self._sysinfo()
-        self._network()
-        self._modem()
-
         cnt = 0
         while True:
             self._sysinfo()
 
-            if cnt % 4 == 2:
+            if cnt == 0 or cnt % 4 == 2:
                 self._network()
 
-            if cnt % 10 == 5:
+            if cnt == 0 or cnt % 10 == 5:
                 self._modem()
+
+            if cnt == 0 or cnt % 20 == 15:
+                self._disc()
 
             cnt += 1
             time.sleep(1.0)
@@ -112,6 +111,15 @@ class ModelWorker(threading.Thread):
         info['v_in'] = si.input_voltage()
         info['v_rtc'] = si.rtc_voltage()
         self.model.publish('sys-misc', info)
+
+    def _disc(self):
+        si = SysInfo()
+
+        disc = dict()
+        disc['wear'] = si.emmc_wear()
+        disc['part_sysroot'] = si.part_size('/sysroot')
+        disc['part_data'] = si.part_size('/data')
+        self.model.publish('sys-disc', disc)
 
     def _network(self):
         si = SysInfo()
