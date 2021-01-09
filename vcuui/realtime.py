@@ -10,8 +10,6 @@ import tornado.web
 
 from vcuui._version import __version__ as version
 from vcuui.data_model import Model
-from vcuui.gnss_model import Gnss
-from vcuui.tools import secs_to_hhmm
 
 logger = logging.getLogger('vcu-ui')
 

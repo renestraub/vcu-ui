@@ -228,7 +228,7 @@ def run_server(port=80):
     gnss = Gnss(model)
     res = gnss.setup()
     if not res:
-        logger.warning(f'cannot connect to gpsd. aborting')
+        logger.warning('cannot connect to gpsd. aborting')
         sys.exit(10)
 
     things = Things(model)
