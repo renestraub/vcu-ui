@@ -15,6 +15,7 @@ def ping(ip):
 
     return res
 
+
 """
 async def ping(ip):
     proc = await asyncio.create_subprocess_exec('ping', '-c', '4', ip, stdout=subprocess.PIPE)
