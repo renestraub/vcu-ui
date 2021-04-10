@@ -117,6 +117,12 @@ class MainHandler(tornado.web.RequestHandler):
                 tx = int(tx) / 1000000
                 tes.append(TE('wwan0', f'Rx: {rx:.1f} MB<br>Tx: {tx:.1f} MB'))
 
+            rx, tx = d.get((-1, -1), 'net-wlan0', 'bytes')
+            if rx != -1:
+                rx = int(rx) / 1000000
+                tx = int(tx) / 1000000
+                tes.append(TE('wlan0', f'Rx: {rx:.1f} MB<br>Tx: {tx:.1f} MB'))
+
             # Modem Information
             mi = md['modem']
             if 'modem-id' in mi:

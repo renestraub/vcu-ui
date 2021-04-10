@@ -124,9 +124,13 @@ class ModelWorker(threading.Thread):
     def _network(self):
         si = SysInfo()
 
-        info = dict()
-        info['bytes'] = si.ifinfo('wwan0')
-        self.model.publish('net-wwan0', info)
+        info_wwan = dict()
+        info_wwan['bytes'] = si.ifinfo('wwan0')
+        self.model.publish('net-wwan0', info_wwan)
+
+        info_wlan = dict()
+        info_wlan['bytes'] = si.ifinfo('wlan0')
+        self.model.publish('net-wlan0', info_wlan)
 
     def _modem(self):
         info = dict()
