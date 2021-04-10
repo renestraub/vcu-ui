@@ -74,7 +74,7 @@ class MainHandler(tornado.web.RequestHandler):
             cloud_log_state = md['cloud']
             serial = d.get('N/A', 'sys-version', 'serial')
 
-            tes.append(TE('System', ''))
+            tes.append(TE('<b>System</b>', ''))
             text = nice([('sys', 'System', ''),
                         ('bl', 'Bootloader', ''),
                         ('hw', 'Hardware', '')],
@@ -109,7 +109,7 @@ class MainHandler(tornado.web.RequestHandler):
 
             # Network Information
             tes.append(TE('', ''))
-            tes.append(TE('Network', ''))
+            tes.append(TE('<b>Network</b>', ''))
 
             rx, tx = d.get((-1, -1), 'net-wwan0', 'bytes')
             if rx != -1:
@@ -121,7 +121,7 @@ class MainHandler(tornado.web.RequestHandler):
             mi = md['modem']
             if 'modem-id' in mi:
                 tes.append(TE('', ''))
-                tes.append(TE('Mobile', ''))
+                tes.append(TE('<b>Mobile</b>', ''))
 
                 tes.append(TE('Modem Id', mi['modem-id']))
 
@@ -180,7 +180,7 @@ class MainHandler(tornado.web.RequestHandler):
             # GNSS
             if 'gnss-pos' in md:
                 tes.append(TE('', ''))
-                tes.append(TE('GNSS', ''))
+                tes.append(TE('<b>GNSS</b>', ''))
 
                 pos = md['gnss-pos']
                 tes.append(TE('Fix', pos['fix']))
