@@ -222,7 +222,7 @@ class Things(threading.Thread):
 
             c.perform()
             bytes_sent = len(body_as_json_bytes)
-            logger.debug(f'sent {bytes_sent} to {self.api_server}')
+            logger.debug(f'sent {bytes_sent} bytes to {self.api_server}')
 
             info['state'] = 'sent'
             info['bytes'] = bytes_sent
@@ -349,6 +349,24 @@ class ThingsDataCollector(threading.Thread):
                     uptime = info['bearer-uptime']
                     data['bearer-uptime'] = uptime
                 self._data_queue.add(data)
+
+        if 'net-wwan0' in md:
+            info = md['net-wwan0']
+            (rx, tx) = info['bytes']
+            data = {
+                'wwan0-rx': f'{rx}',
+                'wwan0-tx': f'{tx}'
+            }
+            self._data_queue.add(data)
+
+        if 'net-wlan0' in md:
+            info = md['net-wlan0']
+            (rx, tx) = info['bytes']
+            data = {
+                'wlan0-rx': f'{rx}',
+                'wlan0-tx': f'{tx}'
+            }
+            self._data_queue.add(data)
 
     def _gnss(self, md, force):
         if 'gnss-pos' in md:
