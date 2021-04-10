@@ -48,7 +48,7 @@
                 {% if table %}
                     {% for entry in table %}
                     <tr>
-                        <td>{{ entry.header }}</td>
+                        <td>{% raw entry.header %}</td>
                         <td>{% raw entry.text %}</td>
                     </tr>
                     {% end %}

@@ -39,7 +39,7 @@
                 {% if table %}
                     {% for entry in table %}
                     <tr>
-                        <td>{{ entry.header }}</td>
+                        <td>{% raw entry.header %}</td>
                         <td>{% raw entry.text %}</td>
                     </tr>
                     {% end %}
@@ -58,7 +58,7 @@
                     <td>{{ data['nmea_protocol'] }}</td>
                 </tr>
                 <tr>
-                    <td>ESF Alignment</td>
+                    <td><b>ESF Alignment</b></td>
                     <td></td>
                 </tr>
                 <tr>
