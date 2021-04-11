@@ -16,6 +16,7 @@ from ubxlib.ubx_esf_alg import UbxEsfAlgPoll
 from ubxlib.ubx_esf_status import UbxEsfStatusPoll
 from ubxlib.ubx_mon_ver import UbxMonVerPoll
 from ubxlib.ubx_upd_sos import UbxUpdSosAction
+from ubxlib._version import __version__ as ubxlib_ver_str
 from vcuui.gpsd import Gpsd
 
 logger = logging.getLogger('vcu-ui')
@@ -84,6 +85,9 @@ class Gnss(object):
 
         self.gnss_status.setup()
         self.gnss_pos.setup()
+
+        info = {'version': ubxlib_ver_str}
+        self.model.publish('ubxlib', info)
 
         return True
 

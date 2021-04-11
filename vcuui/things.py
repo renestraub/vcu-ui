@@ -315,6 +315,11 @@ class ThingsDataCollector(threading.Thread):
         if 'gnss' in md:
             info = md['gnss']
             attrs['gnss-fw-version'] = info['fwVersion']
+            attrs['gnss-protocol'] = info['protocol']
+
+        if 'ubxlib' in md:
+            info = md['ubxlib']
+            attrs['ubxlib-version'] = info['version']
 
         self._attributes_queue.add(attrs)
 
