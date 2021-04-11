@@ -1,5 +1,6 @@
 [Unit]
 Description=VCU Pro Minimal WebUI
+After=gnss-mgr.service
  
 [Service]
 Type=simple

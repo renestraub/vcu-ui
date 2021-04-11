@@ -2,7 +2,6 @@
 
 ![System](https://img.shields.io/badge/system-VCU%20Pro-blue)
 ![System](https://img.shields.io/badge/system-NG800-blue)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/vcu-ui)
 
 
 ### Introduction
@@ -111,6 +110,15 @@ systemctl start vcu-ui      # Start service right now
 
 
 ### Revision History
+
+#### v0.5.4 (20210411)
+
+- Change IMU angles order to Yaw, Pitch, Roll
+- Add Network traffic (wwan0, wlan0) query and Thingsboard upload
+- Add ubxlib version and UBX protocol version report
+- Update to ubxlib version 0.3.5
+- Fix problem with GNSS page load/refresh
+
 
 #### v0.5.3 (20210109)
 
