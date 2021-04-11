@@ -7,14 +7,14 @@ import time
 from ubxlib.server import GnssUBlox
 from ubxlib.ubx_cfg_cfg import UbxCfgCfgAction
 from ubxlib.ubx_cfg_esfalg import UbxCfgEsfAlg, UbxCfgEsfAlgPoll
-from ubxlib.ubx_cfg_esfla import UbxCfgEsflaPoll, UbxCfgEsfla, UbxCfgEsflaSet
-from ubxlib.ubx_cfg_nav5 import UbxCfgNav5, UbxCfgNav5Poll
-from ubxlib.ubx_cfg_nmea import UbxCfgNmea, UbxCfgNmeaPoll
-from ubxlib.ubx_cfg_prt import UbxCfgPrtPoll, UbxCfgPrtUart
+from ubxlib.ubx_cfg_esfla import UbxCfgEsflaPoll, UbxCfgEsflaSet
+from ubxlib.ubx_cfg_nav5 import UbxCfgNav5Poll
+from ubxlib.ubx_cfg_nmea import UbxCfgNmeaPoll
+from ubxlib.ubx_cfg_prt import UbxCfgPrtPoll
 from ubxlib.ubx_cfg_rst import UbxCfgRstAction
-from ubxlib.ubx_esf_alg import UbxEsfAlg, UbxEsfAlgPoll
-from ubxlib.ubx_esf_status import UbxEsfStatus, UbxEsfStatusPoll
-from ubxlib.ubx_mon_ver import UbxMonVer, UbxMonVerPoll
+from ubxlib.ubx_esf_alg import UbxEsfAlgPoll
+from ubxlib.ubx_esf_status import UbxEsfStatusPoll
+from ubxlib.ubx_mon_ver import UbxMonVerPoll
 from ubxlib.ubx_upd_sos import UbxUpdSosAction
 from vcuui.gpsd import Gpsd
 
@@ -37,6 +37,7 @@ class Gnss(object):
         self.ubx = GnssUBlox()
         self.gnss_status = GnssStatusWorker(self, self.model)
         self.gnss_pos = GnssPositionWorker(self.model)
+        self.lock = threading.Lock()
 
         # Static values, read once in setup()
         self.__msg_mon_ver = None
@@ -75,12 +76,6 @@ class Gnss(object):
         gpsd = None
 
         self.ubx.setup()
-
-        # Register the frame types we use
-        protocols = [UbxMonVer, UbxCfgNmea, UbxCfgPrtUart, UbxCfgNav5, UbxCfgEsfAlg,
-                     UbxEsfAlg, UbxEsfStatus, UbxCfgEsfla]
-        for p in protocols:
-            self.ubx.register_frame(p)
 
         # Read constant information, never reloaded
         self._mon_ver()
@@ -160,11 +155,11 @@ class Gnss(object):
     def cold_start(self):
         logger.debug('executing GNSS cold start')
 
-        msg = UbxCfgRstAction()
-        msg.cold_start()
-        msg.pack()
-        self.ubx.send(msg)      # Will not be ACK'ed
-        # TODO: Remove .pack as soon as ubxlib implements this internally
+        # This request is neither ACK'ed, nor a response is available
+        with self.lock:
+            msg = UbxCfgRstAction()
+            msg.cold_start()
+            self.ubx.fire_and_forget(msg)
 
         self._clear_cached_values()
 
@@ -176,19 +171,20 @@ class Gnss(object):
     def save_config(self):
         logger.debug('saving GNSS config')
 
-        msg = UbxCfgCfgAction()
-        msg.f.saveMask = UbxCfgCfgAction.MASK_NavConf     # To save CFG-NAV-NMEA
-        self.ubx.set(msg)
+        with self.lock:
+            msg = UbxCfgCfgAction()
+            msg.save(UbxCfgCfgAction.MASK_NavConf)     # To save CFG-NAV-NMEA
+            self.ubx.set(msg)
 
         return 'Success'
 
     def reset_config(self):
         logger.debug('resetting GNSS config')
 
-        msg = UbxCfgCfgAction()
-        msg.f.clearMask = UbxCfgCfgAction.MASK_NavConf
-        msg.f.loadMask = UbxCfgCfgAction.MASK_NavConf
-        self.ubx.set(msg)
+        with self.lock:
+            msg = UbxCfgCfgAction()
+            msg.reset(UbxCfgCfgAction.MASK_NavConf)
+            self.ubx.set(msg)
 
         self._clear_cached_values()
 
@@ -196,39 +192,43 @@ class Gnss(object):
 
     """
     SOS - Save on Shutdown
+    TODO: Remove?
     """
     def save_state(self):
         logger.debug('saving GNSS state (save on shutdown)')
 
         logger.debug('stopping receiver')
-        msg = UbxCfgRstAction()
-        msg.stop()
-        msg.pack()
-        self.ubx.send(msg)      # Will not be ACK'ed
-        # TODO: Remove .pack as soon as ubxlib implements this internally
+        with self.lock:
+            msg = UbxCfgRstAction()
+            msg.stop()
 
-        time.sleep(0.1)
+            # This request is neither ACK'ed, nor a response is available
+            self.ubx.send(msg)
+            self.ubx.fire_and_forget(msg)
+
+        time.sleep(0.5)
 
         logger.debug('saving')
-        msg = UbxUpdSosAction()
-        msg.f.cmd = UbxUpdSosAction.SAVE
-        self.ubx.set(msg)
+        with self.lock:
+            msg = UbxUpdSosAction()
+            msg.backup()
+            self.ubx.set(msg)
 
         logger.debug('restarting')
-        msg = UbxCfgRstAction()
-        msg.start()
-        msg.pack()
-        self.ubx.send(msg)      # Will not be ACK'ed
-        # TODO: Remove .pack as soon as ubxlib implements this internally
+        with self.lock:
+            msg = UbxCfgRstAction()
+            msg.start()
+            self.ubx.fire_and_forget(msg)      # Will not be ACK'ed
 
         return 'Success'
 
     def clear_state(self):
         logger.debug('clearing GNSS state (save on shutdown)')
 
-        msg = UbxUpdSosAction()
-        msg.f.cmd = UbxUpdSosAction.CLEAR
-        self.ubx.set(msg)
+        with self.lock:
+            msg = UbxUpdSosAction()
+            msg.clear()
+            self.ubx.fire_and_forget(msg)
 
         return 'Success'
 
@@ -251,8 +251,10 @@ class Gnss(object):
             logger.debug(f'current dynamic model {res.f.dynModel}')
             if dyn_model != res.f.dynModel:
                 logger.debug('  changing')
-                res.f.dynModel = dyn_model
-                self.ubx.set(res)
+                with self.lock:
+                    res.f.dynModel = dyn_model
+                    self.ubx.set(res)
+
                 # TODO: Move text stuff out of this module
                 res = f'Dynamic model set to {dyn_model}'
             else:
@@ -281,12 +283,13 @@ class Gnss(object):
             logger.debug(f'current alignment mode {current}')
             if align_mode != (current == 1):
                 logger.debug('  changing')
-                if align_mode:
-                    res.f.bitfield |= UbxCfgEsfAlg.BITFIELD_doAutoMntAlg
-                else:
-                    res.f.bitfield &= ~UbxCfgEsfAlg.BITFIELD_doAutoMntAlg
+                with self.lock:
+                    if align_mode:
+                        res.f.bitfield |= UbxCfgEsfAlg.BITFIELD_doAutoMntAlg
+                    else:
+                        res.f.bitfield &= ~UbxCfgEsfAlg.BITFIELD_doAutoMntAlg
+                    self.ubx.set(res)
 
-                self.ubx.set(res)
                 # TODO: Move text stuff out of this module
                 res = f'IMU automatic alignment set to {align_mode}'
             else:
@@ -306,6 +309,7 @@ class Gnss(object):
                 'yaw': res.f.yaw / 100.0
             }
         else:
+            logger.warning('cannot get IMU angles')
             data = {
                 'roll': 0.0,
                 'pitch': 0.0,
@@ -318,14 +322,14 @@ class Gnss(object):
         res = self._cfg_esfalg(force=True)
         if res:
             # TODO: Add check for change
-            # if align_mode != (current == 1):
             if True:
                 logger.debug('  changing')
+                with self.lock:
+                    res.f.roll = angles['roll']
+                    res.f.pitch = angles['pitch']
+                    res.f.yaw = angles['yaw']
+                    self.ubx.set(res)
 
-                res.f.roll = angles['roll']
-                res.f.pitch = angles['pitch']
-                res.f.yaw = angles['yaw']
-                self.ubx.set(res)
                 # TODO: Move text stuff out of this module
                 res = f'IMU angles set to {angles}'
             else:
@@ -347,6 +351,7 @@ class Gnss(object):
             res = str(self.__msg_esf_alg.get('flags'))
             res = res[len('flags: '):]
         else:
+            logger.warning('cannot get auto alignment state')
             res = '<error>'
         return res
 
@@ -359,6 +364,7 @@ class Gnss(object):
             pitch = self.__msg_esf_alg.f.pitch / 100.0
             yaw = self.__msg_esf_alg.f.yaw / 100.0
         else:
+            logger.warning('cannot get auto alignment angles')
             roll, pitch, yaw = 0.0, 0.0, 0.0
         return (roll, pitch, yaw)
 
@@ -370,6 +376,8 @@ class Gnss(object):
         if res:
             data = res
         else:
+            # TODO: Use error values like -99.99 ?
+            logger.warning('cannot get VRP-ANT lever arm')
             data = {
                 'x': 0.0,
                 'y': 0.0,
@@ -383,22 +391,25 @@ class Gnss(object):
         y = distance['y']
         z = distance['z']
 
-        set_esfla_antenna = UbxCfgEsflaSet()
-        set_esfla_antenna.set(UbxCfgEsflaSet.TYPE_VRP_Antenna, x, y, z)
-        res = self.ubx.set(set_esfla_antenna)
-        if res:
-            res = f'VRP Antenna distance set to {distance}'
-        else:
-            res = 'Failed: GNSS not accessible.'
+        with self.lock:
+            set_esfla_antenna = UbxCfgEsflaSet()
+            set_esfla_antenna.set(UbxCfgEsflaSet.TYPE_VRP_Antenna, x, y, z)
+            res = self.ubx.set(set_esfla_antenna)
+            if res:
+                res = f'VRP Antenna distance set to {distance}'
+            else:
+                res = 'Failed: GNSS not accessible.'
 
-        self.__msg_cfg_esfla = None     # Force re-read once we change lever arm settings
-        return res
+            self.__msg_cfg_esfla = None     # Force re-read once we change lever arm settings
+            return res
 
     def vrp_imu(self):
         res = self._cfg_vrp_imu()
         if res:
             data = res
         else:
+            # TODO: Use error values like -99.99 ?
+            logger.warning('cannot get VRP-IMU lever arm')
             data = {
                 'x': 0.0,
                 'y': 0.0,
@@ -412,17 +423,18 @@ class Gnss(object):
         y = distance['y']
         z = distance['z']
 
-        set_esfla_imu = UbxCfgEsflaSet()
-        set_esfla_imu.set(UbxCfgEsflaSet.TYPE_VRP_IMU, x, y, z)
-        res = self.ubx.set(set_esfla_imu)
-        if res:
-            # TODO: Move text stuff out of this module
-            res = f'VRP IMU distance set to {distance}'
-        else:
-            res = 'Failed: GNSS not accessible.'
+        with self.lock:
+            set_esfla_imu = UbxCfgEsflaSet()
+            set_esfla_imu.set(UbxCfgEsflaSet.TYPE_VRP_IMU, x, y, z)
+            res = self.ubx.set(set_esfla_imu)
+            if res:
+                # TODO: Move text stuff out of this module
+                res = f'VRP IMU distance set to {distance}'
+            else:
+                res = 'Failed: GNSS not accessible.'
 
-        self.__msg_cfg_esfla = None     # Force re-read once we change lever arm settings
-        return res
+            self.__msg_cfg_esfla = None     # Force re-read once we change lever arm settings
+            return res
 
     """
     Fusion State
@@ -455,66 +467,78 @@ class Gnss(object):
     def _mon_ver(self):
         if not self.__msg_mon_ver:
             logger.debug('rereading __msg_mon_ver')
-            self.__msg_mon_ver = self.ubx.poll(UbxMonVerPoll())
+            with self.lock:
+                self.__msg_mon_ver = self.ubx.poll(UbxMonVerPoll())
 
         return self.__msg_mon_ver
 
     def _cfg_port(self):
         if not self.__msg_cfg_port:
             logger.debug('rereading __msg_cfg_port')
-            m = UbxCfgPrtPoll()
-            m.f.PortId = UbxCfgPrtPoll.PORTID_Uart
-            self.__msg_cfg_port = self.ubx.poll(m)
+            with self.lock:
+                m = UbxCfgPrtPoll()
+                m.f.PortId = UbxCfgPrtPoll.PORTID_Uart
+                self.__msg_cfg_port = self.ubx.poll(m)
 
         return self.__msg_cfg_port
 
     def _cfg_nav5(self, force=False):
         if force or not self.__msg_cfg_nav5:
             logger.debug('rereading __msg_cfg_nav5')
-            self.__msg_cfg_nav5 = self.ubx.poll(UbxCfgNav5Poll())
+            with self.lock:
+                self.__msg_cfg_nav5 = self.ubx.poll(UbxCfgNav5Poll())
 
         return self.__msg_cfg_nav5
 
     def _cfg_nmea(self):
         if not self.__msg_cfg_nmea:
             logger.debug('rereading __msg_cfg_nmea')
-            self.__msg_cfg_nmea = self.ubx.poll(UbxCfgNmeaPoll())
+            with self.lock:
+                self.__msg_cfg_nmea = self.ubx.poll(UbxCfgNmeaPoll())
 
         return self.__msg_cfg_nmea
 
     def _cfg_esfalg(self, force=False):
         if force or not self.__msg_cfg_esfalg:
             logger.debug('rereading __msg_cfg_esfalg')
-            self.__msg_cfg_esfalg = self.ubx.poll(UbxCfgEsfAlgPoll())
+            with self.lock:
+                self.__msg_cfg_esfalg = self.ubx.poll(UbxCfgEsfAlgPoll())
 
         return self.__msg_cfg_esfalg
 
     def _cfg_vrp_imu(self, force=False):
         if force or not self.__msg_cfg_esfla:
             logger.info('rereading __msg_cfg_esfla')
-            self.__msg_cfg_esfla = self.ubx.poll(UbxCfgEsflaPoll())
+            with self.lock:
+                self.__msg_cfg_esfla = self.ubx.poll(UbxCfgEsflaPoll())
 
-        lever_IMU = self.__msg_cfg_esfla.lever_arm(UbxCfgEsflaSet.TYPE_VRP_IMU)
-        return lever_IMU
+        # In case of gpsd access errors reponse object does not exist
+        if self.__msg_cfg_esfla:
+            lever_IMU = self.__msg_cfg_esfla.lever_arm(UbxCfgEsflaSet.TYPE_VRP_IMU)
+            return lever_IMU
 
     def _cfg_vrp_ant(self, force=False):
         if force or not self.__msg_cfg_esfla:
             logger.info('rereading __msg_cfg_esfla')
-            self.__msg_cfg_esfla = self.ubx.poll(UbxCfgEsflaPoll())
+            with self.lock:
+                self.__msg_cfg_esfla = self.ubx.poll(UbxCfgEsflaPoll())
 
-        lever_antenna = self.__msg_cfg_esfla.lever_arm(UbxCfgEsflaSet.TYPE_VRP_Antenna)
-        return lever_antenna
+        # In case of gpsd access errors reponse object does not exist
+        if self.__msg_cfg_esfla:
+            lever_antenna = self.__msg_cfg_esfla.lever_arm(UbxCfgEsflaSet.TYPE_VRP_Antenna)
+            return lever_antenna
 
     def _esf_alg(self):
         # TODO: Cache result, only reload if required (invalidate)
-        msg = UbxEsfAlgPoll()
-        res = self.ubx.poll(msg)
-        return res
+        with self.lock:
+            msg = UbxEsfAlgPoll()
+            res = self.ubx.poll(msg)
+            return res
 
     def _esf_status(self):
-        # TODO: Cache result, only reload if required (invalidate)
-        res = self.ubx.poll(UbxEsfStatusPoll())
-        return res
+        with self.lock:
+            res = self.ubx.poll(UbxEsfStatusPoll())
+            return res
 
     def _clear_cached_values(self):
         self.__msg_cfg_nav5 = None
@@ -561,7 +585,6 @@ class GnssStatusWorker(threading.Thread):
     def _gnss(self):
         info = dict()
 
-        # TODO: Code is not thread safe!! Should not call from here...
         esf_status = self.gnss.esf_status()
         info['esf-status'] = esf_status
 

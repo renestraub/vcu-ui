@@ -57,12 +57,12 @@ class GnssHandler(tornado.web.RequestHandler):
             serial = md['sys-version']['serial']
 
             gnss = Gnss.instance
-            gnss.invalidate()
+            gnss.invalidate()   # Enforce that config and status values are re-read
 
             # GNSS Version
 
             ver = gnss.version()
-            tes.append(TE('Version', ''))
+            tes.append(TE('<b>Version</b>', ''))
             tes.append(TE('HW', ver['hwVersion']))
             tes.append(TE('SW', ver['swVersion']))
             tes.append(TE('FW', ver['fwVersion']))
@@ -72,7 +72,7 @@ class GnssHandler(tornado.web.RequestHandler):
             # GNSS Status (live)
             if 'gnss-pos' in md:
                 # logger.debug("build_gnss 2")
-                tes.append(TE('Status', ''))
+                tes.append(TE('<b>Status</b>', ''))
 
                 pos = md['gnss-pos']
                 tes.append(TE('Fix', pos['fix']))
@@ -83,25 +83,19 @@ class GnssHandler(tornado.web.RequestHandler):
                 # tes.append(TE('', ''))
 
             # Config
-            # logger.debug("build_gnss 3")
             data['dyn_model'] = str(gnss.dynamic_model())
-
-            # logger.debug("build_gnss 4")
             data['nmea_protocol'] = gnss.nmea_protocol()
-
-            # logger.debug("build_gnss 5")
             uart_cfg = gnss.uart_settings()
             data['uart_settings'] = f'{uart_cfg["bitrate"]} bps, {uart_cfg["mode"]}'
 
-            # logger.debug("build_gnss 6")
             align = gnss.auto_align()
             data['imu_auto_align'] = 'On' if align else 'Off'
 
-            logger.debug("build_gnss 7")
+            # logger.debug("build_gnss 7")
             align_state = gnss.auto_align_state()
             data['imu_auto_align_state'] = align_state
 
-            logger.debug("build_gnss 8")
+            # logger.debug("build_gnss 8")
             cfg_angles = gnss.imu_cfg_angles()
             data['imu_cfg_roll'] = str(round(cfg_angles['roll']))
             data['imu_cfg_pitch'] = str(round(cfg_angles['pitch']))
