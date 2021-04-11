@@ -7,6 +7,10 @@ from ping3 import ping
 logger = logging.getLogger('vcu-ui')
 
 
+# PING_HOST = '1.1.1.1'
+PING_HOST = '46.231.204.136'    # netmodule.com
+
+
 class Wwan(object):
     # Singleton accessor
     instance = None
@@ -65,7 +69,7 @@ class GsmWorker(threading.Thread):
                     else:
                         if self.counter % 5 == 2:
                             try:
-                                delay = ping('1.1.1.1', timeout=1.0)
+                                delay = ping(PING_HOST, timeout=1.0)
                                 if delay:
                                     link_data['delay'] = round(float(delay), 3)
                                 else:
