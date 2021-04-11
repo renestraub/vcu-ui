@@ -119,7 +119,7 @@ class GnssHandler(tornado.web.RequestHandler):
 
             # logger.debug("build_gnss 9")
             roll, pitch, yaw = gnss.auto_align_angles()
-            angles_str = f'roll: {roll}°, pitch: {pitch}°, yaw: {yaw}°'
+            angles_str = f'Yaw: {yaw}°, Pitch: {pitch}°, Roll: {roll}°'
             data['imu_angles'] = angles_str
 
             # logger.debug("build_gnss 10")
