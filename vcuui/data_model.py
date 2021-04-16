@@ -1,3 +1,18 @@
+"""
+vcu-ui data model
+
+collects data from various sources and stores them in a in-memory
+"database".
+
+To enable ODB-II speed polling add the follocing to the vcu-ui configuratuih
+file /etc/vcuui.conf
+
+[OBD2]
+Port = CAN port to use, e.g. can0
+Speed = Bitrate to use. Either 250000 or 500000
+"""
+
+import configparser
 import logging
 import threading
 import time
@@ -5,6 +20,11 @@ import time
 from vcuui.led import LED_BiColor
 from vcuui.mm import MM
 from vcuui.sysinfo import SysInfo
+from vcuui.odb_client import OBD2
+
+
+CONF_FILE = '/etc/vcuui.conf'
+
 
 logger = logging.getLogger('vcu-ui')
 
@@ -26,6 +46,17 @@ class Model(object):
         self.led_ind = LED_BiColor('/sys/class/leds/ind')
         self.led_stat = LED_BiColor('/sys/class/leds/status')
         self.cnt = 0
+
+        self.config = configparser.ConfigParser()
+        try:
+            self.config.read(CONF_FILE)
+            self.obd2_port = self.config.get('OBD2', 'Port')
+            self.obd2_speed = int(self.config.get('OBD2', 'Speed'))
+        except configparser.Error as e:
+            self.obd2_port = None
+            self.obd2_speed = None
+            logger.warning(f'ERROR: Cannot get config from {CONF_FILE}')
+            logger.info(e)
 
     def setup(self):
         self.led_stat.green()
@@ -70,6 +101,10 @@ class ModelWorker(threading.Thread):
         self.lock = threading.Lock()
         self.daemon = True
         self.name = 'model-worker'
+
+        if self.model.obd2_port and self.model.obd2_speed:
+            self._obd2_setup(self.model.obd2_port, self.model.obd2_speed)
+
         self.start()
 
     def run(self):
@@ -85,6 +120,10 @@ class ModelWorker(threading.Thread):
 
             if cnt == 0 or cnt % 20 == 15:
                 self._disc()
+
+            if self.model.obd2_port:
+                # if cnt == 0 or cnt % 2 == 1:
+                self._obd2_poll()
 
             cnt += 1
             time.sleep(1.0)
@@ -167,3 +206,24 @@ class ModelWorker(threading.Thread):
                     info['bearer-ip'] = ip
 
         self.model.publish('modem', info)
+
+    def _obd2_setup(self, port, speed):
+        logger.info(f"setting up OBD-II on port {port} at {speed} bps")
+        if speed != 250000 and speed != 500000:
+            speed = 500000
+            logger.info(f"unsupported bitrate, using {speed}")
+
+        self._obd2 = OBD2(port, speed)
+        self._obd2.setup()
+
+    def _obd2_poll(self):
+        if self._obd2:
+            info = dict()
+
+            pid = self._obd2.speed()
+            if pid:
+                info['speed'] = pid.value()
+            else:
+                info['speed'] = 0.0
+
+            self.model.publish('obd2', info)

@@ -195,6 +195,13 @@ class MainHandler(tornado.web.RequestHandler):
                 text = nice([('speed', '', 'km/h')], pos)
                 tes.append(TE('Speed', f'{pos["speed"]:.0f} m/s, {pos["speed"]*3.60:.0f} km/h'))
 
+            # OBD-II
+            if 'obd2' in md:
+                tes.append(TE('', ''))
+                tes.append(TE('<b>ODB2</b>', ''))
+                speed = md['obd2']['speed']
+                tes.append(TE('Speed', f'{speed/3.60:.0f} m/s, {speed:.0f} km/h'))
+
             self.render('main.html',
                         title=f'{serial}',
                         table=tes,
