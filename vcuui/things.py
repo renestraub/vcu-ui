@@ -265,6 +265,7 @@ class ThingsDataCollector(threading.Thread):
 
         self.lat_last_rad = 0
         self.lon_last_rad = 0
+        self.obd2_last_speed = -1
 
         self.daemon = True
         self.start()
@@ -294,6 +295,9 @@ class ThingsDataCollector(threading.Thread):
                 # Force GNSS update once a minute, even if not moving
                 force_update = (cnt % 60) == 0
                 self._gnss(md, force_update)
+
+                # OBD2 information every second
+                self._obd2(md)
 
                 cnt += 1
 
@@ -399,3 +403,17 @@ class ThingsDataCollector(threading.Thread):
         d = R * c
 
         return d
+
+    def _obd2(self, md):
+        if 'obd2' in md:
+            info = md['obd2']
+            speed = info['speed']
+            speed_diff = speed - self.obd2_last_speed
+            # print(f'TB telemetry {speed} {self.obd2_last_speed}')
+            if abs(speed_diff) >= 1.0:
+                data = {
+                    'obd2-speed': f'{speed}',
+                }
+                self._data_queue.add(data)
+
+                self.obd2_last_speed = speed
