@@ -13,7 +13,7 @@
 
 <body>
     <div style="overflow:auto">
-         <div class="menu">
+        <div class="menu">
             <div class="btn-group">
                 <button class="button" onclick="window.location.href = '/'">Home</button>
                 <p id="dot" class="dot-animated">&#x2B24;</p>
@@ -26,13 +26,20 @@
         <div class="main">
             <table>
                 <tr>
-                    <td>Speed</td><td class="td_xlarge" id="gnss-speed"></td>
+                    <td>Speed</td>
+                    <td class="td_xlarge" id="gnss-speed"></td>
                 </tr>
                 <tr>
-                    <td>Navigation</td><td class="td_large" id="gnss-fix"></td>
+                    <td>Navigation</td>
+                    <td class="td_large" id="gnss-fix"></td>
                 </tr>
                 <tr>
-                    <td>Mobile</td><td class="td_medium" id="wwan-data"></td>
+                    <td>Mobile</td>
+                    <td class="td_medium" id="wwan-data"></td>
+                </tr>
+                <tr>
+                    <td>ODB II</td>
+                    <td class="td_medium" id="obd2"></td>
                 </tr>
             </table>
         </div>
@@ -68,16 +75,18 @@
             pdop_str = (msg.pos.pdop).toFixed(1);
             if (msg.esf.fusion == 'init') {
                 msg.esf.fusion = 'Init'
-            }
-            else if (msg.esf.fusion == 'fusion') {
+            } else if (msg.esf.fusion == 'fusion') {
                 msg.esf.fusion = 'Fus.'
             }
             gnss_info = `${msg.pos.fix}, ${msg.esf.fusion}, ${pdop_str}`;
             wwan_info = `Signal: ${msg.wwan0.signal} %<br>Delay: ${msg.wwan0.latency} ms<br>Rx: ${msg.wwan0.rx}<br>Tx: ${msg.wwan0.tx}`;
 
+            obd2_speed_kmh = msg.obd2.speed.toFixed(0)
+
             document.getElementById("gnss-speed").innerHTML = `${speed_kmh} km/h`;
             document.getElementById("gnss-fix").innerHTML = gnss_info;
             document.getElementById("wwan-data").innerHTML = wwan_info;
+            document.getElementById("obd2").innerHTML = `${obd2_speed_kmh} km/h`;
         }
 
         /*

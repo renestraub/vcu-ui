@@ -75,12 +75,16 @@ class RealtimeWebSocket(tornado.websocket.WebSocketHandler):
         gnss_state = RealtimeWebSocket.safeget(None, md, 'gnss-state')
         esf_state = gnss_state['esf-status']
 
+        default = {'speed': 0.0}
+        obd2 = RealtimeWebSocket.safeget(default, md, 'obd2')
+
         info = {
             'clients': len(RealtimeWebSocket.connections),
             'time': RealtimeWebSocket.counter,
             'pos': pos,
             'esf': esf_state,
             'wwan0': wwan0,
+            'obd2': obd2,
         }
         [client.write_message(info) for client in RealtimeWebSocket.connections]
 
