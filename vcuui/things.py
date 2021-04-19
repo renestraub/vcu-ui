@@ -377,6 +377,14 @@ class ThingsDataCollector(threading.Thread):
             }
             self._data_queue.add(data)
 
+        if 'phy-broadr0' in md:
+            info = md['phy-broadr0']
+            quality = info['quality']
+            data = {
+                'broadr0-quality': f'{quality}'
+            }
+            self._data_queue.add(data)
+
     def _gnss(self, md, force):
         if 'gnss-pos' in md:
             pos = md['gnss-pos']
