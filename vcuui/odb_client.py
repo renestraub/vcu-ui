@@ -72,8 +72,8 @@ class OBD2():
         except OSError:
             # In case no CAN station is present the transmit fails. Eventually
             # the transmit queue fills up and the send() call fails
-            logging.warning("Transmit queue full, send failed")
-            return False
+            # logging.warning("Transmit queue full, send failed")
+            return None
 
     def _wait_for_response(self, pid):
         try:
