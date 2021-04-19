@@ -93,6 +93,7 @@ class OBD2():
 
         except socket.timeout:
             logger.debug("Timeout waiting for response")
+        # TODO: Capture OSError here as well?
 
     def _flush_rx_queue(self):
         self.sock.settimeout(0.000001)  # 1 us, must not be 0.0
@@ -101,6 +102,10 @@ class OBD2():
                 _ = self.sock.recv(16)
             except socket.timeout:
                 # logging.warning("Timeout flushing")
+                break
+            except OSError:
+                # Observed once "OSError: [Errno 100] Network is down"
+                logger.warning('problem flushing CAN rx queue')
                 break
 
     def _enable_interface(self):
