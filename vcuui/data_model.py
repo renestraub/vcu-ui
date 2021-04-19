@@ -21,6 +21,7 @@ from vcuui.led import LED_BiColor
 from vcuui.mm import MM
 from vcuui.sysinfo import SysInfo
 from vcuui.obd_client import OBD2
+from vcuui.phy_info import PhyInfo
 
 
 CONF_FILE = '/etc/vcuui.conf'
@@ -114,6 +115,9 @@ class ModelWorker(threading.Thread):
 
             if cnt == 0 or cnt % 4 == 2:
                 self._network()
+
+            if cnt == 0 or cnt % 4 == 3:
+                self._100base_t1()
 
             if cnt == 0 or cnt % 10 == 5:
                 self._modem()
@@ -227,3 +231,13 @@ class ModelWorker(threading.Thread):
                 info['speed'] = 0.0
 
             self.model.publish('obd2', info)
+
+    def _100base_t1(self):
+        phy1 = PhyInfo('broadr0')
+        state = phy1.state()
+        quality = phy1.quality()
+
+        info = dict()
+        info['state'] = state
+        info['quality'] = str(quality)
+        self.model.publish('phy-broadr0', info)
