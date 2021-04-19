@@ -20,7 +20,7 @@ import time
 from vcuui.led import LED_BiColor
 from vcuui.mm import MM
 from vcuui.sysinfo import SysInfo
-from vcuui.odb_client import OBD2
+from vcuui.obd_client import OBD2
 
 
 CONF_FILE = '/etc/vcuui.conf'

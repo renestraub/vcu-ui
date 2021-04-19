@@ -18,6 +18,9 @@ from vcuui.timeout import Timeout
 RX_TIMEOUT = 1
 
 
+logger = logging.getLogger('vcu-ui')
+
+
 class OBD2():
     def __init__(self, interface, bitrate):
         self.interface = interface
@@ -36,7 +39,7 @@ class OBD2():
             self.sock = socket.socket(socket.PF_CAN, socket.SOCK_RAW, socket.CAN_RAW)
             self.sock.bind((self.interface,))
         except OSError:
-            logging.warning(f'Cannot bind to interface {self.interface}')
+            logger.warning(f'Cannot bind to interface {self.interface}')
 
     def cleanup(self):
         self.sock.close()
@@ -89,7 +92,7 @@ class OBD2():
                     return pid
 
         except socket.timeout:
-            logging.debug("Timeout waiting for response")
+            logger.debug("Timeout waiting for response")
 
     def _flush_rx_queue(self):
         self.sock.settimeout(0.000001)  # 1 us, must not be 0.0
@@ -104,7 +107,7 @@ class OBD2():
         name = self.interface
         speed = self.bitrate
 
-        logging.info(f"Enabling CAN interface {name} with {speed} bps")
+        logger.info(f"Enabling CAN interface {name} with {speed} bps")
 
         self._exec_script(['ip', 'link', 'set', name, 'down'])
         self._exec_script(['ip', 'link', 'set', name, 'type', 'can', 'bitrate', str(speed)])
@@ -119,7 +122,7 @@ class OBD2():
 
     def _disable_interface(self):
         name = self.interface
-        logging.debug(f"Disabling CAN interface {name}")
+        logger.debug(f"Disabling CAN interface {name}")
 
         self._exec_script(['ip', 'link', 'set', name, 'down'])
 
@@ -127,7 +130,7 @@ class OBD2():
     def _exec_script(command):
         with Popen(command, stdout=PIPE, stderr=PIPE) as pipe:
             stdout = pipe.stdout.read().decode().strip()
-            logging.debug(
+            logger.debug(
                 'calling "{}" results in "{}" on stdout'.format(command, stdout)
             )
             stderr = pipe.stderr.read().decode().strip()
