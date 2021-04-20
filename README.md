@@ -111,6 +111,14 @@ systemctl start vcu-ui      # Start service right now
 
 ### Revision History
 
+#### v0.6.0 (20210420)
+
+Feature release for environmental tests
+
+- Add OBD-II speed information
+- Add 100BASE-T1 port link quality
+
+
 #### v0.5.4 (20210411)
 
 - Change IMU angles order to Yaw, Pitch, Roll
@@ -164,5 +172,3 @@ systemctl start vcu-ui      # Start service right now
 
 #### Known Bugs & Limitations
 
-- Thread safety issue when getting ESF status for GNSS. Leads to occasional page loading error.
-- Rarely data is not sent to cloud. It is lost, since transmit queue is cleared.
