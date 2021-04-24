@@ -336,6 +336,8 @@ class ThingsDataCollector(threading.Thread):
                 'voltage-in': info['v_in'],
                 'mem-free': info['mem'][1]
             }
+            if 'temp_lm75' in info:
+                data['temperature-board'] = info['temp_lm75']
             self._data_queue.add(data)
 
         if 'link' in md:

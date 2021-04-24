@@ -101,7 +101,11 @@ class MainHandler(tornado.web.RequestHandler):
             tes.append(TE('Load', f'{a}, {b}, {c}'))
 
             temp = d.get(0, 'sys-misc', 'temp')
-            tes.append(TE('Temperature', f'{temp:.0f} °C'))
+            temp_str = f'PMIC: {temp:.0f} °C'
+            temp = d.get(None, 'sys-misc', 'temp_lm75')
+            if temp:
+                temp_str += f', Board: {temp:.0f} °C'
+            tes.append(TE('Temperature', temp_str))
 
             v_in = md['sys-misc']['v_in']
             v_rtc = md['sys-misc']['v_rtc']

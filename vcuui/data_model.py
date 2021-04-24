@@ -151,6 +151,9 @@ class ModelWorker(threading.Thread):
         info['mem'] = si.meminfo()
         info['load'] = si.load()
         info['temp'] = si.temperature()
+        ng800_lm75 = si.temperature(monitor='hwmon1/temp1_input')
+        if ng800_lm75:
+            info['temp_lm75'] = ng800_lm75
         info['v_in'] = si.input_voltage()
         info['v_rtc'] = si.rtc_voltage()
         self.model.publish('sys-misc', info)

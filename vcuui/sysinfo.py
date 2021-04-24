@@ -104,10 +104,13 @@ class SysInfo():
 
         return rxbytes, txbytes
 
-    def temperature(self):
-        with open('/sys/class/hwmon/hwmon0/device/temp1_input') as f:
-            temp_in_milli_c = f.readline().strip()
-            return round(float(temp_in_milli_c) / 1000.0, 1)
+    def temperature(self, monitor='hwmon0/device/temp1_input'):
+        try:
+            with open(f'/sys/class/hwmon/{monitor}') as f:
+                temp_in_milli_c = f.readline().strip()
+                return round(float(temp_in_milli_c) / 1000.0, 1)
+        except FileNotFoundError:
+            pass
 
     def input_voltage(self):
         with open('/sys/class/hwmon/hwmon0/device/in1_input') as f:
