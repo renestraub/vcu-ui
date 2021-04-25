@@ -15,7 +15,7 @@ import logging
 from vcuui.timeout import Timeout
 
 
-RX_TIMEOUT = 1
+RX_TIMEOUT = 1.0
 
 
 logger = logging.getLogger('vcu-ui')
@@ -79,21 +79,25 @@ class OBD2():
             return None
 
     def _wait_for_response(self, pid):
-        try:
-            self.sock.settimeout(RX_TIMEOUT)
-            rx_frame = self.sock.recv(16)
-            can_id, length, data = struct.unpack(self.can_frame_fmt, rx_frame)
-            can_id &= socket.CAN_EFF_MASK
+        to = Timeout(RX_TIMEOUT)
+        while not to.has_elapsed():
+            try:
+                self.sock.settimeout(RX_TIMEOUT/10)
+                rx_frame = self.sock.recv(16)
+                can_id, length, data = struct.unpack(self.can_frame_fmt, rx_frame)
+                can_id &= socket.CAN_EFF_MASK
 
-            if can_id == self.resp_id and length == 8:
-                num_bytes = data[0]
-                if num_bytes >= 3 and num_bytes <= 6 and data[1] == self.service_current_data + 0x40 and data[2] == pid.PID:
-                    pid.decode(data[3:num_bytes+1])
-                    return pid
+                # Check if expected response is received.
+                # At least VAG control units send unsolicited CAN frames. These are silently ignored.
+                if can_id == self.resp_id and length == 8:
+                    num_bytes = data[0]
+                    if num_bytes >= 3 and num_bytes <= 6 and data[1] == self.service_current_data + 0x40 and data[2] == pid.PID:
+                        pid.decode(data[3:num_bytes+1])
+                        return pid
 
-        except socket.timeout:
-            logger.debug("Timeout waiting for response")
-        # TODO: Capture OSError here as well?
+            except socket.timeout:
+                logger.debug("Timeout waiting for response")
+                # TODO: Capture OSError here as well?
 
     def _flush_rx_queue(self):
         self.sock.settimeout(0.000001)  # 1 us, must not be 0.0
