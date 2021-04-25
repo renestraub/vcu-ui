@@ -111,9 +111,10 @@ systemctl start vcu-ui      # Start service right now
 
 ### Revision History
 
-#### v0.6.1 (20210424)
+#### v0.6.2 (20210425)
 
 - Add optional temperature sensor for NG800 mainboard
+- Ignore unwanted obd2 messages
 
 
 #### v0.6.0 (20210420)
