@@ -297,7 +297,8 @@ class ThingsDataCollector(threading.Thread):
                 self._gnss(md, force_update)
 
                 # OBD2 information every second
-                self._obd2(md)
+                force_update = (cnt % 60) == 0
+                self._obd2(md, force_update)
 
                 cnt += 1
 
@@ -422,13 +423,13 @@ class ThingsDataCollector(threading.Thread):
 
         return d
 
-    def _obd2(self, md):
+    def _obd2(self, md, force):
         if 'obd2' in md:
             info = md['obd2']
             speed = info['speed']
             speed_diff = speed - self.obd2_last_speed
             # print(f'TB telemetry {speed} {self.obd2_last_speed}')
-            if abs(speed_diff) >= 1.0:
+            if force or abs(speed_diff) >= 1.0:
                 data = {
                     'obd2-speed': f'{speed}',
                 }
