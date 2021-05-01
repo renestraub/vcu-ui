@@ -162,6 +162,12 @@ class Modem():
         if bid is not None:
             return Bearer(int(bid))
 
+    def sim(self):
+        mmr = self._info()
+        sid = mmr.id('modem.generic.sim')
+        if sid is not None:
+            return SIM(int(sid))
+
     def _info(self, extra=None):
         cmd = ['mmcli', '-K', '-m', str(self.id)]
         if extra:
@@ -184,4 +190,21 @@ class Bearer():
 
     def _info(self):
         cmd = ['mmcli', '-K', '-b', str(self.id)]
+        return MM.command(cmd)
+
+
+class SIM():
+    def __init__(self, id):
+        self.id = id
+
+    def imsi(self):
+        mmr = self._info()
+        return mmr.text('sim.properties.imsi')
+
+    def iccid(self):
+        mmr = self._info()
+        return mmr.text('sim.properties.iccid')
+
+    def _info(self):
+        cmd = ['mmcli', '-K', '-i', str(self.id)]
         return MM.command(cmd)

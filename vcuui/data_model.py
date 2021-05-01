@@ -212,6 +212,14 @@ class ModelWorker(threading.Thread):
                     ip = b.ip()
                     info['bearer-ip'] = ip
 
+            s = m.sim()
+            if s:
+                info['sim-id'] = str(s.id)
+                imsi = s.imsi()
+                info['sim-imsi'] = imsi
+                iccid = s.iccid()
+                info['sim-iccid'] = iccid
+
         self.model.publish('modem', info)
 
     def _obd2_setup(self, port, speed):

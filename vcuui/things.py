@@ -325,6 +325,14 @@ class ThingsDataCollector(threading.Thread):
             info = md['ubxlib']
             attrs['ubxlib-version'] = info['version']
 
+        if 'modem' in md:
+            info = md['modem']
+            if 'sim-id' in info:
+                imsi = info['sim-imsi']
+                attrs['sim-imsi'] = imsi
+                iccid = info['sim-iccid']
+                attrs['sim-iccid'] = iccid
+
         self._attributes_queue.add(attrs)
 
     def _info(self, md):

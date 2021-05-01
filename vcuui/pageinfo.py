@@ -183,6 +183,12 @@ class MainHandler(tornado.web.RequestHandler):
                             delay_in_ms = md['link']['delay'] * 1000.0
                             tes.append(TE('Ping', f'{delay_in_ms:.0f} ms'))
 
+                if 'sim-id' in mi:
+                    tes.append(TE('', ''))
+                    tes.append(TE('SIM Id', mi['sim-id']))
+                    tes.append(TE('IMSI', mi['sim-imsi']))
+                    tes.append(TE('ICCID', mi['sim-iccid']))
+
             else:
                 tes.append(TE('', ''))
                 tes.append(TE('Modem Id', 'No Modem'))
