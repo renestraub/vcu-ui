@@ -337,64 +337,50 @@ class ThingsDataCollector(threading.Thread):
         self._attributes_queue.add(attrs)
 
     def _info(self, md):
+        telemetry = dict()
         if 'sys-misc' in md:
             info = md['sys-misc']
-            data = {
-                'temperature': info['temp'],
-                'cpu-load': info['load'][0],
-                'voltage-in': info['v_in'],
-                'mem-free': info['mem'][1]
-            }
+            telemetry['temperature'] = info['temp']
+            telemetry['cpu-load'] = info['load'][0]
+            telemetry['voltage-in'] = info['v_in']
+            telemetry['mem-free'] = info['mem'][1]
             if 'temp_lm75' in info:
-                data['temperature-board'] = info['temp_lm75']
-            self._data_queue.add(data)
+                telemetry['temperature-board'] = info['temp_lm75']
 
         if 'link' in md:
             info = md['link']
             if 'delay' in info:
                 delay_in_ms = info['delay'] * 1000.0
-                data = {
-                    'wwan-delay': f'{delay_in_ms:.0f}'
-                }
-                self._data_queue.add(data)
+                telemetry['wwan-delay'] = f'{delay_in_ms:.0f}'
 
         if 'modem' in md:
             info = md['modem']
-            data = dict()
-
             if 'bearer-id' in info:
                 id = info['bearer-id']
-                data['bearer-id'] = id
+                telemetry['bearer-id'] = id
                 if 'bearer-uptime' in info:
                     uptime = info['bearer-uptime']
-                    data['bearer-uptime'] = uptime
-                self._data_queue.add(data)
+                    telemetry['bearer-uptime'] = uptime
 
         if 'net-wwan0' in md:
             info = md['net-wwan0']
             (rx, tx) = info['bytes']
-            data = {
-                'wwan0-rx': f'{rx}',
-                'wwan0-tx': f'{tx}'
-            }
-            self._data_queue.add(data)
+            telemetry['wwan0-rx'] = f'{rx}'
+            telemetry['wwan0-tx'] = f'{tx}'
 
         if 'net-wlan0' in md:
             info = md['net-wlan0']
             (rx, tx) = info['bytes']
-            data = {
-                'wlan0-rx': f'{rx}',
-                'wlan0-tx': f'{tx}'
-            }
-            self._data_queue.add(data)
+            telemetry['wlan0-rx'] = f'{rx}'
+            telemetry['wlan0-tx'] = f'{tx}'
 
         if 'phy-broadr0' in md:
             info = md['phy-broadr0']
             quality = info['quality']
-            data = {
-                'broadr0-quality': f'{quality}'
-            }
-            self._data_queue.add(data)
+            telemetry['broadr0-quality'] = f'{quality}'
+
+        if len(telemetry) > 0:
+            self._data_queue.add(telemetry)
 
     def _gnss(self, md, force):
         if 'gnss-pos' in md:
