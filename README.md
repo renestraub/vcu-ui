@@ -111,8 +111,10 @@ systemctl start vcu-ui      # Start service right now
 
 ### Revision History
 
-#### v0.6.2 (20210425)
+#### v0.6.3 (20210501)
 
+- Add SIM information (IMSI, ICCID)
+- Reduce number of timestamps in cloud upload by combining more items
 - Add optional temperature sensor for NG800 mainboard
 - Ignore unwanted obd2 messages
 

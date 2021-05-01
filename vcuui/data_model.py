@@ -251,4 +251,5 @@ class ModelWorker(threading.Thread):
         info = dict()
         info['state'] = state
         info['quality'] = str(quality)
+
         self.model.publish('phy-broadr0', info)
