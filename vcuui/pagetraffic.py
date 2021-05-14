@@ -56,7 +56,7 @@ class TrafficHandler(tornado.web.RequestHandler):
                         data=data,
                         version=version)
 
-        except KeyError as e:
+        except KeyError:
             self.render('traffic.html',
                         title='NG800/VCU Pro',
                         table=None,
