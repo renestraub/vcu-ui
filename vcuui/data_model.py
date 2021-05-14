@@ -22,6 +22,7 @@ from vcuui.mm import MM
 from vcuui.sysinfo import SysInfo
 from vcuui.obd_client import OBD2
 from vcuui.phy_info import PhyInfo
+from vcuui.vnstat import VnStat
 
 
 CONF_FILE = '/etc/vcuui.conf'
@@ -106,6 +107,8 @@ class ModelWorker(threading.Thread):
         if self.model.obd2_port and self.model.obd2_speed:
             self._obd2_setup(self.model.obd2_port, self.model.obd2_speed)
 
+        self._traffic_mon_setup()
+
         self.start()
 
     def run(self):
@@ -128,6 +131,9 @@ class ModelWorker(threading.Thread):
             if self.model.obd2_port:
                 # if cnt == 0 or cnt % 2 == 1:
                 self._obd2_poll()
+
+            if cnt == 0 or cnt % 20 == 12:
+                self._traffic()
 
             cnt += 1
             time.sleep(1.0)
@@ -253,3 +259,19 @@ class ModelWorker(threading.Thread):
         info['quality'] = str(quality)
 
         self.model.publish('phy-broadr0', info)
+
+    def _traffic_mon_setup(self):
+        logger.warning('setting up traffic monitoring')
+
+        if VnStat.probe():
+            self._vnstat = VnStat('wwan0')
+            # print(f'version is {VnStat.version}')
+        else:
+            self._vnstat = None
+            logger.info('traffic monitoring disabled')
+
+    def _traffic(self):
+        if self._vnstat:
+            info = self._vnstat.get()
+            if info:
+                self.model.publish('traffic-wwan0', info)

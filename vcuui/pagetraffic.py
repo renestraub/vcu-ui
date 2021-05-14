@@ -1,7 +1,6 @@
 """
 Traffic Page
 """
-import io
 import logging
 import subprocess
 
@@ -11,6 +10,12 @@ from vcuui._version import __version__ as version
 from vcuui.data_model import Model
 
 logger = logging.getLogger('vcu-ui')
+
+
+class TE(object):
+    def __init__(self, header, text):
+        self.header = header
+        self.text = text
 
 
 class TrafficHandler(tornado.web.RequestHandler):
@@ -25,17 +30,35 @@ class TrafficHandler(tornado.web.RequestHandler):
 
             serial = md['sys-version']['serial']
 
+            if 'traffic-wwan0' in md:
+                data['traffic-wwan0'] = 'true'
+                info = md['traffic-wwan0']
+
+                tes.append(TE('<b>wwan0</b>', ''))
+
+                rx = int(info['day_rx']) / 2**20
+                tx = int(info['day_tx']) / 2**20
+                tes.append(TE('Day', f'Rx: {rx:.1f} MiB<br>Tx: {tx:.2f} MiB'))
+
+                rx = int(info['month_rx']) / 2**20
+                tx = int(info['month_tx']) / 2**20
+                tes.append(TE('Month', f'Rx: {rx:.1f} MiB<br>Tx: {tx:.0f} MiB'))
+
+                rx = int(info['year_rx']) / 2**30
+                tx = int(info['year_tx']) / 2**30
+                tes.append(TE('Year', f'Rx: {rx:.1f} GiB<br>Tx: {tx:.2f} GiB'))
+            else:
+                data['traffic-wwan0'] = 'false'
+
             self.render('traffic.html',
                         title=f'{serial}',
                         table=tes,
                         data=data,
-                        message='',
                         version=version)
 
         except KeyError as e:
             self.render('traffic.html',
                         title='NG800/VCU Pro',
-                        message=f'Data lookup error: {e} not found',
                         table=None,
                         data=None,
                         version='n/a')

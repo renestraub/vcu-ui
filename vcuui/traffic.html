@@ -24,12 +24,30 @@
         </div>
 
         <div class="main">
-            <img src="/traffic/img/summary.png">
-            <p></p>
-            <img src="/traffic/img/daily.png">
-            <p></p>
+            {% if data['traffic-wwan0'] == 'true' %}
+                <table>
+                    {% if table %}
+                        {% for entry in table %}
+                        <tr>
+                            <td>{% raw entry.header %}</td>
+                            <td>{% raw entry.text %}</td>
+                        </tr>
+                        {% end %}
+                    {% end %}
+                </table>
+
+                <p></p>
+                <img src="/traffic/img/summary.png">
+                <p></p>
+                <img src="/traffic/img/daily.png">
+                <p></p>
+            {% else %}
+                Sorry, there is no traffic logging present on this device. Consider upgrading to a newer release.
+            {% end %}
             <!-- <img src="/img/monthly.png">
             <p></p> -->
+            <p></p>
+            <p></p>
         </div>
     </div>
 
