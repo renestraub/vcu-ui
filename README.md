@@ -45,6 +45,13 @@ For drive tests the realtime page is most suitable. It display drive related inf
 ![Gnss](https://github.com/renestraub/vcu-ui/raw/master/preview/realtime.png)
 
 
+#### WWAN Traffic Page
+
+The mobile traffic on wwan0 interface is summarized on this page in tabular and graphical form. Use this page to check the accumulated traffic and compare against your mobile plan.
+
+![Traffic](https://github.com/renestraub/vcu-ui/raw/master/preview/traffic.png)
+
+
 
 ### Requirements
 
@@ -111,8 +118,9 @@ systemctl start vcu-ui      # Start service right now
 
 ### Revision History
 
-#### v0.6.3 (20210501)
+#### v0.7.0 (20210516)
 
+- Add traffic monitor
 - Add SIM information (IMSI, ICCID)
 - Reduce number of timestamps in cloud upload by combining more items
 - Add optional temperature sensor for NG800 mainboard

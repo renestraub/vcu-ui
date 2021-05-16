@@ -46,7 +46,7 @@ class TrafficHandler(tornado.web.RequestHandler):
 
                 rx = int(info['year_rx']) / 2**30
                 tx = int(info['year_tx']) / 2**30
-                tes.append(TE('Year', f'Rx: {rx:.2f} GiB<br>Tx: {tx:.2f} GiB<br>Total: {rx+tx:.2f} MiB'))
+                tes.append(TE('Year', f'Rx: {rx:.2f} GiB<br>Tx: {tx:.2f} GiB<br>Total: {rx+tx:.2f} GiB'))
             else:
                 data['traffic-wwan0'] = 'false'
 
