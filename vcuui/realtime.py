@@ -96,6 +96,6 @@ class RealtimeWebSocket(tornado.websocket.WebSocketHandler):
             try:
                 dct = dct[key]
             except KeyError as e:
-                logger.warning(f'cannot get {e}')
+                logger.debug(f'cannot get {e}')
                 return default
         return dct
