@@ -292,11 +292,15 @@ class ThingsDataCollector(threading.Thread):
                 if cnt % 15 == 0:
                     self._info(md)
 
+                # Traffic information every two minutes
+                if cnt % 120 == 0:
+                    self._traffic(md)
+
                 # Force GNSS update once a minute, even if not moving
                 force_update = (cnt % 60) == 0
                 self._gnss(md, force_update)
 
-                # OBD2 information every second
+                # OBD2 information every second, force update even when no change
                 force_update = (cnt % 60) == 0
                 self._obd2(md, force_update)
 
@@ -378,6 +382,18 @@ class ThingsDataCollector(threading.Thread):
             info = md['phy-broadr0']
             quality = info['quality']
             telemetry['broadr0-quality'] = f'{quality}'
+
+        if len(telemetry) > 0:
+            self._data_queue.add(telemetry)
+
+    def _traffic(self, md):
+        telemetry = dict()
+        if 'traffic-wwan0' in md:
+            info = md['traffic-wwan0']
+            telemetry['wwan0-rx-day'] = f'{info["day_rx"]}'
+            telemetry['wwan0-tx-day'] = f'{info["day_tx"]}'
+            telemetry['wwan0-rx-month'] = f'{info["month_rx"]}'
+            telemetry['wwan0-tx-month'] = f'{info["month_tx"]}'
 
         if len(telemetry) > 0:
             self._data_queue.add(telemetry)

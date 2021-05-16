@@ -22,6 +22,7 @@ from vcuui.mm import MM
 from vcuui.pagegnss import GnssHandler
 from vcuui.realtime import RealtimeHandler, RealtimeWebSocket
 from vcuui.pageinfo import MainHandler
+from vcuui.pagetraffic import TrafficHandler, TrafficImageHandler
 from vcuui.things import Things
 
 
@@ -245,6 +246,8 @@ def run_server(port=80):
         (r"/", MainHandler),
         (r"/gnss", GnssHandler),
         (r"/realtime", RealtimeHandler),
+        (r"/traffic", TrafficHandler),
+        (r'/traffic/img/(?P<filename>.+\.png)?', TrafficImageHandler),
 
         (r"/do_location", LocationHandler),
         (r"/do_signal", SignalHandler),
