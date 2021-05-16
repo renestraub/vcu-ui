@@ -24,8 +24,7 @@
                 <p></p>
                 <button id="button_location" class="button button_green" type="button" onclick="do_location()">Enable Location</button>
                 <button id="button_signal" class="button button_green" type="button" onclick="do_signal()">Enable Signal Meas.</button>
-<!--                 <button id="button_ping" class="button button_green" type="button" onclick="do_ping()">Ping</button>
- -->                <button id="button_find_cell" class="button button_green" type="button" onclick="do_cell_find()">Find Cell</button>
+                <button id="button_find_cell" class="button button_green" type="button" onclick="do_cell_find()">Find Cell</button>
                 <p></p>
                 {% if not cloud_log %}
                     <button id="button_cloud" class="button button_orange" type="button" onclick="do_cloud(true)">Start Cloud Logging</button>
@@ -183,24 +182,6 @@
                 clearInterval(timer_refresh)
                 timer_refresh == null
             }
-        }
-
-        function do_ping() {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                    // show console and display ping result
-                    dialog_console.style.display = "block";
-                    dialog_console.innerHTML = this.responseText;
-                    start_close_timer(10);
-                }
-            };
-
-            model_open('Executing ping, please wait ...');
-            modal_enable_close_timer();
-
-            xhttp.open("GET", "do_ping", true);
-            xhttp.send();
         }
 
         function do_location() {

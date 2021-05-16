@@ -4,7 +4,7 @@ vcu-ui data model
 collects data from various sources and stores them in a in-memory
 "database".
 
-To enable ODB-II speed polling add the follocing to the vcu-ui configuratuih
+To enable ODB-II speed polling add the following to the vcu-ui configuration
 file /etc/vcuui.conf
 
 [OBD2]
