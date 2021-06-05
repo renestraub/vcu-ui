@@ -80,6 +80,13 @@ class SystemRebootHandler(tornado.web.RequestHandler):
         os.system("reboot")
 
 
+class SystemPowerdownHandler(tornado.web.RequestHandler):
+    def get(self):
+        logger.warning('powering down system')
+        self.write('Initiated system power down')
+        os.system("poweroff")
+
+
 class CloudHandler(tornado.web.RequestHandler):
     def get(self):
         logger.warning('starting/stopping cloud logging service')
@@ -255,6 +262,7 @@ def run_server(port=80):
         (r"/do_cloud", CloudHandler),
         (r"/do_modem_reset", ModemResetHandler),
         (r"/do_system_reboot", SystemRebootHandler),
+        (r"/do_system_powerdown", SystemPowerdownHandler),
 
         (r"/do_gnss_config", GnssConfigHandler),
 
