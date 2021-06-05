@@ -34,6 +34,7 @@
                 <p></p>
                 <button id="button_modem_reset" class="button button_orange" type="button" onclick="do_modem_reset()">Reset GSM Modem</button>
                 <button id="button_reboot" class="button button_red" type="button" onclick="do_system_reboot()">Reboot System</button>
+                <button id="button_reboot" class="button button_red" type="button" onclick="do_system_powerdown()">Powerdown</button>
                 <p></p>
                 <button class="button button_slider" onclick="window.location.href = '/'">Refresh Page</button>
                 <label class="switch">
@@ -203,6 +204,13 @@
             res = confirm("Do you really want to reboot the system?");
             if (res) {
                 operate("Doing system reboot", "do_system_reboot");
+            }
+        }
+
+        function do_system_powerdown() {
+            res = confirm("Do you really want to powerdown the system?");
+            if (res) {
+                operate("Powering down system", "do_system_powerdown");
             }
         }
 
