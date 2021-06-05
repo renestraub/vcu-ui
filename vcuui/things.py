@@ -312,11 +312,13 @@ class ThingsDataCollector(threading.Thread):
         os_version = md['sys-version']['sys']
         serial = md['sys-version']['serial']
         hw_ver = md['sys-version']['hw']
+        bootloader_ver = md['sys-version']['bl']
         uptime = md['sys-datetime']['uptime']
         attrs = {
             "serial": serial,
             "os-version": os_version,
             "ui-version": ui_version,
+            "bootloader-version": bootloader_ver,
             "hardware": hw_ver,
             "uptime": uptime
         }
