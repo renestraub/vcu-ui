@@ -190,6 +190,8 @@ class ModelWorker(threading.Thread):
         if m:
             info['modem-id'] = str(m.id)
 
+            info['revision'] = m.revision()
+
             state = m.state()
             access_tech = m.access_tech()
             info['state'] = state
