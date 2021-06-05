@@ -121,6 +121,10 @@ class Modem():
         subprocess.run(['mmcli', '-m', str(self.id), '--location-enable-3gpp'],
                        stdout=subprocess.PIPE)
 
+    def revision(self):
+        mmr = self._info()
+        return mmr.text('modem.generic.revision')
+
     def state(self):
         mmr = self._info()
         return mmr.text('modem.generic.state')
