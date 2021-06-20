@@ -79,7 +79,7 @@
                 msg.esf.fusion = 'Fus.'
             }
             gnss_info = `${msg.pos.fix}, ${msg.esf.fusion}, ${pdop_str}`;
-            wwan_info = `Signal: ${msg.wwan0.signal} %<br>Delay: ${msg.wwan0.latency} ms<br>Rx: ${msg.wwan0.rx}<br>Tx: ${msg.wwan0.tx}`;
+            wwan_info = `Signal: ${msg.wwan0.signal}% (${msg.wwan0.signal_ext}%)<br>Delay: ${msg.wwan0.latency} ms<br>Rx: ${msg.wwan0.rx}<br>Tx: ${msg.wwan0.tx}`;
 
             obd2_speed_kmh = msg.obd2.speed.toFixed(0)
 
