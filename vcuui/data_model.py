@@ -98,6 +98,7 @@ class ModelWorker(threading.Thread):
         super().__init__()
 
         self.model = model
+        self.modem_setup_done = False
 
     def setup(self):
         self.lock = threading.Lock()
@@ -184,10 +185,21 @@ class ModelWorker(threading.Thread):
         info_wlan['bytes'] = si.ifinfo('wlan0')
         self.model.publish('net-wlan0', info_wlan)
 
+    def _modem_setup(self, m):
+        logger.info("enabling signal query")
+        if m:
+            m.setup_signal_query()
+            self.modem_setup_done = True
+        else:
+            logger.info("modem not yet ready")
+
     def _modem(self):
         info = dict()
         m = MM.modem()
         if m:
+            if not self.modem_setup_done:
+                self._modem_setup(m)
+
             info['modem-id'] = str(m.id)
 
             info['revision'] = m.revision()

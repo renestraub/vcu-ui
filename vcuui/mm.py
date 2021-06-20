@@ -114,7 +114,7 @@ class Modem():
                        stdout=subprocess.PIPE)
 
     def setup_signal_query(self):
-        subprocess.run(['mmcli', '-m', str(self.id), '--signal-setup', '30'],
+        subprocess.run(['mmcli', '-m', str(self.id), '--signal-setup', '2'],
                        stdout=subprocess.PIPE)
 
     def setup_location_query(self):
