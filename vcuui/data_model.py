@@ -239,6 +239,8 @@ class ModelWorker(threading.Thread):
                 info['sim-imsi'] = imsi
                 iccid = s.iccid()
                 info['sim-iccid'] = iccid
+        else:
+            self.modem_setup_done = False
 
         self.model.publish('modem', info)
 
