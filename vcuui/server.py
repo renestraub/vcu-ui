@@ -73,6 +73,13 @@ class ModemResetHandler(tornado.web.RequestHandler):
             self.write('No modem found')
 
 
+class SystemSleepHandler(tornado.web.RequestHandler):
+    def get(self):
+        logger.warning('putting system to sleep')
+        self.write('Initiated system sleep procedure')
+        os.system("rtcwake -s 300 -m off")
+
+
 class SystemRebootHandler(tornado.web.RequestHandler):
     def get(self):
         logger.warning('rebooting system')
@@ -261,6 +268,7 @@ def run_server(port=80):
         (r"/do_cell_locate", GsmCellLocateHandler),
         (r"/do_cloud", CloudHandler),
         (r"/do_modem_reset", ModemResetHandler),
+        (r"/do_system_sleep", SystemSleepHandler),
         (r"/do_system_reboot", SystemRebootHandler),
         (r"/do_system_powerdown", SystemPowerdownHandler),
 

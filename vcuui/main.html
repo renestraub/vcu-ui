@@ -33,8 +33,9 @@
                 {% end %}
                 <p></p>
                 <button id="button_modem_reset" class="button button_orange" type="button" onclick="do_modem_reset()">Reset GSM Modem</button>
-                <button id="button_reboot" class="button button_red" type="button" onclick="do_system_reboot()">Reboot System</button>
-                <button id="button_reboot" class="button button_red" type="button" onclick="do_system_powerdown()">Powerdown</button>
+                <button id="button_sleep" class="button button_orange" type="button" onclick="do_system_sleep()">Sleep</button>
+                <button id="button_reboot" class="button button_red" type="button" onclick="do_system_reboot()">Reboot</button>
+                <button id="button_powerdown" class="button button_red" type="button" onclick="do_system_powerdown()">Powerdown</button>
                 <p></p>
                 <button class="button button_slider" onclick="window.location.href = '/'">Refresh Page</button>
                 <label class="switch">
@@ -197,6 +198,13 @@
             res = confirm("Do you really want to reset the GSM modem?");
             if (res) {
                 operate("Resetting modem", "do_modem_reset");
+            }
+        }
+
+        function do_system_sleep() {
+            res = confirm("Do you want to sleep the system for 5 minutes?");
+            if (res) {
+                operate("Putting system to sleep", "do_system_sleep");
             }
         }
 
