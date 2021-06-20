@@ -222,7 +222,7 @@ class ModelWorker(threading.Thread):
                 # Compute an alternate signal quality indicator to ModemManager
                 lte_q = SignalQuality_LTE(sig['rsrq'], sig['rsrp'])
                 qual = lte_q.quality() * 100.0
-                info['signal-quality2'] = round(qual, 0)
+                info['signal-quality2'] = round(qual)
                 # print(sig, '->', info['signal-quality2'])
             elif access_tech == 'umts':
                 sig = m.signal_umts()
