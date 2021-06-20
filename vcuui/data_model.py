@@ -19,11 +19,11 @@ import time
 
 from vcuui.led import LED_BiColor
 from vcuui.mm import MM
-from vcuui.sysinfo import SysInfo
 from vcuui.obd_client import OBD2
 from vcuui.phy_info import PhyInfo
+from vcuui.sig_quality import SignalQuality_LTE
+from vcuui.sysinfo import SysInfo
 from vcuui.vnstat import VnStat
-
 
 CONF_FILE = '/etc/vcuui.conf'
 
@@ -123,7 +123,7 @@ class ModelWorker(threading.Thread):
             if cnt == 0 or cnt % 4 == 3:
                 self._100base_t1()
 
-            if cnt == 0 or cnt % 10 == 5:
+            if cnt == 0 or cnt % 4 == 2:
                 self._modem()
 
             if cnt == 0 or cnt % 20 == 15:
@@ -219,6 +219,11 @@ class ModelWorker(threading.Thread):
             if access_tech == 'lte':
                 sig = m.signal_lte()
                 info['signal-lte'] = sig
+                # Compute an alternate signal quality indicator to ModemManager
+                lte_q = SignalQuality_LTE(sig['rsrq'], sig['rsrp'])
+                qual = lte_q.quality() * 100.0
+                info['signal-quality2'] = round(qual, 0)
+                # print(sig, '->', info['signal-quality2'])
             elif access_tech == 'umts':
                 sig = m.signal_umts()
                 info['signal-umts'] = sig

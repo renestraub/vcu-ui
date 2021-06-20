@@ -151,7 +151,11 @@ class MainHandler(tornado.web.RequestHandler):
                         data.update(loc_info)
 
                 sq = mi['signal-quality']
-                tes.append(TE('Signal', f'{sq} %'))
+                sq_str = f'{sq}%'
+                if 'signal-quality2' in mi:
+                    sq2 = mi['signal-quality2']
+                    sq_str += f' ({sq2:.0f}%)'
+                tes.append(TE('Signal', sq_str))
 
                 if access_tech == 'lte':
                     sig = mi['signal-lte']
