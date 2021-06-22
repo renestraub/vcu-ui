@@ -118,6 +118,15 @@ systemctl start vcu-ui      # Start service right now
 
 ### Revision History
 
+#### v0.7.1 (20210620)
+
+- Compute extended signal quality and display it on main screen, realtime view and Thingsboard
+- Provide bootloader version on Thingsboard
+- Provide modem firmware version on Thingsboard
+- Add Powerdown command
+- Add Sleep command
+
+
 #### v0.7.0 (20210516)
 
 - Add traffic monitor
