@@ -115,14 +115,14 @@ class MainHandler(tornado.web.RequestHandler):
             tes.append(TE('', ''))
             tes.append(TE('<b>Network</b>', ''))
 
-            rx, tx = d.get((-1, -1), 'net-wwan0', 'bytes')
-            if rx != -1:
+            rx, tx = d.get((None, None), 'net-wwan0', 'bytes')
+            if rx and tx:
                 rx = int(rx) / 1000000
                 tx = int(tx) / 1000000
                 tes.append(TE('wwan0', f'Rx: {rx:.1f} MB<br>Tx: {tx:.1f} MB'))
 
-            rx, tx = d.get((-1, -1), 'net-wlan0', 'bytes')
-            if rx != -1:
+            rx, tx = d.get((None, None), 'net-wlan0', 'bytes')
+            if rx and tx:
                 rx = int(rx) / 1000000
                 tx = int(tx) / 1000000
                 tes.append(TE('wlan0', f'Rx: {rx:.1f} MB<br>Tx: {tx:.1f} MB'))
@@ -151,7 +151,11 @@ class MainHandler(tornado.web.RequestHandler):
                         data.update(loc_info)
 
                 sq = mi['signal-quality']
-                tes.append(TE('Signal', f'{sq} %'))
+                sq_str = f'{sq}%'
+                if 'signal-quality2' in mi:
+                    sq2 = mi['signal-quality2']
+                    sq_str += f' ({sq2:.0f}%)'
+                tes.append(TE('Signal', sq_str))
 
                 if access_tech == 'lte':
                     sig = mi['signal-lte']

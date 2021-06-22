@@ -59,14 +59,19 @@ class RealtimeWebSocket(tornado.websocket.WebSocketHandler):
         md = m.get_all()
         # gnss = Gnss.instance
 
-        rx, tx = RealtimeWebSocket.safeget((0, 0), md, 'net-wwan0', 'bytes')
+        rx, tx = RealtimeWebSocket.safeget((None, None), md, 'net-wwan0', 'bytes')
+        if not (rx and tx):
+            rx = 0
+            tx = 0
         delay_in_ms = RealtimeWebSocket.safeget(0, md, 'link', 'delay') * 1000.0
-        sq = RealtimeWebSocket.safeget((0, 0), md, 'modem', 'signal-quality')
+        sq = RealtimeWebSocket.safeget((0), md, 'modem', 'signal-quality')
+        sq_ext = RealtimeWebSocket.safeget((0), md, 'modem', 'signal-quality2')
         wwan0 = {
             'rx': f'{int(rx):,}',
             'tx': f'{int(tx):,}',
             'latency': str(delay_in_ms),
-            'signal': str(sq)
+            'signal': str(sq),
+            'signal_ext': str(sq_ext)
         }
 
         default = {'fix': '-', 'lon': 0.0, 'lat': 0.0, 'speed': 0.0, 'pdop': 99.99}

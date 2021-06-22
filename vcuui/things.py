@@ -363,6 +363,15 @@ class ThingsDataCollector(threading.Thread):
 
         if 'modem' in md:
             info = md['modem']
+
+            if 'signal-quality' in info:
+                sq = info['signal-quality']
+                telemetry['siqnal-qlt'] = sq
+
+            if 'signal-quality2' in info:
+                sq = info['signal-quality2']
+                telemetry['signal-qlt-ext'] = sq
+
             if 'bearer-id' in info:
                 id = info['bearer-id']
                 telemetry['bearer-id'] = id
