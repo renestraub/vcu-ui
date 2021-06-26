@@ -1,5 +1,8 @@
 
 class SignalQuality_LTE:
+    q_max = 1.0
+    q_min = 0.1
+
     def __init__(self, rsrq, rsrp):
         self._rsrq = rsrq
         self._rsrp = rsrp
@@ -13,25 +16,27 @@ class SignalQuality_LTE:
     def quality(self):
         return self._quality
 
-    @staticmethod
-    def _rsrq_to_q(rsrq):
+    @classmethod
+    def _rsrq_to_q(cls, rsrq):
         """
         Maps LTE RSRQ to a 0..1 quality indicator
         - >= -10: 1.0 Excellent
         -  < -20: 0.2 Cell Edge
         - Values in between are linear interpolated
         """
-        if rsrq > -10:
-            q = 1.0
-        elif rsrq < -20:
-            q = 0.2
+        rsrq_high = -8
+        rsrq_low = -20
+        if rsrq > rsrq_high:
+            q = cls.q_max
+        elif rsrq < rsrq_low:
+            q = cls.q_min
         else:
-            q = 1+((rsrq+10)/10*0.8)
+            q = 1.0+((rsrq-rsrq_high)/(rsrq_high-rsrq_low)*(cls.q_max-cls.q_min))
 
         return q
 
-    @staticmethod
-    def _rsrp_to_q(rsrp):
+    @classmethod
+    def _rsrp_to_q(cls, rsrp):
         """
         Maps LTE RSRP to a 0..1 quality indicator
 
@@ -39,11 +44,13 @@ class SignalQuality_LTE:
         -  < -100: 0.2 Cell Edge
         - Values in between are linear interpolated
         """
-        if rsrp > -80:
-            q = 1.0
-        elif rsrp < -100:
-            q = 0.2
+        rsrp_high = -80
+        rsrp_low = -100
+        if rsrp > rsrp_high:
+            q = cls.q_max
+        elif rsrp < rsrp_low:
+            q = cls.q_min
         else:
-            q = 1+((rsrp+80)/20*0.8)
+            q = 1.0+((rsrp-rsrp_high)/(rsrp_high-rsrp_low)*(cls.q_max-cls.q_min))
 
         return q
