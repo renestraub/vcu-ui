@@ -8,29 +8,29 @@ class TestLTE:
         q = SignalQuality_LTE._rsrq_to_q(0)
         assert(math.isclose(q, 1.0))
 
-        q = SignalQuality_LTE._rsrq_to_q(-9.999)
+        q = SignalQuality_LTE._rsrq_to_q(-7.999)
         assert(math.isclose(q, 1.0))
 
-        q = SignalQuality_LTE._rsrq_to_q(-10)
+        q = SignalQuality_LTE._rsrq_to_q(-8)
         assert(math.isclose(q, 1.0))
 
-        q = SignalQuality_LTE._rsrq_to_q(-12.5)
-        assert(math.isclose(q, 0.8))
+        q = SignalQuality_LTE._rsrq_to_q(-11)
+        assert(math.isclose(q, 0.775))
 
-        q = SignalQuality_LTE._rsrq_to_q(-15)
-        assert(math.isclose(q, 0.6))
+        q = SignalQuality_LTE._rsrq_to_q(-14)
+        assert(math.isclose(q, 0.55))
 
-        q = SignalQuality_LTE._rsrq_to_q(-17.5)
-        assert(math.isclose(q, 0.4))
+        q = SignalQuality_LTE._rsrq_to_q(-17)
+        assert(math.isclose(q, 0.325))
 
         q = SignalQuality_LTE._rsrq_to_q(-20)
-        assert(math.isclose(q, 0.20))
+        assert(math.isclose(q, 0.10))
 
         q = SignalQuality_LTE._rsrq_to_q(-20.001)
-        assert(math.isclose(q, 0.20))
+        assert(math.isclose(q, 0.10))
 
         q = SignalQuality_LTE._rsrq_to_q(-30)
-        assert(math.isclose(q, 0.20))
+        assert(math.isclose(q, 0.10))
 
     def test_rsrp_1(self):
         q = SignalQuality_LTE._rsrp_to_q(0)
@@ -43,30 +43,31 @@ class TestLTE:
         assert(math.isclose(q, 1.00))
 
         q = SignalQuality_LTE._rsrp_to_q(-85)
-        assert(math.isclose(q, 0.80))
+        assert(math.isclose(q, 0.775))
 
         q = SignalQuality_LTE._rsrp_to_q(-90)
-        assert(math.isclose(q, 0.60))
+        assert(math.isclose(q, 0.55))
 
         q = SignalQuality_LTE._rsrp_to_q(-95)
-        assert(math.isclose(q, 0.40))
+        assert(math.isclose(q, 0.325))
 
         q = SignalQuality_LTE._rsrp_to_q(-100)
-        assert(math.isclose(q, 0.20))
+        assert(math.isclose(q, 0.10))
 
         q = SignalQuality_LTE._rsrp_to_q(-100.001)
-        assert(math.isclose(q, 0.20))
+        assert(math.isclose(q, 0.10))
 
         q = SignalQuality_LTE._rsrp_to_q(-140)
-        assert(math.isclose(q, 0.20))
+        assert(math.isclose(q, 0.10))
 
     def test_1(self):
         # Excellent
-        lte_q = SignalQuality_LTE(-10, -80)
+        lte_q = SignalQuality_LTE(-8, -80)
         q = lte_q.quality()
         assert(math.isclose(q, 1.0))
 
         # Cell edge - Close to disconnection
         lte_q = SignalQuality_LTE(-20, -100)
         q = lte_q.quality()
-        assert(math.isclose(q, 0.2))
+        print(q)
+        assert(math.isclose(q, 0.1))
