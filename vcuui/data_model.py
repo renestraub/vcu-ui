@@ -202,7 +202,8 @@ class ModelWorker(threading.Thread):
 
             info['modem-id'] = str(m.id)
 
-            info['revision'] = m.revision()
+            version = m.revision()
+            info['revision'] = version
 
             state = m.state()
             access_tech = m.access_tech()

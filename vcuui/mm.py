@@ -9,7 +9,7 @@ class MM():
     def modem():
         id = MM._id()
         if id is not None:
-            return Modem(id)
+            return Modem(id)    # else None
 
     @staticmethod
     def command(cmd):
@@ -20,7 +20,19 @@ class MM():
     @staticmethod
     def _id():
         mmr = MM.command(['mmcli', '-K', '-L'])
-        return mmr.id('modem-list.value[1]')
+        # Returns number of modems with each modems id.
+        #   modem-list.length   : 1
+        #   modem-list.value[1] : /org/freedesktop/ModemManager1/Modem/0
+        # In case no modem is found returns the following. Note that no .length
+        # entry is present
+        #   modem-list : 0
+
+        num_modems = mmr.text('modem-list.length')
+        if num_modems:
+            return mmr.id('modem-list.value[1]')
+        else:
+            logger.info('no modem(s) found')
+            # None
 
 
 class MmResult():
@@ -84,7 +96,8 @@ class MmResult():
         res = dict()
         for line in lines:
             k, v = MmResult._parseline(line)
-            res[k] = v
+            if k:
+                res[k] = v
 
         return res
 
