@@ -334,7 +334,9 @@ class ThingsDataCollector(threading.Thread):
 
         if 'modem' in md:
             info = md['modem']
-            attrs['wwan-version'] = info['revision']
+
+            if 'revision' in info:
+                attrs['wwan-version'] = info['revision']
 
             if 'sim-id' in info:
                 imsi = info['sim-imsi']
