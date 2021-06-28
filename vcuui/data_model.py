@@ -149,6 +149,10 @@ class ModelWorker(threading.Thread):
         ver['hw'] = si.hw_version()
         self.model.publish('sys-version', ver)
 
+        start = dict()
+        start['reason'] = si.start_reason()
+        self.model.publish('sys-boot', start)
+
         dt = dict()
         dt['date'] = si.date()
         dt['uptime'] = si.uptime()

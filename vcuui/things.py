@@ -323,6 +323,10 @@ class ThingsDataCollector(threading.Thread):
             "uptime": uptime
         }
 
+        if 'sys-boot' in md:
+            reason = md['sys-boot']['reason']
+            attrs['start-reason'] = reason
+
         if 'gnss' in md:
             info = md['gnss']
             attrs['gnss-fw-version'] = info['fwVersion']
