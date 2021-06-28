@@ -84,6 +84,9 @@ class MainHandler(tornado.web.RequestHandler):
             dt = d.get('N/A', 'sys-datetime', 'date')
             tes.append(TE('Date', dt))
 
+            sr = d.get('N/A', 'sys-boot', 'reason')
+            tes.append(TE('Start Reason', sr))
+
             ut = d.get('N/A', 'sys-datetime', 'uptime')
             tes.append(TE('Uptime', ut))
 

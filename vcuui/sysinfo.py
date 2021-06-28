@@ -32,6 +32,15 @@ class SysInfo():
 
         return res
 
+    def start_reason(self):
+        try:
+            with open('/sys/kernel/broker/start-reason') as f:
+                res = f.readline().strip()
+
+            return res
+        except FileNotFoundError:
+            return "unknown"
+
     def meminfo(self):
         with open('/proc/meminfo') as f:
             res = f.readlines()
