@@ -51,17 +51,6 @@ class LocationHandler(tornado.web.RequestHandler):
             self.write('No modem found')
 
 
-class SignalHandler(tornado.web.RequestHandler):
-    def get(self):
-        logger.info('enabling modem signal quality measurements')
-        m = MM.modem()
-        if m:
-            m.setup_signal_query()
-            self.write('Signal query enabled')
-        else:
-            self.write('No modem found')
-
-
 class ModemResetHandler(tornado.web.RequestHandler):
     def get(self):
         logger.warning('resetting modem')
@@ -264,7 +253,6 @@ def run_server(port=80):
         (r'/traffic/img/(?P<filename>.+\.png)?', TrafficImageHandler),
 
         (r"/do_location", LocationHandler),
-        (r"/do_signal", SignalHandler),
         (r"/do_cell_locate", GsmCellLocateHandler),
         (r"/do_cloud", CloudHandler),
         (r"/do_modem_reset", ModemResetHandler),
