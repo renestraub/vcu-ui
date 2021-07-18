@@ -224,11 +224,14 @@ class ModelWorker(threading.Thread):
             if access_tech == 'lte':
                 sig = m.signal_lte()
                 info['signal-lte'] = sig
-                # Compute an alternate signal quality indicator to ModemManager
-                lte_q = SignalQuality_LTE(sig['rsrq'], sig['rsrp'])
-                qual = lte_q.quality() * 100.0
-                info['signal-quality2'] = round(qual)
-                # print(sig, '->', info['signal-quality2'])
+
+                # Seldomly the signal fields are not defined, handle gracefully
+                if sig['rsrq'] and sig['rsrp']:
+                    # Compute an alternate signal quality indicator to ModemManager
+                    lte_q = SignalQuality_LTE(sig['rsrq'], sig['rsrp'])
+                    qual = lte_q.quality() * 100.0
+                    info['signal-quality2'] = round(qual)
+
             elif access_tech == 'umts':
                 sig = m.signal_umts()
                 info['signal-umts'] = sig
