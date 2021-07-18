@@ -23,7 +23,6 @@
                 <button class="button" onclick="window.location.href = '/traffic'">Traffic</button>
                 <p></p>
                 <button id="button_location" class="button button_green" type="button" onclick="do_location()">Enable Location</button>
-                <button id="button_signal" class="button button_green" type="button" onclick="do_signal()">Enable Signal Meas.</button>
                 <button id="button_find_cell" class="button button_green" type="button" onclick="do_cell_find()">Find Cell</button>
                 <p></p>
                 {% if not cloud_log %}
@@ -188,10 +187,6 @@
 
         function do_location() {
             operate("Enabling 3GPP location detection", "do_location");
-        }
-
-        function do_signal() {
-            operate("Enabling signal quality measurements", "do_signal");
         }
 
         function do_modem_reset() {
