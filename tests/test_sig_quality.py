@@ -8,19 +8,19 @@ class TestLTE:
         q = SignalQuality_LTE._rsrq_to_q(0)
         assert(math.isclose(q, 1.0))
 
-        q = SignalQuality_LTE._rsrq_to_q(-7.999)
+        q = SignalQuality_LTE._rsrq_to_q(-6.999)
         assert(math.isclose(q, 1.0))
 
-        q = SignalQuality_LTE._rsrq_to_q(-8)
+        q = SignalQuality_LTE._rsrq_to_q(-7)
         assert(math.isclose(q, 1.0))
 
-        q = SignalQuality_LTE._rsrq_to_q(-11)
+        q = SignalQuality_LTE._rsrq_to_q(-10.25)
         assert(math.isclose(q, 0.775))
 
-        q = SignalQuality_LTE._rsrq_to_q(-14)
+        q = SignalQuality_LTE._rsrq_to_q(-13.5)
         assert(math.isclose(q, 0.55))
 
-        q = SignalQuality_LTE._rsrq_to_q(-17)
+        q = SignalQuality_LTE._rsrq_to_q(-16.75)
         assert(math.isclose(q, 0.325))
 
         q = SignalQuality_LTE._rsrq_to_q(-20)
@@ -62,7 +62,7 @@ class TestLTE:
 
     def test_1(self):
         # Excellent
-        lte_q = SignalQuality_LTE(-8, -80)
+        lte_q = SignalQuality_LTE(-7, -80)
         q = lte_q.quality()
         assert(math.isclose(q, 1.0))
 
