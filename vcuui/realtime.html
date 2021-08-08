@@ -16,10 +16,10 @@
         <div class="menu">
             <div class="btn-group">
                 <button class="button" onclick="window.location.href = '/'">Home</button>
+                <button class="button" onclick="window.location.href = '/realtime'">Refresh Page</button>
                 <p id="dot" class="dot-animated">&#x2B24;</p>
                 <p id="counter"></p>
                 <p></p>
-                <button class="button" onclick="window.location.href = '/realtime'">Refresh Page</button>
             </div>
         </div>
 
@@ -78,8 +78,9 @@
             } else if (msg.esf.fusion == 'fusion') {
                 msg.esf.fusion = 'Fus.'
             }
-            gnss_info = `${msg.pos.fix} ${msg.esf.fusion} ${pdop_str}`;
-            wwan_info = `Signal: ${msg.wwan0.signal}% (${msg.wwan0.signal_ext}%)<br>Delay: ${msg.wwan0.latency} ms<br>Rx: ${msg.wwan0.rx}<br>Tx: ${msg.wwan0.tx}`;
+            let gnss_info = `${msg.pos.fix} ${msg.esf.fusion} ${pdop_str}`;
+            let wwan_rat = msg.wwan0.rat.toUpperCase()
+            let wwan_info = `${wwan_rat}: ${msg.wwan0.signal}% (${msg.wwan0.signal_ext}%)<br>Delay: ${msg.wwan0.latency} ms<br>Rx: ${msg.wwan0.rx}<br>Tx: ${msg.wwan0.tx}`;
 
             obd2_speed_kmh = msg.obd2.speed.toFixed(0)
 
