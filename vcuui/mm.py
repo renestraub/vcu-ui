@@ -150,6 +150,39 @@ class Modem():
         mmr = self._info()
         return mmr.dec('modem.generic.signal-quality.value')
 
+    # TODO: Add query method to read --signal-get only once
+    #       Remember result in object or provide to caller
+    #       This avoids calling overhead and ensures consistency
+
+    def signal_access_tech(self):
+        # Reads signal information and decodes current RAT from provided values
+        # This works around the problem that access_tech() not always matches
+        # the RAT of signal()
+        #
+        # modem.signal.refresh.rate : 2
+        # ...
+        # modem.signal.gsm.rssi     : --
+        # modem.signal.umts.rssi    : --
+        # modem.signal.umts.rscp    : --
+        # modem.signal.umts.ecio    : --
+        # modem.signal.lte.rssi     : --
+        # modem.signal.lte.rsrq     : -14.00
+        # modem.signal.lte.rsrp     : -90.00
+        # modem.signal.lte.snr      : --
+        mmr = self._info('--signal-get')
+        # print(mmr.items)
+        # print(mmr.number('modem.signal.lte.rsrq'))
+        # print(mmr.number('modem.signal.umts.ecio'))
+        # print(mmr.number('modem.signal.gsm.rssi'))
+        if mmr.number('modem.signal.lte.rsrq'):
+            return "lte"
+        elif mmr.number('modem.signal.umts.ecio'):
+            return "umts"
+        elif mmr.number('modem.signal.gsm.rssi'):
+            return "gsm"
+        else:
+            return None
+
     def signal_lte(self):
         res = dict()
         mmr = self._info('--signal-get')
