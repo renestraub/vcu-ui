@@ -139,8 +139,18 @@ class MainHandler(tornado.web.RequestHandler):
                 tes.append(TE('Modem Id', mi['modem-id']))
 
                 state = mi['state']
+
+                # Sometimes ModemManager seems to report wrong access tech
+                # Display RAT as reported by --signal-get if it differs
                 access_tech = mi['access-tech']
-                tes.append(TE('State', f'{state}, {access_tech}'))
+                access_tech2 = access_tech
+                if 'access-tech2' in mi:
+                    access_tech2 = mi['access-tech2']
+
+                if access_tech == access_tech2:
+                    tes.append(TE('State', f'{state}, {access_tech}'))
+                else:
+                    tes.append(TE('State', f'{state}, {access_tech} ({access_tech2})'))
 
                 if 'location' in mi:
                     loc_info = mi['location']
@@ -153,6 +163,7 @@ class MainHandler(tornado.web.RequestHandler):
                         tes.append(TE('Cell', text))
                         data.update(loc_info)
 
+                # Display quality as reported by MM and based on VCU-UI calculation
                 sq = mi['signal-quality']
                 sq_str = f'{sq}%'
                 if 'signal-quality2' in mi:
@@ -160,13 +171,14 @@ class MainHandler(tornado.web.RequestHandler):
                     sq_str += f' ({sq2:.0f}%)'
                 tes.append(TE('Signal', sq_str))
 
-                if access_tech == 'lte':
+                # Raw signal quality information
+                if 'signal-lte' in mi:
                     sig = mi['signal-lte']
                     text = nice([('rsrp', 'RSRP', 'dBm'),
                                 ('rsrq', 'RSRQ', 'dB')],
                                 sig, True)
                     tes.append(TE('Signal LTE', text))
-                elif access_tech == 'umts':
+                elif 'signal-umts' in mi:
                     sig = mi['signal-umts']
                     text = nice([('rscp', 'RSCP', 'dBm'),
                                 ('ecio', 'ECIO', 'dB')],
