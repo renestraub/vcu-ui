@@ -221,7 +221,12 @@ class ModelWorker(threading.Thread):
             sq = m.signal()
             info['signal-quality'] = sq
 
-            if access_tech == 'lte':
+            # Get access tech from signal quality command as regular RAT
+            # information from ModemManager is not reliable
+            sig_rat = m.signal_access_tech()
+            info['access-tech2'] = sig_rat
+
+            if sig_rat == 'lte':
                 sig = m.signal_lte()
                 info['signal-lte'] = sig
 
@@ -232,7 +237,7 @@ class ModelWorker(threading.Thread):
                     qual = lte_q.quality() * 100.0
                     info['signal-quality2'] = round(qual)
 
-            elif access_tech == 'umts':
+            elif sig_rat == 'umts':
                 sig = m.signal_umts()
                 info['signal-umts'] = sig
 
