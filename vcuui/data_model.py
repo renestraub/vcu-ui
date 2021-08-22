@@ -281,6 +281,12 @@ class ModelWorker(threading.Thread):
             else:
                 info['speed'] = 0.0
 
+            pid = self._obd2.engine_coolant_temp()
+            if pid:
+                info['coolant-temp'] = pid.value()
+            else:
+                info['coolant-temp'] = 0.0
+
             self.model.publish('obd2', info)
 
     def _100base_t1(self):
