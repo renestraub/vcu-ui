@@ -55,9 +55,7 @@
 
         ws.onmessage = function(evt) {
             var msg = JSON.parse(evt.data);
-            console.log(msg);
-            // console.log(messageDict.time);
-            // console.log(messageDict.pos.fix);
+            // console.log(msg);
 
             clients = msg.clients;
             counter = msg.time;
@@ -79,15 +77,17 @@
                 msg.esf.fusion = 'Fus.'
             }
             let gnss_info = `${msg.pos.fix} ${msg.esf.fusion} ${pdop_str}`;
-            let wwan_rat = msg.wwan0.rat.toUpperCase()
+            let wwan_rat = msg.wwan0.rat.toUpperCase();
             let wwan_info = `${wwan_rat}: ${msg.wwan0.signal}% (${msg.wwan0.signal_ext}%)<br>Delay: ${msg.wwan0.latency} ms<br>Rx: ${msg.wwan0.rx}<br>Tx: ${msg.wwan0.tx}`;
 
-            obd2_speed_kmh = msg.obd2.speed.toFixed(0)
+            obd2_speed_kmh = msg.obd2["speed"].toFixed(0);
+            obd2_coolant_temp_degC = msg.obd2["coolant-temp"].toFixed(0);
+            let obd2_info = `${obd2_speed_kmh} km/h<br>${obd2_coolant_temp_degC} °C`;
 
             document.getElementById("gnss-speed").innerHTML = `${speed_kmh} km/h`;
             document.getElementById("gnss-fix").innerHTML = gnss_info;
             document.getElementById("wwan-data").innerHTML = wwan_info;
-            document.getElementById("obd2").innerHTML = `${obd2_speed_kmh} km/h`;
+            document.getElementById("obd2").innerHTML = obd2_info;
         }
 
         /*
