@@ -266,6 +266,8 @@ class ThingsDataCollector(threading.Thread):
         self.lat_last_rad = 0
         self.lon_last_rad = 0
         self.obd2_last_speed = -1
+        self.rat_last = None
+        self.rat2_last = None
 
         self.daemon = True
         self.start()
@@ -289,7 +291,7 @@ class ThingsDataCollector(threading.Thread):
                     self._attributes(md)
 
                 # Less important live information
-                if cnt % 15 == 0:
+                if cnt % 10 == 0:
                     self._info(md)
 
                 # Traffic information every two minutes
@@ -369,6 +371,22 @@ class ThingsDataCollector(threading.Thread):
 
         if 'modem' in md:
             info = md['modem']
+
+            if 'access-tech' in info:
+                rat = info['access-tech']
+                # print(f'rat: {rat}')
+                if rat:  # and rat != self.rat_last:
+                    self.rat_last = rat
+                    # print(ThingsDataCollector.rat_to_number(rat))
+                    telemetry['rat'] = ThingsDataCollector.rat_to_number(rat)
+
+            if 'access-tech2' in info:
+                rat = info['access-tech2']
+                # print(f'rat2: {rat}')
+                if rat:  # and rat != self.rat2_last:
+                    self.rat2_last = rat
+                    # print(ThingsDataCollector.rat_to_number(rat))
+                    telemetry['rat2'] = ThingsDataCollector.rat_to_number(rat)
 
             if 'signal-quality' in info:
                 sq = info['signal-quality']
@@ -457,3 +475,14 @@ class ThingsDataCollector(threading.Thread):
                 self._data_queue.add(data)
 
                 self.obd2_last_speed = speed
+
+    @staticmethod
+    def rat_to_number(rat_str):
+        if 'lte' in rat_str:
+            return 4
+        elif 'umts' in rat_str:
+            return 3
+        elif 'gsm' in rat_str:
+            return 2
+        else:
+            return 0
