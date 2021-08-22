@@ -203,8 +203,8 @@ class Things(threading.Thread):
         c.setopt(pycurl.URL, f'{self.api_server}/api/v1/{self.api_token}/{msgtype}')
         c.setopt(pycurl.HTTPHEADER, ['Content-Type:application/json'])
         c.setopt(pycurl.POST, 1)
-        c.setopt(pycurl.CONNECTTIMEOUT_MS, 2000)
-        c.setopt(pycurl.TIMEOUT_MS, 3000)
+        c.setopt(pycurl.CONNECTTIMEOUT_MS, 3000)
+        c.setopt(pycurl.TIMEOUT_MS, 4000)
         # c.setopt(c.VERBOSE, True)
 
         body_as_json_string = json.dumps(payload)  # dict to json
