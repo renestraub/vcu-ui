@@ -3,7 +3,10 @@ import subprocess
 
 class SysInfo():
     def __init__(self):
-        pass
+        # Locate PMIC hwmon
+        # Path in /sys/class/hwmon is different for kernel 4 to 5, so use direct links
+        self.da9063_path = '/sys/bus/platform/drivers/da9063-hwmon/da9063-hwmon'
+        self.lm75_path = '/sys/bus/i2c/drivers/lm75/1-0048/hwmon/hwmon1'
 
     def serial(self):
         with open('/sys/class/net/eth0/address') as f:
@@ -113,20 +116,26 @@ class SysInfo():
 
         return rxbytes, txbytes
 
-    def temperature(self, monitor='hwmon0/device/temp1_input'):
-        try:
-            with open(f'/sys/class/hwmon/{monitor}') as f:
-                temp_in_milli_c = f.readline().strip()
-                return round(float(temp_in_milli_c) / 1000.0, 1)
-        except FileNotFoundError:
-            pass
+    def temperature(self):
+        with open(f'{self.da9063_path}/temp1_input') as f:
+            temp_in_milli_c = f.readline().strip()
+            return round(float(temp_in_milli_c) / 1000.0, 1)
 
     def input_voltage(self):
-        with open('/sys/class/hwmon/hwmon0/device/in1_input') as f:
+        with open(f'{self.da9063_path}/in1_input') as f:
             adc_millivolts = f.readline().strip()
             return round(float(adc_millivolts) / 1000.0 * 15.0, 1)
 
     def rtc_voltage(self):
-        with open('/sys/class/hwmon/hwmon0/device/in4_input') as f:
+        with open(f'{self.da9063_path}/in4_input') as f:
             adc_millivolts = f.readline().strip()
             return round(float(adc_millivolts) / 1000.0, 3)
+
+    def temperature_lm75(self):
+        # TODO: Test
+        try:
+            with open(f'{self.lm75_path}/temp_input') as f:
+                temp_in_milli_c = f.readline().strip()
+                return round(float(temp_in_milli_c) / 1000.0, 1)
+        except FileNotFoundError:
+            pass
