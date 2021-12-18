@@ -118,13 +118,25 @@ systemctl start vcu-ui      # Start service right now
 
 ### Revision History
 
-#### v0.7.1 (20210620)
+#### v0.8.0 (20211218)
+
+- Improve realtime view
+- Update for OEM Linux with kernel 5.10
+
+
+#### v0.7.10 (20210822)
 
 - Compute extended signal quality and display it on main screen, realtime view and Thingsboard
+- Update signal quality every 2 seconds automatically
+- Show radio access technology (RAT) on realtime view, upload to Thingsboard
+- Show engine coolant temperature on realtime view
+- Remove Enable Signal Meas. Button
+- Show start reason and provide it on Thingsboard
 - Provide bootloader version on Thingsboard
 - Provide modem firmware version on Thingsboard
 - Add Powerdown command
 - Add Sleep command
+- Fix typo in UMTS signal quality display (RSCP)
 
 
 #### v0.7.0 (20210516)
