@@ -82,7 +82,7 @@
 
             obd2_speed_kmh = msg.obd2["speed"].toFixed(0);
             obd2_coolant_temp_degC = msg.obd2["coolant-temp"].toFixed(0);
-            let obd2_info = `${obd2_speed_kmh} km/h<br>${obd2_coolant_temp_degC} °C`;
+            let obd2_info = `${obd2_speed_kmh} km/h, ${obd2_coolant_temp_degC} °C`;
 
             document.getElementById("gnss-speed").innerHTML = `${speed_kmh} km/h`;
             document.getElementById("gnss-fix").innerHTML = gnss_info;
