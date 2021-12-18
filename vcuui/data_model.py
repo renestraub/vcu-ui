@@ -14,13 +14,14 @@ Speed = Bitrate to use. Either 250000 or 500000
 
 import configparser
 import logging
+import platform
 import threading
 import time
 
 from vcuui.led import LED_BiColor
 from vcuui.mm import MM
 from vcuui.obd_client import OBD2
-from vcuui.phy_info import PhyInfo
+from vcuui.phy_info import PhyInfo, PhyInfo5
 from vcuui.sig_quality import SignalQuality_LTE
 from vcuui.sysinfo import SysInfo
 from vcuui.vnstat import VnStat
@@ -40,6 +41,8 @@ class Model(object):
 
         assert Model.instance is None
         Model.instance = self
+
+        self.linux_release = platform.release()
 
         self.worker = ModelWorker(self)
         self.lock = threading.Lock()
@@ -104,6 +107,11 @@ class ModelWorker(threading.Thread):
         self.lock = threading.Lock()
         self.daemon = True
         self.name = 'model-worker'
+
+        if self.model.linux_release >= "5":
+            self.broadr_phy = PhyInfo5('broadr0')
+        else:
+            self.broadr_phy = PhyInfo('broadr0')
 
         if self.model.obd2_port and self.model.obd2_speed:
             self._obd2_setup(self.model.obd2_port, self.model.obd2_speed)
@@ -290,9 +298,8 @@ class ModelWorker(threading.Thread):
             self.model.publish('obd2', info)
 
     def _100base_t1(self):
-        phy1 = PhyInfo('broadr0')
-        state = phy1.state()
-        quality = phy1.quality()
+        state = self.broadr_phy.state()
+        quality = self.broadr_phy.quality()
 
         info = dict()
         info['state'] = state
