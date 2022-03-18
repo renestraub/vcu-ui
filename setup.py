@@ -26,7 +26,7 @@ setuptools.setup(
         'tornado',
         'requests',
         'ping3',
-        'ubxlib>=0.3.6'
+        'ubxlib>=0.4.0'
     ],
     include_package_data=True,  # Use MANIFEST.in to add *.html, *.css files
     entry_points={
