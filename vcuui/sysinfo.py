@@ -10,7 +10,6 @@ class SysInfo():
         # /sys/bus/platform/drivers/da9063-hwmon/da9063-hwmon/hwmon/hwmon1/
         path_5_10 = '/sys/bus/platform/drivers/da9063-hwmon/da9063-hwmon/hwmon/hwmon1/'
         if path.exists(path_5_10):
-            print("using new path")
             self.da9063_path = path_5_10
         else:
             self.da9063_path = '/sys/bus/platform/drivers/da9063-hwmon/da9063-hwmon'
