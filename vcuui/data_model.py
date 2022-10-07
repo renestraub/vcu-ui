@@ -108,10 +108,10 @@ class ModelWorker(threading.Thread):
         self.daemon = True
         self.name = 'model-worker'
 
-        if self.model.linux_release >= "5":
-            self.broadr_phy = PhyInfo5('broadr0')
-        else:
+        if self.model.linux_release.startswith("4"):
             self.broadr_phy = PhyInfo('broadr0')
+        else:
+            self.broadr_phy = PhyInfo5('broadr0')
 
         if self.model.obd2_port and self.model.obd2_speed:
             self._obd2_setup(self.model.obd2_port, self.model.obd2_speed)
