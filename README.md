@@ -118,6 +118,12 @@ systemctl start vcu-ui      # Start service right now
 
 ### Revision History
 
+#### v0.8.2 (20221007)
+
+- Update for OEM Linux 1.5.x
+- Update to ubxlib 0.4.0 for gpsd compatibility
+
+
 #### v0.8.0 (20211218)
 
 - Improve realtime view
