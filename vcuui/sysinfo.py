@@ -1,11 +1,21 @@
 import subprocess
+from os import path
 
 
 class SysInfo():
     def __init__(self):
         # Locate PMIC hwmon
-        # Path in /sys/class/hwmon is different for kernel 4 to 5, so use direct links
-        self.da9063_path = '/sys/bus/platform/drivers/da9063-hwmon/da9063-hwmon'
+
+        # From kernel 5.10.x on, PMIC path changes to the following
+        # /sys/bus/platform/drivers/da9063-hwmon/da9063-hwmon/hwmon/hwmon1/
+        path_5_10 = '/sys/bus/platform/drivers/da9063-hwmon/da9063-hwmon/hwmon/hwmon1/'
+        if path.exists(path_5_10):
+            print("using new path")
+            self.da9063_path = path_5_10
+        else:
+            self.da9063_path = '/sys/bus/platform/drivers/da9063-hwmon/da9063-hwmon'
+
+        # Optional LM75 sensor (NG800 devices)
         self.lm75_path = '/sys/bus/i2c/drivers/lm75/1-0048/hwmon/hwmon1'
 
     def serial(self):
