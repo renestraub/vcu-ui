@@ -23,7 +23,8 @@ from vcuui.mm import MM
 from vcuui.obd_client import OBD2
 from vcuui.phy_info import PhyInfo, PhyInfo5
 from vcuui.sig_quality import SignalQuality_LTE
-from vcuui.sysinfo import SysInfo
+from vcuui.sysinfo_sysfs import SysInfoSysFs
+from vcuui.sysinfo_sensors import SysInfoSensors
 from vcuui.vnstat import VnStat
 
 CONF_FILE = '/etc/vcuui.conf'
@@ -108,7 +109,12 @@ class ModelWorker(threading.Thread):
         self.daemon = True
         self.name = 'model-worker'
 
-        self.si = SysInfo()
+        if SysInfoSensors.sensors_present():
+            logger.info('using sensors based sysinfo module')
+            self.si = SysInfoSensors()
+        else:
+            logger.info('using sys-fs based sysinfo module')
+            self.si = SysInfoSysFs()
 
         if self.model.linux_release.startswith("4"):
             self.broadr_phy = PhyInfo('broadr0')
@@ -151,6 +157,7 @@ class ModelWorker(threading.Thread):
 
     def _sysinfo(self):
         si = self.si
+        si.poll()
 
         ver = dict()
         ver['serial'] = si.serial()
