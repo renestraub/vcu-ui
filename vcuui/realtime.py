@@ -81,7 +81,8 @@ class RealtimeWebSocket(tornado.websocket.WebSocketHandler):
         default = {'fix': '-', 'lon': 0.0, 'lat': 0.0, 'speed': 0.0, 'pdop': 99.99}
         pos = RealtimeWebSocket.safeget(default, md, 'gnss-pos')
 
-        gnss_state = RealtimeWebSocket.safeget(None, md, 'gnss-state')
+        default_esf = {'esf-status': {'fusion': 'n/a', 'ins': 'n/a', 'imu': 'n/a', 'imu-align': 'n/a'}}
+        gnss_state = RealtimeWebSocket.safeget(default_esf, md, 'gnss-state')
         esf_state = gnss_state['esf-status']
 
         default = {'speed': 0.0, 'coolant-temp': 0.0}
