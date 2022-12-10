@@ -3,6 +3,8 @@ import subprocess
 
 logger = logging.getLogger('vcu-ui')
 
+MMCLI_BIN = '/usr/bin/mmcli'
+
 
 class MM():
     @staticmethod
@@ -19,7 +21,7 @@ class MM():
 
     @staticmethod
     def _id():
-        mmr = MM.command(['mmcli', '-K', '-L'])
+        mmr = MM.command([MMCLI_BIN, '-K', '-L'])
         # Returns number of modems with each modems id.
         #   modem-list.length   : 1
         #   modem-list.value[1] : /org/freedesktop/ModemManager1/Modem/0
@@ -123,15 +125,15 @@ class Modem():
         self.id = id
 
     def reset(self):
-        subprocess.run(['mmcli', '-m', str(self.id), '-r'],
+        subprocess.run([MMCLI_BIN, '-m', str(self.id), '-r'],
                        stdout=subprocess.PIPE)
 
     def setup_signal_query(self):
-        subprocess.run(['mmcli', '-m', str(self.id), '--signal-setup', '2'],
+        subprocess.run([MMCLI_BIN, '-m', str(self.id), '--signal-setup', '2'],
                        stdout=subprocess.PIPE)
 
     def setup_location_query(self):
-        subprocess.run(['mmcli', '-m', str(self.id), '--location-enable-3gpp'],
+        subprocess.run([MMCLI_BIN, '-m', str(self.id), '--location-enable-3gpp'],
                        stdout=subprocess.PIPE)
 
     def revision(self):
@@ -219,7 +221,7 @@ class Modem():
             return SIM(int(sid))
 
     def _info(self, extra=None):
-        cmd = ['mmcli', '-K', '-m', str(self.id)]
+        cmd = [MMCLI_BIN, '-K', '-m', str(self.id)]
         if extra:
             cmd.append(extra)
 
@@ -239,7 +241,7 @@ class Bearer():
         return mmr.text('bearer.ipv4-config.address')
 
     def _info(self):
-        cmd = ['mmcli', '-K', '-b', str(self.id)]
+        cmd = [MMCLI_BIN, '-K', '-b', str(self.id)]
         return MM.command(cmd)
 
 
@@ -256,5 +258,5 @@ class SIM():
         return mmr.text('sim.properties.iccid')
 
     def _info(self):
-        cmd = ['mmcli', '-K', '-i', str(self.id)]
+        cmd = [MMCLI_BIN, '-K', '-i', str(self.id)]
         return MM.command(cmd)

@@ -74,7 +74,7 @@ class TrafficImageHandler(tornado.web.RequestHandler):
     def get(self, filename):
         logger.info(f'asking for traffic image {filename}')
         try:
-            vnstati_call = ['vnstati', '-o', '-', '--noedge']
+            vnstati_call = ['/usr/bin/vnstati', '-o', '-', '--noedge']
             vnstati_call += self.image_options[filename]
             logger.info(vnstati_call)
 

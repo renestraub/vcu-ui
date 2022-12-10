@@ -56,7 +56,7 @@ class SysInfoBase():
         return total, free
 
     def part_size(self, partition):
-        cp = subprocess.run(['df', '-h', partition], stdout=subprocess.PIPE)
+        cp = subprocess.run(['/usr/bin/df', '-h', partition], stdout=subprocess.PIPE)
         res = cp.stdout.decode().strip()
         for line in res.splitlines():
             if partition in line:
@@ -69,7 +69,7 @@ class SysInfoBase():
         Check for following output in mmc command
         eMMC Life Time Estimation A [EXT_CSD_DEVICE_LIFE_TIME_EST_TYP_A]: 0x01
         """
-        cp = subprocess.run(['mmc', 'extcsd', 'read', '/dev/mmcblk1'], stdout=subprocess.PIPE)
+        cp = subprocess.run(['/usr/bin/mmc', 'extcsd', 'read', '/dev/mmcblk1'], stdout=subprocess.PIPE)
         res = cp.stdout.decode().strip()
 
         res_a = 0
@@ -90,12 +90,12 @@ class SysInfoBase():
             return info[0:3]
 
     def date(self):
-        cp = subprocess.run(['date'], stdout=subprocess.PIPE)
+        cp = subprocess.run(['/usr/bin/date'], stdout=subprocess.PIPE)
         res = cp.stdout.decode().strip()
         return res
 
     def uptime(self):
-        cp = subprocess.run(['uptime'], stdout=subprocess.PIPE)
+        cp = subprocess.run(['/usr/bin/uptime'], stdout=subprocess.PIPE)
         res = cp.stdout.decode().strip()
         start = res.find("up")
         end = res.find(",  load")

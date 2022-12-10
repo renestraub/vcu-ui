@@ -10,7 +10,7 @@ def secs_to_hhmm(secs):
 
 
 def ping(ip):
-    cp = subprocess.run(['ping', '-c', '4', ip], stdout=subprocess.PIPE)
+    cp = subprocess.run(['/usr/bin/ping', '-c', '4', ip], stdout=subprocess.PIPE)
     res = cp.stdout.decode()
 
     return res
@@ -20,7 +20,7 @@ def ping(ip):
 async def ping(ip):
     proc = await asyncio.create_subprocess_exec('ping', '-c', '4', ip, stdout=subprocess.PIPE)
     await proc.wait()
-    # cp = subprocess.run(['ping', '-c', '4', ip], stdout=subprocess.PIPE)
+    # cp = subprocess.run(['/usr/bin/ping', '-c', '4', ip], stdout=subprocess.PIPE)
     res = proc.stdout.decode()
 
     return res
@@ -28,7 +28,7 @@ async def ping(ip):
 
 
 def nmcli_c():
-    cp = subprocess.run(['nmcli', 'c'], stdout=subprocess.PIPE)
+    cp = subprocess.run(['/usr/bin/nmcli', 'c'], stdout=subprocess.PIPE)
     res = cp.stdout.decode()
 
     return res

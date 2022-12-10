@@ -5,7 +5,7 @@ logger = logging.getLogger('vcu-ui')
 
 
 class VnStat:
-    BIN = 'vnstat'
+    BIN = '/usr/bin/vnstat'
 
     @classmethod
     def probe(cls):

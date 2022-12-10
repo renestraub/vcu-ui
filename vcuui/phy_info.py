@@ -85,7 +85,7 @@ class PhyInfo5:
         return int((qual/max_qual)*100.0)
 
     def ethtool(self):
-        cp = subprocess.run(['ethtool', self.__if], stdout=subprocess.PIPE)
+        cp = subprocess.run(['/usr/sbin/ethtool', self.__if], stdout=subprocess.PIPE)
         res = cp.stdout.decode().strip()
 
         return res
