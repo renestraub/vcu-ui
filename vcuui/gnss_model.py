@@ -54,7 +54,7 @@ class Gnss(object):
     def setup(self):
         # Quick and dirty hack to wait until gpsd is ready
         # Timeout is 30 seconds
-        logger.info('Searching gpsd service')
+        logger.info('searching gpsd service')
         gpsd = Gpsd()
         for _ in range(self.CONNECT_TIMEOUT_IN_SEC):
             ready = gpsd.setup()

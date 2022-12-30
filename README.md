@@ -118,6 +118,14 @@ systemctl start vcu-ui      # Start service right now
 
 ### Revision History
 
+#### v0.9.0 (20221230)
+
+- Update for OEM Linux 1.6.x
+- Refactor SysInfo to use sensors command if present
+- Improve vnstat error handling
+- Improve GNSS module access robustness 
+
+
 #### v0.8.2 (20221007)
 
 - Update for OEM Linux 1.5.x
