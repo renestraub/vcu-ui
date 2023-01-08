@@ -16,17 +16,14 @@ from ubxlib.ubx_esf_alg import UbxEsfAlgPoll
 from ubxlib.ubx_esf_status import UbxEsfStatusPoll
 from ubxlib.ubx_mon_ver import UbxMonVerPoll
 from ubxlib.ubx_upd_sos import UbxUpdSosAction
-from ubxlib._version import __version__ as ubxlib_ver_str
 from vcuui.gpsd import Gpsd
 
 logger = logging.getLogger('vcu-ui')
 
 
-class Gnss(object):
+class Gnss(threading.Thread):
     # Singleton accessor
     instance = None
-
-    CONNECT_TIMEOUT_IN_SEC = 30
 
     def __init__(self, model):
         super().__init__()
@@ -35,9 +32,7 @@ class Gnss(object):
         Gnss.instance = self
 
         self.model = model
-        self.ubx = GnssUBlox()
-        self.gnss_status = GnssStatusWorker(self, self.model)
-        self.gnss_pos = GnssPositionWorker(self.model)
+        self.ubx = None
         self.lock = threading.Lock()
 
         # Static values, read once in setup()
@@ -51,49 +46,25 @@ class Gnss(object):
         # Live values, can be cached on page reload, see invalidate()
         self.__msg_esf_alg = None
 
+        self.esf_read_errors = 0
+
+        self.state = 'init'
+
     def setup(self):
-        # Quick and dirty hack to wait until gpsd is ready
-        # Timeout is 30 seconds
-        logger.info('searching gpsd service')
-        gpsd = Gpsd()
-        for _ in range(self.CONNECT_TIMEOUT_IN_SEC):
-            ready = gpsd.setup()
-            if ready:
-                # gpsd is around, socket exists
-                # wait until first data is seen
-                res = gpsd.next(timeout=10)
-                if res:
-                    logger.info('gps connected')
-                    break
-
-            gpsd.cleanup()
-            time.sleep(1.0)
-        else:
-            # No break, no connection
-            logger.warning('cannot connect to gpsd, is it running?')
-            return False
-
-        gpsd.cleanup()
-        gpsd = None
-
-        self.ubx.setup()
-
-        # Read constant information, never reloaded
-        self._mon_ver()
-        self._cfg_port()
-        self._cfg_nmea()
-
-        self.gnss_status.setup()
-        self.gnss_pos.setup()
-
-        info = {'version': ubxlib_ver_str}
-        self.model.publish('ubxlib', info)
-
-        return True
+        # Just start worker thread. As soon as we are connected to gpsd
+        # actions starts from there
+        self.daemon = True
+        self.name = 'gnss-status'
+        self.start()
 
     def invalidate(self):
-        self.__msg_cfg_esfalg = None
-        self.__msg_esf_alg = None
+        with self.lock:
+            self.__msg_cfg_esfalg = None
+            self.__msg_esf_alg = None
+
+    def gpsd_connected(self):
+        with self.lock:
+            return self.state == 'connected' and self.ubx
 
     def version(self):
         """
@@ -455,7 +426,10 @@ class Gnss(object):
                 'imu': Gnss.__extract(stat2_str, 'imu'),
                 'imu-align': Gnss.__extract(stat1_str, 'mntAlg'),
             }
+            self.esf_read_errors = 0
         else:
+            logger.warning('reading fusion state failed')
+            self.esf_read_errors += 1
             data = {
                 'fusion': '-',
                 'ins': '-',
@@ -463,6 +437,96 @@ class Gnss(object):
                 'imu-align': '-',
             }
         return data
+
+    #
+    # Worker thread
+    #
+    def run(self):
+        self.state = 'init'
+
+        cnt = 0
+        while True:
+            logger.info(f'gnss status thread: {self.state}')
+
+            if self.state == 'init':
+                self._state_init()
+            elif self.state == 'setup':
+                self._state_setup()
+            elif self.state == 'connected':
+                if cnt % 10 == 3:
+                    self._state_connected()
+            elif self.state == 'timeout':
+                self._state_timeout()
+
+            cnt += 1
+            time.sleep(1.0)
+
+    def _state_init(self):
+        logger.debug('trying to connect to gpsd')
+
+        gps = Gpsd()
+
+        res = gps.setup()
+        if res:
+            logger.info('gpsd connected')
+            # gpsd is around, socket exists
+            # wait until first data is seen
+            res = gps.next(timeout=10)
+            if res:
+                logger.info('gps connected')
+                self.state = 'setup'
+            else:
+                # No data incoming
+                logger.warning('no data from gpsd, is it running?')
+                time.sleep(3.0)
+        else:
+            logger.warning('cannot connect to gpsd, is it running?')
+            time.sleep(3.0)
+
+        gps.cleanup()
+        gps = None
+
+    def _state_setup(self):
+        # Trying to connect to ubxlib
+        logger.debug('setting up gpsd library')
+
+        # TODO: Should ubx object be member of thread?
+        self.ubx = GnssUBlox()
+        self.ubx.setup()
+        # TODO: What about error handling here?
+
+        # Read constant information, never reloaded
+        self._mon_ver()
+        self._cfg_port()
+        self._cfg_nmea()
+
+        versions = self.version()
+        logger.info(f'versions: {versions}')
+        self.model.publish('gnss', versions)
+
+        self.state = 'connected'
+
+    def _state_connected(self):
+        assert self.ubx
+
+        logger.debug('checking gps fusion state')
+        info = dict()
+        esf_status = self.esf_status()
+        info['esf-status'] = esf_status
+        self.model.publish('gnss-state', info)
+
+        if self.esf_read_errors > 0:
+            logger.warning(f'gpsd access errors detected ({self.esf_read_errors})')
+            if self.esf_read_errors >= 3:
+                logger.warning('gpsd connection might be broken')
+                self.state = 'timeout'
+
+    def _state_timeout(self):
+        logger.warning('connection to gpsd lost')
+        self.ubx.cleanup()
+        self.ubx = None
+
+        self.state = 'init'
 
     """
     Modem access
@@ -557,130 +621,3 @@ class Gnss(object):
             return res[0]
         else:
             return '-'
-
-
-class GnssStatusWorker(threading.Thread):
-    def __init__(self, gnss, model):
-        super().__init__()
-
-        self.gnss = gnss
-        self.model = model
-
-    def setup(self):
-        self.daemon = True
-        self.name = 'gnss-status'
-        self.start()
-
-    def run(self):
-        versions = self.gnss.version()
-        logger.info(f'versions: {versions}')
-        self.model.publish('gnss', versions)
-
-        self._gnss()
-
-        cnt = 0
-        while True:
-            if cnt % 10 == 3:
-                self._gnss()
-
-            cnt += 1
-            time.sleep(1.0)
-
-    def _gnss(self):
-        info = dict()
-
-        esf_status = self.gnss.esf_status()
-        info['esf-status'] = esf_status
-
-        self.model.publish('gnss-state', info)
-
-
-class GnssPositionWorker(threading.Thread):
-    def __init__(self, model):
-        super().__init__()
-
-        self.model = model
-
-        self.state = 'init'
-        self.gps = None
-
-        self.lon = 0
-        self.lat = 0
-        self.fix = 0
-        self.speed = 0
-        self.pdop = 0
-
-    def setup(self):
-        self.daemon = True
-        self.name = 'gps-reader'
-        self.start()
-
-    def run(self):
-        logger.info('running gps thread')
-        self.state = 'init'
-
-        while True:
-            if self.state != 'connected':
-                # try to connect to gpsd
-                logger.debug('trying to connect to gpsd')
-
-                self.gps = Gpsd()
-                res = self.gps.setup()
-                if res:
-                    logger.debug('gps connected')
-                    self.state = 'connected'
-                else:
-                    logger.warning('cannot connect to gpsd, is it running?')
-                    time.sleep(2.0)
-
-            elif self.state == 'connected':
-                try:
-                    report = self.gps.next()
-                    if report:
-                        if report['class'] == 'SKY':
-                            # Remember PDOP only, will be sent on next TPV message
-                            if 'pdop' in report:
-                                self.pdop = report['pdop']
-
-                        if report['class'] == 'TPV':
-                            fix = report['mode']
-                            if fix == 0 or fix == 1:
-                                self.fix = 'No Fix'
-                            elif fix == 2:
-                                self.fix = '2D'
-                            elif fix == 3:
-                                self.fix = '3D'
-
-                            if 'status' in report:
-                                status = report['status']
-                                if status == 2 and self.fix == '3D':
-                                    self.fix = '3D DGPS'
-
-                            if 'speed' in report:
-                                self.speed = report['speed']
-
-                            # Ensure we have lon/lat in report
-                            # only update when present, to avoid 0/0 position messages
-                            if 'lon' in report and 'lat' in report:
-                                self.lon = report['lon']
-                                self.lat = report['lat']
-
-                                pos = dict()
-                                pos['fix'] = self.fix
-                                pos['lon'] = self.lon
-                                pos['lat'] = self.lat
-                                pos['speed'] = self.speed
-                                pos['pdop'] = self.pdop
-
-                                self.model.publish('gnss-pos', pos)
-
-                except KeyError as e:
-                    # For whatever reasons getting GPS data from gps
-                    # daemon is very unstable.
-                    # Have to handle KeyErrors in order to keep system
-                    # running.
-                    logger.warning('gps module KeyError')
-                    logger.warning(e)
-
-            else:
-                time.sleep(0.8)

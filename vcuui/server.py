@@ -231,8 +231,8 @@ def run_server(port=80):
     wwan.setup()
 
     gnss = Gnss(model)
-    res = gnss.setup()
-    if not res:
+    gnss.setup()
+
     gnss_pos = GnssPosition(model)
     gnss_pos.setup()
 

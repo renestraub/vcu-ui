@@ -14,25 +14,24 @@ logger = logging.getLogger('vcu-ui')
 
 
 class Gpsd(threading.Thread):
-    gpsd_data_socket = ('127.0.0.1', 2947)
+    GPSD_DATA_SOCKET = ('127.0.0.1', 2947)
 
     def __init__(self):
         super().__init__()
 
         self.connect_msg = '?WATCH={"enable":true,"json":true}'.encode()
-
-        self.listen_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.response_queue = queue.Queue()
         self.thread_ready_event = threading.Event()
         self.thread_stop_event = threading.Event()
+        self.daemon = True
 
     def setup(self):
         try:
             logger.info('connecting to gpsd')
-            self.listen_sock.connect(self.gpsd_data_socket)
+            self.listen_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.listen_sock.connect(self.GPSD_DATA_SOCKET)
 
             # Start worker thread in daemon mode, will invoke run() method
-            self.daemon = True
             self.start()
 
             # Wait for worker thread to become ready.
@@ -54,6 +53,10 @@ class Gpsd(threading.Thread):
             # Wait until thread ended
             self.join(timeout=1.0)
             logger.debug('thread stopped')
+
+            # Close socket
+            self.listen_sock.close()
+            self.listen_sock = None
 
     def next(self, timeout=5.0):
         # logger.debug(f'waiting {timeout}s for reponse from listener thread')
