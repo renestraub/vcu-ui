@@ -96,6 +96,10 @@ class Model(object):
                 else:
                     self.led_ind.green()
 
+    def remove(self, origin):
+        with self.lock:
+            self.data.pop(origin, None)
+
 
 class ModelWorker(threading.Thread):
     def __init__(self, model):
