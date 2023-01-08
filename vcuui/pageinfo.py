@@ -178,9 +178,16 @@ class MainHandler(tornado.web.RequestHandler):
                 # Raw signal quality information
                 if 'signal-lte' in mi:
                     sig = mi['signal-lte']
-                    text = nice([('rsrp', 'RSRP', 'dBm'),
-                                ('rsrq', 'RSRQ', 'dB')],
-                                sig, True)
+                    if 'rssi' in sig and 'snr' in sig:
+                        text = nice([('rsrp', 'RSRP', 'dBm'),
+                                    ('rsrq', 'RSRQ', 'dB'),
+                                    ('rssi', 'RSSI', 'dB'),
+                                    ('snr', 'S/N', 'dB')],
+                                    sig, True)
+                    else:
+                        text = nice([('rsrp', 'RSRP', 'dBm'),
+                                    ('rsrq', 'RSRQ', 'dB')],
+                                    sig, True)
                     tes.append(TE('Signal LTE', text))
                 elif 'signal-umts' in mi:
                     sig = mi['signal-umts']

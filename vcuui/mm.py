@@ -198,6 +198,15 @@ class Modem():
         mmr = self._info('--signal-get')
         res['rsrp'] = mmr.number('modem.signal.lte.rsrp')
         res['rsrq'] = mmr.number('modem.signal.lte.rsrq')
+
+        # Some modems also report rssi and s/n, add if present
+        rssi = mmr.number('modem.signal.lte.rsrp')
+        if rssi:
+            res['rssi'] = rssi
+        snr = mmr.number('modem.signal.lte.snr')
+        if snr:
+            res['snr'] = snr
+
         return res
 
     def signal_umts(self):
