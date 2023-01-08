@@ -118,6 +118,13 @@ systemctl start vcu-ui      # Start service right now
 
 ### Revision History
 
+#### v0.9.1 (20230108)
+
+- Improve gpsd resilience, be tolerant if gpsd is not (yet) running
+- Display modem type
+- Disply LTE RSSI and SNR if present
+
+
 #### v0.9.0 (20221230)
 
 - Update for OEM Linux 1.6.x

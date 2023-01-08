@@ -446,7 +446,7 @@ class Gnss(threading.Thread):
 
         cnt = 0
         while True:
-            logger.info(f'gnss status thread: {self.state}')
+            logger.debug(f'gnss status thread: {self.state}')
 
             if self.state == 'init':
                 self._state_init()
