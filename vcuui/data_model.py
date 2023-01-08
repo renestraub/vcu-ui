@@ -227,6 +227,9 @@ class ModelWorker(threading.Thread):
 
             info['modem-id'] = str(m.id)
 
+            info['vendor'] = m.vendor()
+            info['model'] = m.model()
+
             version = m.revision()
             info['revision'] = version
 

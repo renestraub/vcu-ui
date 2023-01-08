@@ -136,6 +136,14 @@ class Modem():
         subprocess.run([MMCLI_BIN, '-m', str(self.id), '--location-enable-3gpp'],
                        stdout=subprocess.PIPE)
 
+    def vendor(self):
+        mmr = self._info()
+        return mmr.text('modem.generic.manufacturer')
+
+    def model(self):
+        mmr = self._info()
+        return mmr.text('modem.generic.model')
+
     def revision(self):
         mmr = self._info()
         return mmr.text('modem.generic.revision')

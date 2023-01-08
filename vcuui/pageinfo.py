@@ -138,6 +138,10 @@ class MainHandler(tornado.web.RequestHandler):
 
                 tes.append(TE('Modem Id', mi['modem-id']))
 
+                vendor = mi['vendor']
+                model = mi['model']
+                tes.append(TE('Type', f'{vendor} {model}'))
+
                 state = mi['state']
 
                 # Sometimes ModemManager seems to report wrong access tech
