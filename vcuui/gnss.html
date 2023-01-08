@@ -23,12 +23,14 @@
                 <button id="button_ser2net" class="button button_orange" type="button" onclick="do_sertonet()">uCenter ser2net</button>
                 <p></p>
 -->
+                {% if data %}
                 <button id="button_state_save" class="button button_green" type="button" onclick="do_state_save()">Save GNSS State</button>
                 <button id="button_state_clear" class="button button_green" type="button" onclick="do_state_clear()">Clear GNSS State</button>
                 <button id="button_settings_save" class="button button_green" type="button" onclick="do_settings_save()">Save GNSS Settings</button>
                 <p></p>
                 <button id="button_settings_save" class="button button_orange" type="button" onclick="do_factory_reset()">Factory Reset Settings</button>
                 <button id="button_col_start" class="button button_orange" type="button" onClick="do_gnss_coldstart()">Cold Start</button>
+                {% end %}
                 <p></p>
                 <button class="button" onclick="window.location.href = '/gnss'">Refresh Page</button>
             </div>
@@ -48,6 +50,7 @@
 
             <p></p>
 
+            {% if data %}
             <table>
                 <tr>
                     <td>UART</td>
@@ -132,6 +135,7 @@
                     </td>
                 </tr>
             </table>
+            {% end %}
 
             {% if message %}
             <p>Status: {{message}}</p>
@@ -167,25 +171,25 @@
             {% for key, value in data.items() %}
                 localStorage.{{key}} = '{{value}}';
             {% end %}
+
+            // Set UI configuration items with values provided by system
+            // console.log(`system dyn_model is {{data['dyn_model']}}`)
+            // console.log(`system nmea is {{data['nmea_protocol']}}`)
+            document.getElementById("dyn_model").value = "{{data['dyn_model']}}";
+            document.getElementById("auto_imu_align").value = "{{data['imu_auto_align']}}";
+
+            document.getElementById("imu_cfg_roll").value = "{{data['imu_cfg_roll']}}";
+            document.getElementById("imu_cfg_pitch").value = "{{data['imu_cfg_pitch']}}";
+            document.getElementById("imu_cfg_yaw").value = "{{data['imu_cfg_yaw']}}";
+
+            document.getElementById("vrp-ant-x").value = "{{data['vrp_ant_x']}}";
+            document.getElementById("vrp-ant-y").value = "{{data['vrp_ant_y']}}";
+            document.getElementById("vrp-ant-z").value = "{{data['vrp_ant_z']}}";
+
+            document.getElementById("vrp-imu-x").value = "{{data['vrp_imu_x']}}";
+            document.getElementById("vrp-imu-y").value = "{{data['vrp_imu_y']}}";
+            document.getElementById("vrp-imu-z").value = "{{data['vrp_imu_z']}}";
         {% end %}
-
-        // Set UI configuration items with values provided by system
-        // console.log(`system dyn_model is {{data['dyn_model']}}`)
-        // console.log(`system nmea is {{data['nmea_protocol']}}`)
-        document.getElementById("dyn_model").value = "{{data['dyn_model']}}";
-        document.getElementById("auto_imu_align").value = "{{data['imu_auto_align']}}";
-
-        document.getElementById("imu_cfg_roll").value = "{{data['imu_cfg_roll']}}";
-        document.getElementById("imu_cfg_pitch").value = "{{data['imu_cfg_pitch']}}";
-        document.getElementById("imu_cfg_yaw").value = "{{data['imu_cfg_yaw']}}";
-
-        document.getElementById("vrp-ant-x").value = "{{data['vrp_ant_x']}}";
-        document.getElementById("vrp-ant-y").value = "{{data['vrp_ant_y']}}";
-        document.getElementById("vrp-ant-z").value = "{{data['vrp_ant_z']}}";
-
-        document.getElementById("vrp-imu-x").value = "{{data['vrp_imu_x']}}";
-        document.getElementById("vrp-imu-y").value = "{{data['vrp_imu_y']}}";
-        document.getElementById("vrp-imu-z").value = "{{data['vrp_imu_z']}}";
 
         var timer_close = null;
 

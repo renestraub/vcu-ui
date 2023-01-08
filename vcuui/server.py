@@ -18,6 +18,7 @@ from vcuui._version import __version__ as version
 from vcuui.data_model import Model
 from vcuui.wwan_model import Wwan
 from vcuui.gnss_model import Gnss
+from vcuui.gnss_pos import GnssPosition
 from vcuui.mm import MM
 from vcuui.pagegnss import GnssHandler
 from vcuui.realtime import RealtimeHandler, RealtimeWebSocket
@@ -230,10 +231,10 @@ def run_server(port=80):
     wwan.setup()
 
     gnss = Gnss(model)
-    res = gnss.setup()
-    if not res:
-        logger.warning('cannot connect to gpsd. aborting')
-        sys.exit(10)
+    gnss.setup()
+
+    gnss_pos = GnssPosition(model)
+    gnss_pos.setup()
 
     things = Things(model)
     things.setup()
