@@ -126,7 +126,7 @@ systemctl start vcu-ui      # Start service right now
 
 ### Revision History
 
-#### v0.9.2 (20230108)
+#### v0.9.2 (20230122)
 
 - Add menu to edit GNSS configuration file and restart GNSS manager to apply
 - Remove old configuration option GUI
