@@ -7,7 +7,7 @@ Uses Tornado webserver
 import json
 import logging
 import os
-import sys
+# import sys
 
 import requests
 import tornado.ioloop
@@ -131,55 +131,6 @@ class GnssColdStartHandler(tornado.web.RequestHandler):
         self.write(res)
 
 
-class GnssConfigHandler(tornado.web.RequestHandler):
-    def get(self):
-        # TODO: Argument check (1st level)
-
-        dyn_model = self.get_query_argument('dyn_model', 0)
-        logger.debug(f'dynamic model {dyn_model}')
-
-        auto_align = self.get_query_argument('auto_align', 0)
-        logger.debug(f'auto_align {auto_align}')
-
-        imu_cfg_angles = self.get_query_argument('imu_cfg_angles')
-        logger.debug(f'imu_cfg_angles {imu_cfg_angles}')
-        angles_as_int = imu_cfg_angles.split(',')
-        angles = {
-            'roll': int(float(angles_as_int[0]) * 100.0),
-            'pitch': int(float(angles_as_int[1]) * 100.0),
-            'yaw': int(float(angles_as_int[2]) * 100.0)
-        }
-
-        vrp_imu_values = self.get_query_argument('vrp_imu')
-        logger.info(f'vrp_imu {vrp_imu_values}')
-        vrp_imu_in_m = vrp_imu_values.split(',')
-        vrp_imu = {
-            'x': int(vrp_imu_in_m[0]),
-            'y': int(vrp_imu_in_m[1]),
-            'z': int(vrp_imu_in_m[2])
-        }
-
-        vrp_ant_values = self.get_query_argument('vrp_ant')
-        logger.info(f'vrp_ant {vrp_ant_values}')
-        vrp_ant_in_m = vrp_ant_values.split(',')
-        vrp_ant = {
-            'x': int(vrp_ant_in_m[0]),
-            'y': int(vrp_ant_in_m[1]),
-            'z': int(vrp_ant_in_m[2])
-        }
-
-        gnss = Gnss.instance
-
-        res1 = gnss.set_dynamic_model(int(dyn_model))
-        res2 = gnss.set_auto_align(auto_align == "On")
-        res3 = gnss.set_imu_cfg_angles(angles)
-        res4 = gnss.set_vrp_ant(vrp_ant)
-        res5 = gnss.set_vrp_imu(vrp_imu)
-        res = res1 + '<br>' + res2 + '<br>' + res3 + '<br>' + res4 + '<br>' + res5
-
-        self.write(res)
-
-
 class GsmCellLocateHandler(tornado.web.RequestHandler):
     def get(self):
         mcc = self.get_query_argument('mcc', 0)
@@ -264,8 +215,6 @@ def run_server(port=80):
         (r"/do_system_sleep", SystemSleepHandler),
         (r"/do_system_reboot", SystemRebootHandler),
         (r"/do_system_powerdown", SystemPowerdownHandler),
-
-        (r"/do_gnss_config", GnssConfigHandler),
 
         (r"/do_ser2net", NotImplementedHandler),
         (r"/do_gnss_state_save", GnssSaveStateHandler),

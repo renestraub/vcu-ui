@@ -217,29 +217,6 @@ class Gnss(threading.Thread):
         else:
             return -1
 
-    def set_dynamic_model(self, dyn_model):
-        logger.debug(f'requesting dynamic model {dyn_model}')
-        assert(0 <= dyn_model <= 7)
-
-        res = self._cfg_nav5(force=True)
-        if res:
-            logger.debug(f'current dynamic model {res.f.dynModel}')
-            if dyn_model != res.f.dynModel:
-                logger.debug('  changing')
-                with self.lock:
-                    res.f.dynModel = dyn_model
-                    self.ubx.set(res)
-
-                # TODO: Move text stuff out of this module
-                res = f'Dynamic model set to {dyn_model}'
-            else:
-                logger.debug('  ignoring')
-                res = 'Dynamic model left as is'
-        else:
-            res = 'Failed: GNSS not accessible.'
-
-        return res
-
     """
     IMU Auto Alignment Configuration
     """
@@ -249,31 +226,6 @@ class Gnss(threading.Thread):
             return bool(res.f.bitfield & UbxCfgEsfAlg.BITFIELD_doAutoMntAlg)
         else:
             return -1
-
-    def set_auto_align(self, align_mode):
-        logger.debug(f'requesting alignment mode {align_mode}')
-        res = self._cfg_esfalg(force=True)
-        if res:
-            current = bool(res.f.bitfield & UbxCfgEsfAlg.BITFIELD_doAutoMntAlg)
-            logger.debug(f'current alignment mode {current}')
-            if align_mode != (current == 1):
-                logger.debug('  changing')
-                with self.lock:
-                    if align_mode:
-                        res.f.bitfield |= UbxCfgEsfAlg.BITFIELD_doAutoMntAlg
-                    else:
-                        res.f.bitfield &= ~UbxCfgEsfAlg.BITFIELD_doAutoMntAlg
-                    self.ubx.set(res)
-
-                # TODO: Move text stuff out of this module
-                res = f'IMU automatic alignment set to {align_mode}'
-            else:
-                logger.debug('  ignoring')
-                res = 'IMU automatic alignment left as is'
-        else:
-            res = 'Failed: GNSS not accessible.'
-
-        return res
 
     def imu_cfg_angles(self):
         res = self._cfg_esfalg()
@@ -291,29 +243,6 @@ class Gnss(threading.Thread):
                 'yaw': 0.0
             }
         return data
-
-    def set_imu_cfg_angles(self, angles):
-        logger.debug(f'requesting angles {angles}')
-        res = self._cfg_esfalg(force=True)
-        if res:
-            # TODO: Add check for change
-            if True:
-                logger.debug('  changing')
-                with self.lock:
-                    res.f.roll = angles['roll']
-                    res.f.pitch = angles['pitch']
-                    res.f.yaw = angles['yaw']
-                    self.ubx.set(res)
-
-                # TODO: Move text stuff out of this module
-                res = f'IMU angles set to {angles}'
-            else:
-                logger.debug('  ignoring')
-                res = 'IMU angles left as is'
-        else:
-            res = 'Failed: GNSS not accesible.'
-
-        return res
 
     """
     IMU Auto Alignment State
@@ -360,24 +289,6 @@ class Gnss(threading.Thread):
             }
         return data
 
-    def set_vrp_ant(self, distance):
-        logger.info(f'requesting VRP-ANT distance {distance}')
-        x = distance['x']
-        y = distance['y']
-        z = distance['z']
-
-        with self.lock:
-            set_esfla_antenna = UbxCfgEsflaSet()
-            set_esfla_antenna.set(UbxCfgEsflaSet.TYPE_VRP_Antenna, x, y, z)
-            res = self.ubx.set(set_esfla_antenna)
-            if res:
-                res = f'VRP Antenna distance set to {distance}'
-            else:
-                res = 'Failed: GNSS not accessible.'
-
-            self.__msg_cfg_esfla = None     # Force re-read once we change lever arm settings
-            return res
-
     def vrp_imu(self):
         res = self._cfg_vrp_imu()
         if res:
@@ -391,25 +302,6 @@ class Gnss(threading.Thread):
                 'z': 0.0
             }
         return data
-
-    def set_vrp_imu(self, distance):
-        logger.info(f'requesting VRP-IMU distance {distance}')
-        x = distance['x']
-        y = distance['y']
-        z = distance['z']
-
-        with self.lock:
-            set_esfla_imu = UbxCfgEsflaSet()
-            set_esfla_imu.set(UbxCfgEsflaSet.TYPE_VRP_IMU, x, y, z)
-            res = self.ubx.set(set_esfla_imu)
-            if res:
-                # TODO: Move text stuff out of this module
-                res = f'VRP IMU distance set to {distance}'
-            else:
-                res = 'Failed: GNSS not accessible.'
-
-            self.__msg_cfg_esfla = None     # Force re-read once we change lever arm settings
-            return res
 
     """
     Fusion State
