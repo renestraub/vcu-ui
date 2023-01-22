@@ -21,6 +21,7 @@ from vcuui.gnss_model import Gnss
 from vcuui.gnss_pos import GnssPosition
 from vcuui.mm import MM
 from vcuui.pagegnss import GnssHandler
+from vcuui.pagegnssedit import GnssEditHandler, GnssSaveHandler, GnssRestartHandler
 from vcuui.realtime import RealtimeHandler, RealtimeWebSocket
 from vcuui.pageinfo import MainHandler
 from vcuui.pagetraffic import TrafficHandler, TrafficImageHandler
@@ -249,6 +250,7 @@ def run_server(port=80):
     app = tornado.web.Application([
         (r"/", MainHandler),
         (r"/gnss", GnssHandler),
+        (r"/gnss_edit", GnssEditHandler),
         (r"/realtime", RealtimeHandler),
         (r"/traffic", TrafficHandler),
         (r'/traffic/img/(?P<filename>.+\.png)?', TrafficImageHandler),
@@ -256,6 +258,8 @@ def run_server(port=80):
         (r"/do_location", LocationHandler),
         (r"/do_cell_locate", GsmCellLocateHandler),
         (r"/do_cloud", CloudHandler),
+        (r"/do_gnss_save", GnssSaveHandler),
+        (r"/do_gnss_restart", GnssRestartHandler),
         (r"/do_modem_reset", ModemResetHandler),
         (r"/do_system_sleep", SystemSleepHandler),
         (r"/do_system_reboot", SystemRebootHandler),
