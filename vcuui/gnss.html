@@ -26,7 +26,6 @@
                 {% if data %}
                 <button id="button_state_save" class="button button_green" type="button" onclick="do_state_save()">Save GNSS State</button>
                 <button id="button_state_clear" class="button button_green" type="button" onclick="do_state_clear()">Clear GNSS State</button>
-                <button id="button_settings_save" class="button button_green" type="button" onclick="do_settings_save()">Save GNSS Settings</button>
                 <p></p>
                 <button id="button_settings_save" class="button button_orange" type="button" onclick="do_factory_reset()">Factory Reset Settings</button>
                 <button id="button_col_start" class="button button_orange" type="button" onClick="do_gnss_coldstart()">Cold Start</button>
@@ -250,10 +249,6 @@
 
             xhttp.open("GET", "do_ser2net", true);
             xhttp.send();
-        }
-
-        function do_settings_save() {
-            operate("Saving GNSS configuration", "do_gnss_settings_save");
         }
 
         function do_factory_reset() {

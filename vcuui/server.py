@@ -20,7 +20,9 @@ from vcuui.wwan_model import Wwan
 from vcuui.gnss_model import Gnss
 from vcuui.gnss_pos import GnssPosition
 from vcuui.mm import MM
-from vcuui.pagegnss import GnssHandler
+from vcuui.pagegnss import GnssHandler, GnssSaveStateHandler, GnssClearStateHandler
+from vcuui.pagegnss import GnssFactoryResetHandler, GnssColdStartHandler
+
 from vcuui.pagegnssedit import GnssEditHandler, GnssSaveHandler, GnssRestartHandler
 from vcuui.realtime import RealtimeHandler, RealtimeWebSocket
 from vcuui.pageinfo import MainHandler
@@ -92,42 +94,6 @@ class CloudHandler(tornado.web.RequestHandler):
 
         things = Things.instance
         res = things.enable(enable == 'True')
-        self.write(res)
-
-
-# TODO: Move to pagegnss.py
-class GnssSaveStateHandler(tornado.web.RequestHandler):
-    def get(self):
-        gnss = Gnss.instance
-        res = gnss.save_state()
-        self.write(res)
-
-
-class GnssClearStateHandler(tornado.web.RequestHandler):
-    def get(self):
-        gnss = Gnss.instance
-        res = gnss.clear_state()
-        self.write(res)
-
-
-class GnssSaveConfigHandler(tornado.web.RequestHandler):
-    def get(self):
-        gnss = Gnss.instance
-        res = gnss.save_config()
-        self.write(res)
-
-
-class GnssFactoryResetHandler(tornado.web.RequestHandler):
-    def get(self):
-        gnss = Gnss.instance
-        res = gnss.reset_config()
-        self.write(res)
-
-
-class GnssColdStartHandler(tornado.web.RequestHandler):
-    def get(self):
-        gnss = Gnss.instance
-        res = gnss.cold_start()
         self.write(res)
 
 
@@ -219,7 +185,6 @@ def run_server(port=80):
         (r"/do_ser2net", NotImplementedHandler),
         (r"/do_gnss_state_save", GnssSaveStateHandler),
         (r"/do_gnss_state_clear", GnssClearStateHandler),
-        (r"/do_gnss_settings_save", GnssSaveConfigHandler),
         (r"/do_gnss_factory_reset", GnssFactoryResetHandler),
         (r"/do_gnss_coldstart", GnssColdStartHandler),
 

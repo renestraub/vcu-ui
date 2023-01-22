@@ -143,16 +143,6 @@ class Gnss(threading.Thread):
     """
     Config Save / Reset
     """
-    def save_config(self):
-        logger.debug('saving GNSS config')
-
-        with self.lock:
-            msg = UbxCfgCfgAction()
-            msg.save(UbxCfgCfgAction.MASK_NavConf)     # To save CFG-NAV-NMEA
-            self.ubx.set(msg)
-
-        return 'Success'
-
     def reset_config(self):
         logger.debug('resetting GNSS config')
 

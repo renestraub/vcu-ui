@@ -148,3 +148,31 @@ class GnssHandler(tornado.web.RequestHandler):
                         table=None,
                         data=None,
                         version='n/a')
+
+
+class GnssSaveStateHandler(tornado.web.RequestHandler):
+    def get(self):
+        gnss = Gnss.instance
+        res = gnss.save_state()
+        self.write(res)
+
+
+class GnssClearStateHandler(tornado.web.RequestHandler):
+    def get(self):
+        gnss = Gnss.instance
+        res = gnss.clear_state()
+        self.write(res)
+
+
+class GnssFactoryResetHandler(tornado.web.RequestHandler):
+    def get(self):
+        gnss = Gnss.instance
+        res = gnss.reset_config()
+        self.write(res)
+
+
+class GnssColdStartHandler(tornado.web.RequestHandler):
+    def get(self):
+        gnss = Gnss.instance
+        res = gnss.cold_start()
+        self.write(res)
