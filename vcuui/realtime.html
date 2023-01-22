@@ -16,6 +16,7 @@
         <div class="menu">
             <div class="btn-group">
                 <button class="button" onclick="window.location.href = '/'">Home</button>
+                <p></p>
                 <button class="button" onclick="window.location.href = '/realtime'">Refresh Page</button>
                 <p id="dot" class="dot-animated">&#x2B24;</p>
                 <p id="counter"></p>
@@ -44,8 +45,6 @@
             </table>
         </div>
     </div>
-
-    <!-- {% include 'footer.html' %} -->
 
     <script>
         // console.log(self.location.host);
@@ -84,7 +83,8 @@
             obd2_coolant_temp_degC = msg.obd2["coolant-temp"].toFixed(0);
             let obd2_info = `${obd2_speed_kmh} km/h, ${obd2_coolant_temp_degC} °C`;
 
-            document.getElementById("gnss-speed").innerHTML = `${speed_kmh} km/h`;
+            // document.getElementById("gnss-speed").innerHTML = `${speed_kmh}`;
+            document.getElementById("gnss-speed").innerHTML = `${speed_kmh} <font size=\"85%\">${obd2_speed_kmh}`
             document.getElementById("gnss-fix").innerHTML = gnss_info;
             document.getElementById("wwan-data").innerHTML = wwan_info;
             document.getElementById("obd2").innerHTML = obd2_info;

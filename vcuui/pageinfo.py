@@ -74,7 +74,7 @@ class MainHandler(tornado.web.RequestHandler):
             cloud_log_state = md['cloud']
             serial = d.get('N/A', 'sys-version', 'serial')
 
-            tes.append(TE('<b>System</b>', ''))
+            # tes.append(TE('<b>System</b>', ''))
             text = nice([('sys', 'System', ''),
                         ('bl', 'Bootloader', ''),
                         ('hw', 'Hardware', '')],
@@ -91,7 +91,9 @@ class MainHandler(tornado.web.RequestHandler):
             tes.append(TE('Uptime', ut))
 
             total, free = d.get((0, 0), 'sys-misc', 'mem')
-            tes.append(TE('Memory', f'Total: {total} kB<br>Free: {free} kB'))
+            total = int(total/1024)
+            free = int(free/1024)
+            tes.append(TE('Memory', f'Total: {total} MB, Free: {free} MB'))
 
             wear_slc, wear_mlc = d.get((0, 0), 'sys-disc', 'wear')
             sysroot_info = d.get('N/A', 'sys-disc', 'part_sysroot')
@@ -122,13 +124,13 @@ class MainHandler(tornado.web.RequestHandler):
             if rx and tx:
                 rx = int(rx) / 1000000
                 tx = int(tx) / 1000000
-                tes.append(TE('wwan0', f'Rx: {rx:.1f} MB<br>Tx: {tx:.1f} MB'))
+                tes.append(TE('wwan0', f'Rx: {rx:.1f} MB, Tx: {tx:.1f} MB'))
 
             rx, tx = d.get((None, None), 'net-wlan0', 'bytes')
             if rx and tx:
                 rx = int(rx) / 1000000
                 tx = int(tx) / 1000000
-                tes.append(TE('wlan0', f'Rx: {rx:.1f} MB<br>Tx: {tx:.1f} MB'))
+                tes.append(TE('wlan0', f'Rx: {rx:.1f} MB, Tx: {tx:.1f} MB'))
 
             # Modem Information
             mi = md['modem']
@@ -230,7 +232,7 @@ class MainHandler(tornado.web.RequestHandler):
 
                 pos = md['gnss-pos']
                 tes.append(TE('Fix', pos['fix']))
-                text = f'Longitude: {pos["lon"]:.9f}, Latitude: {pos["lat"]:.9f}'
+                text = f'Lon: {pos["lon"]:.7f}, Lat: {pos["lat"]:.7f}'
                 tes.append(TE('Position', text))
                 text = nice([('speed', '', 'km/h')], pos)
                 tes.append(TE('Speed', f'{pos["speed"]:.0f} m/s, {pos["speed"]*3.60:.0f} km/h'))

@@ -26,7 +26,6 @@
                 {% if data %}
                 <button id="button_state_save" class="button button_green" type="button" onclick="do_state_save()">Save GNSS State</button>
                 <button id="button_state_clear" class="button button_green" type="button" onclick="do_state_clear()">Clear GNSS State</button>
-                <button id="button_settings_save" class="button button_green" type="button" onclick="do_settings_save()">Save GNSS Settings</button>
                 <p></p>
                 <button id="button_settings_save" class="button button_orange" type="button" onclick="do_factory_reset()">Factory Reset Settings</button>
                 <button id="button_col_start" class="button button_orange" type="button" onClick="do_gnss_coldstart()">Cold Start</button>
@@ -38,20 +37,16 @@
 
         <div class="main">
             <table>
-                {% if table %}
-                    {% for entry in table %}
-                    <tr>
-                        <td>{% raw entry.header %}</td>
-                        <td>{% raw entry.text %}</td>
-                    </tr>
-                    {% end %}
+            {% if table %}
+                {% for entry in table %}
+                <tr>
+                    <td>{% raw entry.header %}</td>
+                    <td>{% raw entry.text %}</td>
+                </tr>
                 {% end %}
-            </table>
-
-            <p></p>
-
+            {% end %}
+            <tr></tr><td></td><td></td>
             {% if data %}
-            <table>
                 <tr>
                     <td>UART</td>
                     <td>{{ data['uart_settings'] }}</td>
@@ -59,10 +54,6 @@
                 <tr>
                     <td>NMEA Protocol</td>
                     <td>{{ data['nmea_protocol'] }}</td>
-                </tr>
-                <tr>
-                    <td><b>ESF Alignment</b></td>
-                    <td></td>
                 </tr>
                 <tr>
                     <td>IMU Auto Alignment</td>
@@ -76,11 +67,6 @@
                     <td>ESF Status</td>
                     <td>{{ data['esf_status'] }}</td>
                 </tr>
-            </table>
-
-            <p></p>
-
-            <table>
                 <tr>
                     <td>Dynamic Model</td>
                     <td>
@@ -126,12 +112,6 @@
                         X [-200..1000 cm]: <input type="number" id="vrp-imu-x" class="input_vrp" min="-200" max="1000" step="1">
                         Y [-200..200 cm]: <input type="number" id="vrp-imu-y" class="input_vrp" min="-200" max="200" step="1">
                         Z [-100..400 cm]: <input type="number" id="vrp-imu-z" class="input_vrp" min="-100" max="400" step="1">
-                    </td>
-                </tr>
-
-                <tr>
-                    <td colspan="2">
-                        <button id="button_configure" class="button button_orange" type="button" onclick="do_gnss_config()">Configure</button>
                     </td>
                 </tr>
             </table>
@@ -271,10 +251,6 @@
             xhttp.send();
         }
 
-        function do_settings_save() {
-            operate("Saving GNSS configuration", "do_gnss_settings_save");
-        }
-
         function do_factory_reset() {
             operate("Performing factory reset", "do_gnss_factory_reset");
         }
@@ -289,51 +265,6 @@
 
         function do_gnss_coldstart() {
             operate("Performing GNSS coldstart", "do_gnss_coldstart");
-        }
-
-        function do_gnss_config() {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                    dialog_message.innerHTML += "<br>" + this.responseText;
-                    start_close_timer(3);
-                }
-            };
-
-            model_open('Configuring GNSS');
-            modal_enable_close_timer();
-
-            var dyn_model = document.getElementById("dyn_model").value; 
-            console.log(`new dyn_model is ${dyn_model}`);
-
-            var auto_align = document.getElementById("auto_imu_align").value; 
-            console.log(`auto_align is ${auto_align}`);
-
-            var imu_cfg_roll = document.getElementById("imu_cfg_roll").value; 
-            var imu_cfg_pitch = document.getElementById("imu_cfg_pitch").value; 
-            var imu_cfg_yaw = document.getElementById("imu_cfg_yaw").value; 
-            // console.log(`imu angles are: ${imu_cfg_roll}, ${imu_cfg_pitch}, ${imu_cfg_yaw}`);
-            var imu_angles = [imu_cfg_roll, imu_cfg_pitch, imu_cfg_yaw];
-
-            var vrp_imu_x = document.getElementById("vrp-imu-x").value;
-            var vrp_imu_y = document.getElementById("vrp-imu-y").value;
-            var vrp_imu_z = document.getElementById("vrp-imu-z").value;
-            var vrp_imu = [vrp_imu_x, vrp_imu_y, vrp_imu_z];
-
-            var vrp_ant_x = document.getElementById("vrp-ant-x").value;
-            var vrp_ant_y = document.getElementById("vrp-ant-y").value;
-            var vrp_ant_z = document.getElementById("vrp-ant-z").value;
-            var vrp_ant = [vrp_ant_x, vrp_ant_y, vrp_ant_z];
-
-            query = `dyn_model=${dyn_model}`;
-            query += `&auto_align=${auto_align}`;
-            query += `&imu_cfg_angles=${imu_angles}`;
-            query += `&vrp_imu=${vrp_imu}`;
-            query += `&vrp_ant=${vrp_ant}`;
-            uri = "/do_gnss_config?" + encodeURI(query);
-
-            xhttp.open("GET", uri, true);
-            xhttp.send();
         }
 
         /* Helper method for basic dialog/request/response sequence */

@@ -6,13 +6,13 @@
 
 ### Introduction
 
-A minimal Web user interface for the NG800/VCU Pro automotive gateway. It displays important status information and allows basic maintenance actions. Written in Python, based on Tornado webserver.
+A Web user interface for the NG800/VCU Pro automotive gateway. It displays important status information and allows basic maintenance actions. Written in Python, based on Tornado webserver.
 
 
 ### Features
 
 * Display important system information
-  * System date/time, load, temperature, input voltage
+  * System date/time, load, temperature, input voltage, memory and disk usage
   * Mobile link information: registration state, signal strength, bearer information
   * GNSS fix mode, position and speed
 * Determine GSM cell location, including geographic position (uses OpenCellId and OpenStreetMap)
@@ -20,6 +20,7 @@ A minimal Web user interface for the NG800/VCU Pro automotive gateway. It displa
 * Upload of telemetry to Thingsboard server
 * GNSS detailled information and automotive configuration
 * Realtime driving display with speed and navigations information, live update
+* Traffic information of wwan interface
 
 
 ### Short Description
@@ -31,18 +32,25 @@ The following is the main page, showing most information. To refresh information
 ![Info](https://github.com/renestraub/vcu-ui/raw/master/preview/info.png)
 
 
-#### GNSS Page
+#### GNSS Status
 
-The GNSS page displays information about the GNSS module and allows configuration of some UDR relevant settings. Since the page has to load a lot of GNSS modem information, it takes 1..2 seconds to load. Refresh page manually to update live data or after a configuration change.
+The GNSS Status page displays information about the GNSS module and especially UDR settings. Since the page has to load a lot of GNSS modem information, it takes 1..2 seconds to load. Refresh page manually to update live data or after a configuration change.
 
 ![Gnss](https://github.com/renestraub/vcu-ui/raw/master/preview/gnss.png)
+
+
+#### GNSS Config
+
+The GNSS Config page displays the configuration file of the GNSS manager for edit. Changes can be saved and the GNSS manager restarted to apply the changes.
+
+![GnssConfig](https://github.com/renestraub/vcu-ui/raw/master/preview/gnss-config.png)
 
 
 #### Realtime Display
 
 For drive tests the realtime page is most suitable. It display drive related information in realtime. The page is updated via a Websocket connection once a second. Check the green dot to see whether the connection to the VCU UI webserver is active. The dot blinks once a seconds to signal activity.
 
-![Gnss](https://github.com/renestraub/vcu-ui/raw/master/preview/realtime.png)
+![Realtime](https://github.com/renestraub/vcu-ui/raw/master/preview/realtime.png)
 
 
 #### WWAN Traffic Page
@@ -118,11 +126,18 @@ systemctl start vcu-ui      # Start service right now
 
 ### Revision History
 
+#### v0.9.2 (20230108)
+
+- Add menu to edit GNSS configuration file and restart GNSS manager to apply
+- Remove old configuration option GUI
+- Minor UI cleanups
+
+
 #### v0.9.1 (20230108)
 
 - Improve gpsd resilience, be tolerant if gpsd is not (yet) running
 - Display modem type
-- Disply LTE RSSI and SNR if present
+- Display LTE RSSI and SNR if present
 
 
 #### v0.9.0 (20221230)

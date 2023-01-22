@@ -49,9 +49,9 @@ class SysInfoBase():
             res = f.readlines()
             for line in res:
                 if 'MemTotal' in line:
-                    total = line.split()[1].strip()
+                    total = int(line.split()[1].strip())
                 elif 'MemFree' in line:
-                    free = line.split()[1].strip()
+                    free = int(line.split()[1].strip())
 
         return total, free
 

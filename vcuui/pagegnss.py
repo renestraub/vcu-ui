@@ -1,5 +1,5 @@
 """
-GNSS Page
+GNSS Status Page
 """
 import logging
 
@@ -77,7 +77,7 @@ class GnssHandler(tornado.web.RequestHandler):
 
                     pos = md['gnss-pos']
                     tes.append(TE('Fix', pos['fix']))
-                    text = f'Longitude: {pos["lon"]:.9f}, Latitude: {pos["lat"]:.9f}'
+                    text = f'Lon: {pos["lon"]:.7f}, Lat: {pos["lat"]:.7f}'
                     tes.append(TE('Position', text))
                     text = nice([('speed', '', 'km/h')], pos)
                     tes.append(TE('Speed', f'{pos["speed"]:.0f} m/s, {pos["speed"]*3.60:.0f} km/h'))
@@ -148,3 +148,31 @@ class GnssHandler(tornado.web.RequestHandler):
                         table=None,
                         data=None,
                         version='n/a')
+
+
+class GnssSaveStateHandler(tornado.web.RequestHandler):
+    def get(self):
+        gnss = Gnss.instance
+        res = gnss.save_state()
+        self.write(res)
+
+
+class GnssClearStateHandler(tornado.web.RequestHandler):
+    def get(self):
+        gnss = Gnss.instance
+        res = gnss.clear_state()
+        self.write(res)
+
+
+class GnssFactoryResetHandler(tornado.web.RequestHandler):
+    def get(self):
+        gnss = Gnss.instance
+        res = gnss.reset_config()
+        self.write(res)
+
+
+class GnssColdStartHandler(tornado.web.RequestHandler):
+    def get(self):
+        gnss = Gnss.instance
+        res = gnss.cold_start()
+        self.write(res)
