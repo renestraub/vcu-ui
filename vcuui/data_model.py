@@ -226,15 +226,14 @@ class ModelWorker(threading.Thread):
                 self._modem_setup(m)
 
             info['modem-id'] = str(m.id)
+            m_info = m.get_info()
 
-            info['vendor'] = m.vendor()
-            info['model'] = m.model()
+            info['vendor'] = m.vendor(m_info)
+            info['model'] = m.model(m_info)
+            info['revision'] = m.revision(m_info)
 
-            version = m.revision()
-            info['revision'] = version
-
-            state = m.state()
-            access_tech = m.access_tech()
+            state = m.state(m_info)
+            access_tech = m.access_tech(m_info)
             info['state'] = state
             info['access-tech'] = access_tech
 
@@ -242,16 +241,18 @@ class ModelWorker(threading.Thread):
             if loc_info['mcc']:
                 info['location'] = loc_info
 
-            sq = m.signal()
+            sq = m.signal_quality(m_info)
             info['signal-quality'] = sq
 
             # Get access tech from signal quality command as regular RAT
             # information from ModemManager is not reliable
-            sig_rat = m.signal_access_tech()
+            sig_info = m.signal_get()
+
+            sig_rat = m.signal_access_tech(sig_info)
             info['access-tech2'] = sig_rat
 
             if sig_rat == 'lte':
-                sig = m.signal_lte()
+                sig = m.signal_lte(sig_info)
                 info['signal-lte'] = sig
 
                 # Seldomly the signal fields are not defined, handle gracefully
@@ -262,24 +263,28 @@ class ModelWorker(threading.Thread):
                     info['signal-quality2'] = round(qual)
 
             elif sig_rat == 'umts':
-                sig = m.signal_umts()
+                sig = m.signal_umts(sig_info)
                 info['signal-umts'] = sig
 
-            b = m.bearer()
+            b = m.bearer(m_info)
             if b:
+                b_info = b.get_info()
+
                 info['bearer-id'] = str(b.id)
-                ut = b.uptime()
+                ut = b.uptime(b_info)
                 if ut:
                     info['bearer-uptime'] = ut
-                    ip = b.ip()
+                    ip = b.ip(b_info)
                     info['bearer-ip'] = ip
 
-            s = m.sim()
+            s = m.sim(m_info)
             if s:
                 info['sim-id'] = str(s.id)
-                imsi = s.imsi()
+
+                s_info = s.get_info()
+                imsi = s.imsi(s_info)
                 info['sim-imsi'] = imsi
-                iccid = s.iccid()
+                iccid = s.iccid(s_info)
                 info['sim-iccid'] = iccid
         else:
             self.modem_setup_done = False

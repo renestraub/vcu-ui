@@ -15,26 +15,32 @@ class MM():
 
     @staticmethod
     def command(cmd):
-        cp = subprocess.run(cmd, stdout=subprocess.PIPE)
-        stdout = cp.stdout.decode()
-        return MmResult(stdout)
+        try:
+            cp = subprocess.run(cmd, stdout=subprocess.PIPE, timeout=10.0)
+            stdout = cp.stdout.decode()
+            return MmResult(stdout)
+        except subprocess.TimeoutExpired:
+            logger.warning('executing mmcli timed-out')
+            return None
 
     @staticmethod
     def _id():
         mmr = MM.command([MMCLI_BIN, '-K', '-L'])
-        # Returns number of modems with each modems id.
+        # If successful, returns number of modems with each modems id.
         #   modem-list.length   : 1
         #   modem-list.value[1] : /org/freedesktop/ModemManager1/Modem/0
         # In case no modem is found returns the following. Note that no .length
         # entry is present
         #   modem-list : 0
-
-        num_modems = mmr.text('modem-list.length')
-        if num_modems:
-            return mmr.id('modem-list.value[1]')
+        if mmr:
+            num_modems = mmr.text('modem-list.length')
+            if num_modems:
+                return mmr.id('modem-list.value[1]')
+            else:
+                logger.info('no modem(s) found')
+                return None
         else:
-            logger.info('no modem(s) found')
-            # None
+            return None
 
 
 class MmResult():
@@ -136,35 +142,33 @@ class Modem():
         subprocess.run([MMCLI_BIN, '-m', str(self.id), '--location-enable-3gpp'],
                        stdout=subprocess.PIPE)
 
-    def vendor(self):
+    def get_info(self):
         mmr = self._info()
+        return mmr
+
+    def vendor(self, mmr):
         return mmr.text('modem.generic.manufacturer')
 
-    def model(self):
-        mmr = self._info()
+    def model(self, mmr):
         return mmr.text('modem.generic.model')
 
-    def revision(self):
-        mmr = self._info()
+    def revision(self, mmr):
         return mmr.text('modem.generic.revision')
 
-    def state(self):
-        mmr = self._info()
+    def state(self, mmr):
         return mmr.text('modem.generic.state')
 
-    def access_tech(self):
-        mmr = self._info()
+    def access_tech(self, mmr):
         return mmr.text('modem.generic.access-technologies.value[1]')
 
-    def signal(self):
-        mmr = self._info()
+    def signal_quality(self, mmr):
         return mmr.dec('modem.generic.signal-quality.value')
 
-    # TODO: Add query method to read --signal-get only once
-    #       Remember result in object or provide to caller
-    #       This avoids calling overhead and ensures consistency
+    def signal_get(self):
+        mmr = self._info('--signal-get')
+        return mmr
 
-    def signal_access_tech(self):
+    def signal_access_tech(self, mmr):
         # Reads signal information and decodes current RAT from provided values
         # This works around the problem that access_tech() not always matches
         # the RAT of signal()
@@ -179,11 +183,7 @@ class Modem():
         # modem.signal.lte.rsrq     : -14.00
         # modem.signal.lte.rsrp     : -90.00
         # modem.signal.lte.snr      : --
-        mmr = self._info('--signal-get')
-        # print(mmr.items)
-        # print(mmr.number('modem.signal.lte.rsrq'))
-        # print(mmr.number('modem.signal.umts.ecio'))
-        # print(mmr.number('modem.signal.gsm.rssi'))
+
         if mmr.number('modem.signal.lte.rsrq'):
             return "lte"
         elif mmr.number('modem.signal.umts.ecio'):
@@ -193,9 +193,8 @@ class Modem():
         else:
             return None
 
-    def signal_lte(self):
+    def signal_lte(self, mmr):
         res = dict()
-        mmr = self._info('--signal-get')
         res['rsrp'] = mmr.number('modem.signal.lte.rsrp')
         res['rsrq'] = mmr.number('modem.signal.lte.rsrq')
 
@@ -209,9 +208,8 @@ class Modem():
 
         return res
 
-    def signal_umts(self):
+    def signal_umts(self, mmr):
         res = dict()
-        mmr = self._info('--signal-get')
         res['rscp'] = mmr.number('modem.signal.umts.rscp')
         res['ecio'] = mmr.number('modem.signal.umts.ecio')
         return res
@@ -225,14 +223,12 @@ class Modem():
         res['cid'] = mmr.hex('modem.location.3gpp.cid')
         return res
 
-    def bearer(self):
-        mmr = self._info()
+    def bearer(self, mmr):
         bid = mmr.id('modem.generic.bearers.value[1]')
         if bid is not None:
             return Bearer(int(bid))
 
-    def sim(self):
-        mmr = self._info()
+    def sim(self, mmr):
         sid = mmr.id('modem.generic.sim')
         if sid is not None:
             return SIM(int(sid))
@@ -249,12 +245,13 @@ class Bearer():
     def __init__(self, id):
         self.id = id
 
-    def uptime(self):
-        mmr = self._info()
+    def get_info(self):
+        return self._info()
+
+    def uptime(self, mmr):
         return mmr.dec('bearer.stats.duration')
 
-    def ip(self):
-        mmr = self._info()
+    def ip(self, mmr):
         return mmr.text('bearer.ipv4-config.address')
 
     def _info(self):
@@ -266,12 +263,13 @@ class SIM():
     def __init__(self, id):
         self.id = id
 
-    def imsi(self):
-        mmr = self._info()
+    def get_info(self):
+        return self._info()
+
+    def imsi(self, mmr):
         return mmr.text('sim.properties.imsi')
 
-    def iccid(self):
-        mmr = self._info()
+    def iccid(self, mmr):
         return mmr.text('sim.properties.iccid')
 
     def _info(self):
