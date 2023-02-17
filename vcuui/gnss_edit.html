@@ -32,9 +32,9 @@
 
         <div id="main" class="main">
             {% if data %}
-            <textarea id="myEditor" class="editor" maxlength="4096">
-                {{data}}
-            </textarea>
+            <div id="editor" hidden="hidden">
+                {% raw data %}
+            </div>
             {% else %}
                 Configuration file not present
             {% end %}
@@ -62,15 +62,45 @@
 
     {% include 'footer.html' %}
 
+    <!-- TODO: Local storage -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.15.0/ace.js"
+        integrity="sha512-vgArOyW+sdp69qm3025hO1uoxhMZ7rzc2NZbaC/0eUD92rYIx4YSI/NdQ1+oINXb8tXoFQJyQqpfV9KxoPGuCw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+    </script> -->
+    <script src="{{ static_url('ace/src-noconflict/ace.js') }}"></script>
+
     <script>
         var timer_close = null;
-        const editor = document.getElementById("myEditor");
+        const editor = document.getElementById("editor");
         const button_save = document.getElementById("button_save");
         const header = document.getElementById("header");
         const footer = document.getElementById("footer");
 
-        orig_gnss_cfg = editor.value;
+        const darkmode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        var ace_editor = ace.edit("editor");
+        // https://ajaxorg.github.io/ace-api-docs/interfaces/Ace.EditorOptions.html
+        ace_editor.setOptions({
+            animatedScroll: true,
+            cursorStyle: "wide",
+            fontSize: "13px",
+            printMargin: false,
+            // showGutter: false,   // folding symbols
+            showLineNumbers: false,
+        });
+        ace_editor.session.setMode("ace/mode/ini");
+
+        if (darkmode) {
+            ace_editor.setTheme("ace/theme/cloud9_night");
+        } else {
+            ace_editor.setTheme("ace/theme/cloud9_day");
+        }
+        ace_editor.commands.removeCommand('showSettingsMenu');
+
+        orig_gnss_cfg = ace_editor.getValue();
         resize_editor();
+
+        editor.removeAttribute("hidden");
 
         window.onresize = function() {
             console.log("resize");
@@ -79,7 +109,7 @@
 
         editor.onkeyup = function () {
             // enable save button, when content is changed (and only then)
-            if (orig_gnss_cfg != editor.value) {
+            if (orig_gnss_cfg != ace_editor.getValue()) {
                 button_save.disabled = false;
             }
             else {
@@ -160,7 +190,7 @@
         function do_gnss_cfg_save() {
             res = confirm("Do you really want to save the gnss configuration?");
             if (res) {
-                gnss_cfg = editor.value;
+                gnss_cfg = ace_editor.getValue();
                 // console.log(gnss_cfg);
 
                 query = `config=${gnss_cfg}`;
