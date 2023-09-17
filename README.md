@@ -126,6 +126,12 @@ systemctl start vcu-ui      # Start service right now
 
 ### Revision History
 
+#### v0.9.4 (20230917)
+
+- Fix display of hardware version (don't suppress trailing 0)
+- Display maxmimum bearer life time since tool start
+
+
 #### v0.9.3 (20230217)
 
 - Use Ace editor component for GNSS configuration
