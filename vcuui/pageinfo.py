@@ -206,7 +206,7 @@ class MainHandler(tornado.web.RequestHandler):
                         ut = mi['bearer-uptime']
                         if ut:
                             uth, utm = secs_to_hhmm(ut)
-                            tes.append(TE('Uptime', f'{uth}:{utm:02} h'))
+                            tes.append(TE('Uptime', f'{uth}:{utm:02} hh:mm'))
                             ip = mi['bearer-ip']
                             tes.append(TE('IP', ip))
 
