@@ -203,10 +203,22 @@ class MainHandler(tornado.web.RequestHandler):
                     tes.append(TE('Bearer Id', mi['bearer-id']))
 
                     if 'bearer-uptime' in mi:
+                        max_ut = None
+                        wtm = md['watermark']
+                        if 'bearer-uptime' in wtm:
+                            max_ut = wtm['bearer-uptime']
+
                         ut = mi['bearer-uptime']
                         if ut:
                             uth, utm = secs_to_hhmm(ut)
-                            tes.append(TE('Uptime', f'{uth}:{utm:02} hh:mm'))
+                            val = f'{uth}:{utm:02} hh:mm'
+
+                            if max_ut is not None:
+                                max_uth, max_utm = secs_to_hhmm(max_ut)
+                                val += f' (max.: {max_uth}:{max_utm:02} hh:mm)'
+
+                            tes.append(TE('Uptime', val))
+
                             ip = mi['bearer-ip']
                             tes.append(TE('IP', ip))
 

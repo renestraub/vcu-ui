@@ -48,6 +48,7 @@ class Model(object):
         self.worker = ModelWorker(self)
         self.lock = threading.Lock()
         self.data = dict()
+        self.data['watermark'] = dict()
 
         self.led_ind = LED_BiColor('/sys/class/leds/ind')
         self.led_stat = LED_BiColor('/sys/class/leds/status')
@@ -95,10 +96,25 @@ class Model(object):
                     self.led_ind.yellow()
                 else:
                     self.led_ind.green()
+            elif origin == 'modem':
+                if 'bearer-uptime' in value:
+                    self._watermark('bearer-uptime', value['bearer-uptime'])
 
     def remove(self, origin):
         with self.lock:
             self.data.pop(origin, None)
+
+    def _watermark(self, topic, value):
+        if topic not in self.data['watermark']:
+            logger.info(f'creating watermark topic {topic}')
+            self.data['watermark'][topic] = None
+
+        curr = self.data['watermark'][topic]
+        logger.debug(f'checking watermark {topic}, current = {curr}, new = {value}')
+
+        if curr is None or value > curr:
+            self.data['watermark'][topic] = value
+            logger.debug(f'new watermark for {topic} = {value}')
 
 
 class ModelWorker(threading.Thread):
